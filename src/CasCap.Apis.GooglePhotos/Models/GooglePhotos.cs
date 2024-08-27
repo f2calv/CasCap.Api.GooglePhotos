@@ -7,7 +7,7 @@ public enum GooglePhotosScope
 {
     /// <summary>
     /// Read access only.
-    /// 
+    ///
     /// List items from the library and all albums, access all media items and list albums owned by the user, including those which have been shared with them.
     ///
     /// For albums shared by the user, share properties are only returned if the.sharing scope has also been granted.
@@ -39,7 +39,7 @@ public enum GooglePhotosScope
     /// Access to sharing calls.
     ///
     /// Access to create an album, share it, upload media items to it, and join a shared album.
-    /// </summary>   
+    /// </summary>
     Sharing
 }
 

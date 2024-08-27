@@ -16,7 +16,7 @@
 
       The library leverages the authentication in the official Google.Apis.Auth library and builds on that
       by encapsulating all REST API calls in an efficient wrapper returning strongly-typed objects.
-      
+
       For more details about the underlying API see the official site, https://developers.google.com/photos
 
       For usage examples see the docs on github, https://github.com/f2calv/CasCap.Apis.GooglePhotos
