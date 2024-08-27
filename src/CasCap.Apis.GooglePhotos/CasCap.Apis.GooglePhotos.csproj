@@ -16,7 +16,7 @@
 
       The library leverages the authentication in the official Google.Apis.Auth library and builds on that
       by encapsulating all REST API calls in an efficient wrapper returning strongly-typed objects.
-      
+
       For more details about the underlying API see the official site, https://developers.google.com/photos
 
       For usage examples see the docs on github, https://github.com/f2calv/CasCap.Apis.GooglePhotos
@@ -26,10 +26,10 @@
 
   <ItemGroup>
     <PackageReference Include="Google.Apis.Auth" Version="1.68.0" />
-    <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="8.0.4" />
-    <PackageReference Include="CasCap.Common.Net" Version="3.0.5" />
+    <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="8.0.8" />
+    <PackageReference Include="CasCap.Common.Net" Version="4.0.2" />
     <PackageReference Include="MimeTypeMapOfficial" Version="1.0.17" />
-    <PackageReference Include="Microsoft.Extensions.Http.Polly" Version="8.0.4" />
+    <PackageReference Include="Microsoft.Extensions.Http.Polly" Version="8.0.8" />
     <PackageReference Include="System.Linq.Async" Version="6.0.1" />
   </ItemGroup>
 

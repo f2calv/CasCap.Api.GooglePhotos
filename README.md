@@ -2,9 +2,6 @@
 
 ## _Unofficial_ Google Photos Library API wrapper library for .NET applications
 
-[azdo-badge]: https://dev.azure.com/f2calv/github/_apis/build/status/f2calv.CasCap.Apis.GooglePhotos?branchName=master
-[azdo-url]: https://dev.azure.com/f2calv/github/_build/latest?definitionId=7&branchName=master
-[azdo-coverage-url]: https://img.shields.io/azure-devops/coverage/f2calv/github/7
 [cascap.apis.googlephotos-badge]: https://img.shields.io/nuget/v/CasCap.Apis.GooglePhotos?color=blue
 [cascap.apis.googlephotos-url]: https://nuget.org/packages/CasCap.Apis.GooglePhotos
 
