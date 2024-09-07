@@ -5,7 +5,7 @@
 [cascap.apis.googlephotos-badge]: https://img.shields.io/nuget/v/CasCap.Apis.GooglePhotos?color=blue
 [cascap.apis.googlephotos-url]: https://nuget.org/packages/CasCap.Apis.GooglePhotos
 
-![CI](https://github.com/f2calv/CasCap.Apis.GooglePhotos/actions/workflows/ci.yml/badge.svg) [![Coverage Status](https://coveralls.io/repos/github/f2calv/CasCap.Apis.GooglePhotos/badge.svg?branch=main)](https://coveralls.io/github/f2calv/CasCap.Apis.GooglePhotos?branch=main) [![SonarCloud Coverage](https://sonarcloud.io/api/project_badges/measure?project=f2calv_CasCap.Apis.GooglePhotos&metric=code_smells)](https://sonarcloud.io/component_measures/metric/code_smells/list?id=f2calv_CasCap.Apis.GooglePhotos) [![Nuget][cascap.apis.googlephotos-badge]][cascap.apis.googlephotos-url]
+![CI](https://github.com/f2calv/CasCap.Apis.GooglePhotos/actions/workflows/ci.yml/badge.svg) [![Coverage Status](https://coveralls.io/repos/github/f2calv/CasCap.Apis.GooglePhotos/badge.svg?branch=main)](https://coveralls.io/github/f2calv/CasCap.Apis.GooglePhotos?branch=main) [![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=f2calv_CasCap.Apis.GooglePhotos&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=f2calv_CasCap.Apis.GooglePhotos) [![Nuget][cascap.apis.googlephotos-badge]][cascap.apis.googlephotos-url]
 
 > Want to save yourself some coding? See the _preview_ release of [GooglePhotosCli](https://github.com/f2calv/CasCap.GooglePhotosCli) using this library...
 
@@ -271,8 +271,8 @@ All API functions are exposed by the GooglePhotosService class. There are severa
 
 ### Resources
 
-- https://developers.google.com/photos
-- https://console.developers.google.com
+- <https://developers.google.com/photos>
+- <https://console.developers.google.com>
 - [Google Photos Library API](https://developers.google.com/photos)
 - [Google Photos Library API REST Reference](https://developers.google.com/photos/library/reference/rest)
 - [Google Photos Library API Authorisation Scopes](https://developers.google.com/photos/library/guides/authorization)
