@@ -146,7 +146,7 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
             CancellationToken.None,
             dataStore);
 
-        _logger.LogDebug("Authorisation granted or not required (if the saved access token already available)");
+        _logger.LogDebug("Authorization granted or not required (if the saved access token already available)");
 
         if (credential.Token.IsStale)
         {
@@ -332,7 +332,7 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
         if (pageSize < minPageSizeMediaItems || pageSize > maxPageSizeMediaItems)
             throw new ArgumentOutOfRangeException($"{nameof(pageSize)} must be between {minPageSizeMediaItems} and {maxPageSizeMediaItems}!");
 
-        //Note: mediaitem results are not garuanteed to be unique so we check returned ids in a volatile hashset
+        //Note: MediaItem results are not guaranteed to be unique so we check returned ids in a volatile HashSet
         var hs = new HashSet<string>();
         var pageToken = string.Empty;
         var pageNumber = 1;
@@ -433,6 +433,7 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
         var batches = mediaItemIds.GetBatches(defaultBatchSizeMediaItems);
         foreach (var batch in batches)
         {
+            if (cancellationToken.IsCancellationRequested) break;
             //see https://github.com/dotnet/aspnetcore/issues/7945 can't use QueryHelpers.AddQueryString
             //var queryParams = new Dictionary<string, string>(batch.Value.Length);
             //foreach (var mediaItemId in batch.Value)

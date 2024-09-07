@@ -83,7 +83,7 @@ public class Tests : TestBase
         //retrieve all media items from album
         var albumMediaItems = await _googlePhotosSvc.GetMediaItemsByAlbumAsync(album.id).ToListAsync();
         Assert.NotNull(albumMediaItems);
-        Assert.Equal(1, albumMediaItems.Count);
+        Assert.Single(albumMediaItems);
     }
 
     [SkipIfCIBuildFact]
@@ -277,7 +277,7 @@ public class Tests : TestBase
         //get album contents
         var mediaItems1 = await _googlePhotosSvc.GetMediaItemsByAlbumAsync(album.id).ToListAsync();
         Assert.NotNull(mediaItems1);
-        Assert.Equal(1, mediaItems1.Count);
+        Assert.Single(mediaItems1);
 
         //remove from album
         var result2 = await _googlePhotosSvc.RemoveMediaItemsFromAlbumAsync(album.id, new[] { mediaItem.mediaItem.id });
@@ -286,7 +286,7 @@ public class Tests : TestBase
         //get album contents
         var mediaItems2 = await _googlePhotosSvc.GetMediaItemsByAlbumAsync(album.id).ToListAsync();
         Assert.NotNull(mediaItems2);
-        Assert.Equal(0, mediaItems2.Count);
+        Assert.Empty(mediaItems2);
 
         //re-add same pic to album
         var result3 = await _googlePhotosSvc.AddMediaItemsToAlbumAsync(album.id, new[] { mediaItem.mediaItem.id });

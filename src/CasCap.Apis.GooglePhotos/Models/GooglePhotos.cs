@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+
 namespace CasCap.Models;
 
 [JsonConverter(typeof(StringEnumConverter))]
@@ -26,12 +27,12 @@ public enum GooglePhotosScope
     /// <summary>
     /// Read access to media items and albums created by the developer. For more information, see Access media items and List library contents, albums, and media items.
     ///
-    /// Intended to be requested together with the.appendonly scope.
+    /// Intended to be requested together with the AppendOnly scope.
     /// </summary>
     AppCreatedData,
 
     /// <summary>
-    /// Access to both the .appendonly and .readonly scopes. Doesn't include .sharing.
+    /// Access to both the AppendOnly and ReadOnly scopes. Doesn't include Sharing scope.
     /// </summary>
     Access,
 
