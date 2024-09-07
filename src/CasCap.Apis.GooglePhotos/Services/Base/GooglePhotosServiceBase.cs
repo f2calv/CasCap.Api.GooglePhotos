@@ -105,7 +105,7 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
         { GooglePhotosScope.Sharing, "https://www.googleapis.com/auth/photoslibrary.sharing" }
     };
 
-    public async Task<bool> LoginAsync(string User, string ClientId, string ClientSecret, GooglePhotosScope[] Scopes, string? FileDataStoreFullPathOverride = null)
+    public async Task<bool> LoginAsync(string User, string ClientId, string ClientSecret, GooglePhotosScope[] Scopes, string? FileDataStoreFullPathOverride = null, CancellationToken cancellationToken = default)
     {
         _options = new GooglePhotosOptions
         {
@@ -115,16 +115,16 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
             Scopes = Scopes,
             FileDataStoreFullPathOverride = FileDataStoreFullPathOverride
         };
-        return await LoginAsync();
+        return await LoginAsync(cancellationToken);
     }
 
-    public async Task<bool> LoginAsync(GooglePhotosOptions options)
+    public async Task<bool> LoginAsync(GooglePhotosOptions options, CancellationToken cancellationToken = default)
     {
         _options = options ?? throw new ArgumentNullException(nameof(options), $"{nameof(GooglePhotosOptions)} cannot be null!");
-        return await LoginAsync();
+        return await LoginAsync(cancellationToken);
     }
 
-    public async Task<bool> LoginAsync()
+    public async Task<bool> LoginAsync(CancellationToken cancellationToken = default)
     {
         if (_options is null) throw new ArgumentNullException(nameof(_options), $"{nameof(GooglePhotosOptions)}.{nameof(_options)} cannot be null!");
         if (string.IsNullOrWhiteSpace(_options.User)) throw new ArgumentNullException(nameof(_options.User), $"{nameof(GooglePhotosOptions)}.{nameof(_options.User)} cannot be null!");
@@ -143,7 +143,7 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
             secrets,
             GetScopes(),
             _options.User,
-            CancellationToken.None,
+            cancellationToken,
             dataStore);
 
         _logger.LogDebug("Authorization granted or not required (if the saved access token already available)");
