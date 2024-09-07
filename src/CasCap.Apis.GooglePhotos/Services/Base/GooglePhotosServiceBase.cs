@@ -598,7 +598,7 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
         if (!File.Exists(path)) throw new FileNotFoundException($"can't find '{path}'");
         var size = new FileInfo(path).Length;
 
-        if (size < 1) throw new Exception($"media file {path} has no data?");
+        if (size < 1) throw new GooglePhotosException($"media file {path} has no data?");
         if (IsImage(Path.GetExtension(path)) && size > maxSizeImageBytes)
             throw new NotSupportedException($"Media file {path} is too big for known upload limits of {maxSizeImageBytes} bytes!");
         if (IsVideo(Path.GetExtension(path)) && size > maxSizeVideoBytes)
@@ -632,11 +632,11 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
             var tpl = await PostBytes<string, Error>(RequestUris.uploads, [], headers: headers);
             var status = tpl.responseHeaders.TryGetValue(X_Goog_Upload_Status);
 
-            var Upload_URL = tpl.responseHeaders.TryGetValue(X_Goog_Upload_URL) ?? throw new Exception($"{nameof(X_Goog_Upload_URL)}");
+            var Upload_URL = tpl.responseHeaders.TryGetValue(X_Goog_Upload_URL) ?? throw new GooglePhotosException($"{nameof(X_Goog_Upload_URL)}");
             //Debug.WriteLine($"{Upload_URL}={Upload_URL}");
             var sUpload_Chunk_Granularity = tpl.responseHeaders.TryGetValue(X_Goog_Upload_Chunk_Granularity);
             if (int.TryParse(sUpload_Chunk_Granularity, out var Upload_Chunk_Granularity) && Upload_Chunk_Granularity <= 0)
-                throw new Exception($"invalid {X_Goog_Upload_Chunk_Granularity}!");
+                throw new GooglePhotosException($"invalid {X_Goog_Upload_Chunk_Granularity}!");
 
             headers = [];
 

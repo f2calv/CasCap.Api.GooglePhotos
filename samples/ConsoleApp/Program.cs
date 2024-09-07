@@ -1,4 +1,5 @@
-﻿using CasCap.Models;
+﻿using CasCap.Exceptions;
+using CasCap.Models;
 using CasCap.Services;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -62,16 +63,16 @@ var client = new HttpClient(handler) { BaseAddress = new Uri(options.BaseAddress
 var _googlePhotosSvc = new GooglePhotosService(logger, Options.Create(options), client);
 
 //6) log-in
-if (!await _googlePhotosSvc.LoginAsync()) throw new Exception($"login failed!");
+if (!await _googlePhotosSvc.LoginAsync()) throw new GooglePhotosException($"login failed!");
 
 //get existing/create new album
 var albumTitle = $"{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}-{Guid.NewGuid()}";//make-up a random title
-var album = await _googlePhotosSvc.GetOrCreateAlbumAsync(albumTitle) ?? throw new Exception("album creation failed!");
+var album = await _googlePhotosSvc.GetOrCreateAlbumAsync(albumTitle) ?? throw new GooglePhotosException("album creation failed!");
 
 Console.WriteLine($"{nameof(album)} '{album.title}' id is '{album.id}'");
 
 //upload single media item and assign to album
-var mediaItem = await _googlePhotosSvc.UploadSingle($"{_testFolder}test1.jpg", album.id) ?? throw new Exception("media item upload failed!");
+var mediaItem = await _googlePhotosSvc.UploadSingle($"{_testFolder}test1.jpg", album.id) ?? throw new GooglePhotosException("media item upload failed!");
 
 Console.WriteLine($"{nameof(mediaItem)} '{mediaItem.mediaItem.filename}' id is '{mediaItem.mediaItem.id}'");
 
@@ -82,4 +83,4 @@ await foreach (var item in _googlePhotosSvc.GetMediaItemsByAlbumAsync(album.id))
     i++;
     Console.WriteLine($"{i}\t{item.filename}\t{item.mediaMetadata.width}x{item.mediaMetadata.height}");
 }
-if (i == 0) throw new Exception("retrieve media items by album id failed!");
+if (i == 0) throw new GooglePhotosException("retrieve media items by album id failed!");
