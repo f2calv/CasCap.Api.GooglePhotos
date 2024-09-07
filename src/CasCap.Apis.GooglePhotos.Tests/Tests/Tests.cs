@@ -5,6 +5,7 @@ using CasCap.Xunit;
 using System.Diagnostics;
 using Xunit;
 using Xunit.Abstractions;
+
 namespace CasCap.Apis.GooglePhotos.Tests;
 
 /// <summary>
@@ -82,7 +83,7 @@ public class Tests : TestBase
         //retrieve all media items from album
         var albumMediaItems = await _googlePhotosSvc.GetMediaItemsByAlbumAsync(album.id).ToListAsync();
         Assert.NotNull(albumMediaItems);
-        Assert.True(albumMediaItems.Count == 1);
+        Assert.Equal(1, albumMediaItems.Count);
     }
 
     [SkipIfCIBuildFact]
@@ -145,7 +146,7 @@ public class Tests : TestBase
         ids.Add("invalid-id");
         var mediaItems2 = await _googlePhotosSvc.GetMediaItemsByIdsAsync(ids.ToArray()).ToListAsync();
         Assert.NotNull(mediaItems2);
-        Assert.True(ids.Count - mediaItems2.Count == 1);//should have 1 failed item
+        Assert.Equal(1, ids.Count - mediaItems2.Count);//should have 1 failed item
         foreach (var _mi in mediaItems2)
         {
             Debug.WriteLine(_mi.ToJSON());
@@ -165,19 +166,19 @@ public class Tests : TestBase
             contentFilter = new contentFilter
 #pragma warning restore CS0162 // Unreachable code detected
             {
-                includedContentCategories = new[] { GooglePhotosContentCategoryType.PEOPLE },
-                //includedContentCategories = new[] { contentCategoryType.WEDDINGS },
-                //excludedContentCategories = new[] { contentCategoryType.PEOPLE }
+                includedContentCategories = [GooglePhotosContentCategoryType.PEOPLE],
+                //includedContentCategories = [contentCategoryType.WEDDINGS],
+                //excludedContentCategories = [contentCategoryType.PEOPLE]
             };
 
         dateFilter dateFilter = new()
         {
-            //dates = new gDate[] { new gDate { year = 2020 } },
-            //dates = new gDate[] { new gDate { year = 2016 } },
-            //dates = new gDate[] { new gDate { year = 2016, month = 12 } },
-            //dates = new gDate[] { new gDate { year = 2016, month = 12, day = 16 } },
-            //ranges = new gDateRange[] { new gDateRange { startDate = new startDate { year = 2016 }, endDate = new endDate { year = 2017 } } },
-            ranges = new gDateRange[] { new gDateRange { startDate = new gDate { year = 1900 }, endDate = new gDate { year = DateTime.UtcNow.Year } } },
+            //dates = [new() { year = 2020 }],
+            //dates = [new() { year = 2016 }],
+            //dates = [new() { year = 2016, month = 12 }],
+            //dates = [new() { year = 2016, month = 12, day = 16 }],
+            //ranges = [new() { startDate = new() { year = 2016 }, endDate = new() { year = 2017 } }],
+            ranges = [new() { startDate = new() { year = 1900 }, endDate = new() { year = DateTime.UtcNow.Year } }],
         };
         mediaTypeFilter mediaTypeFilter = null;
         if (false)
@@ -185,8 +186,8 @@ public class Tests : TestBase
             mediaTypeFilter = new mediaTypeFilter
 #pragma warning restore CS0162 // Unreachable code detected
             {
-                mediaTypes = new[] { GooglePhotosMediaType.PHOTO }
-                //mediaTypes = new[] { mediaType.VIDEO }
+                mediaTypes = [GooglePhotosMediaType.PHOTO]
+                //mediaTypes = [mediaType.VIDEO]
             };
         featureFilter featureFilter = null;
         if (false)
@@ -194,7 +195,7 @@ public class Tests : TestBase
             featureFilter = new featureFilter
 #pragma warning restore CS0162 // Unreachable code detected
             {
-                includedFeatures = new[] { GooglePhotosFeatureType.FAVORITES }
+                includedFeatures = [GooglePhotosFeatureType.FAVORITES]
             };
         var filter = new Filter
         {
@@ -276,7 +277,7 @@ public class Tests : TestBase
         //get album contents
         var mediaItems1 = await _googlePhotosSvc.GetMediaItemsByAlbumAsync(album.id).ToListAsync();
         Assert.NotNull(mediaItems1);
-        Assert.True(mediaItems1.Count == 1);
+        Assert.Equal(1, mediaItems1.Count);
 
         //remove from album
         var result2 = await _googlePhotosSvc.RemoveMediaItemsFromAlbumAsync(album.id, new[] { mediaItem.mediaItem.id });
@@ -285,7 +286,7 @@ public class Tests : TestBase
         //get album contents
         var mediaItems2 = await _googlePhotosSvc.GetMediaItemsByAlbumAsync(album.id).ToListAsync();
         Assert.NotNull(mediaItems2);
-        Assert.True(mediaItems2.Count == 0);
+        Assert.Equal(0, mediaItems2.Count);
 
         //re-add same pic to album
         var result3 = await _googlePhotosSvc.AddMediaItemsToAlbumAsync(album.id, new[] { mediaItem.mediaItem.id });
@@ -294,7 +295,7 @@ public class Tests : TestBase
         //get album contents
         var mediaItems3 = await _googlePhotosSvc.GetMediaItemsByAlbumAsync(album.id).ToListAsync();
         Assert.NotNull(mediaItems3);
-        Assert.True(mediaItems3.Count == 1);
+        Assert.Single(mediaItems3);
 
         //enable sharing on album
         var shareInfo = await _googlePhotosSvc.ShareAlbumAsync(album.id);
@@ -304,7 +305,7 @@ public class Tests : TestBase
 
         //retrieve shared albums
         var sharedAlbums = await _googlePhotosSvc.GetSharedAlbumsAsync();
-        Assert.True(sharedAlbums.Count == 1);
+        Assert.Single(sharedAlbums);
 
         var sharedAlb1a = await _googlePhotosSvc.GetAlbumAsync(album.id);
         Assert.NotNull(sharedAlb1a);

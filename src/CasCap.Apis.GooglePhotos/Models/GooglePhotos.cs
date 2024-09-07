@@ -132,15 +132,15 @@ public class Filter
     {
         dateFilter = new dateFilter
         {
-            ranges = new[] { new gDateRange { startDate = new gDate(startDate), endDate = new gDate(endDate) } }
+            ranges = [new() { startDate = new gDate(startDate), endDate = new gDate(endDate) }]
         };
     }
 
-    public Filter(GooglePhotosContentCategoryType category) => this.contentFilter = new contentFilter { includedContentCategories = new[] { category } };
+    public Filter(GooglePhotosContentCategoryType category) => contentFilter = new contentFilter { includedContentCategories = [category] };
 
-    public Filter(GooglePhotosContentCategoryType[] categories) => this.contentFilter = new contentFilter { includedContentCategories = categories };
+    public Filter(GooglePhotosContentCategoryType[] categories) => contentFilter = new contentFilter { includedContentCategories = categories };
 
-    public Filter(List<GooglePhotosContentCategoryType> categories) => this.contentFilter = new contentFilter { includedContentCategories = categories.ToArray() };
+    public Filter(List<GooglePhotosContentCategoryType> categories) => contentFilter = new contentFilter { includedContentCategories = categories.ToArray() };
 
     public contentFilter? contentFilter { get; set; }
     public dateFilter? dateFilter { get; set; }

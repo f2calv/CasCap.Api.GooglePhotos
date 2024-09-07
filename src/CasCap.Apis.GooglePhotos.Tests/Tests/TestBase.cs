@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Xunit.Abstractions;
+
 namespace CasCap.Apis.GooglePhotos.Tests;
 
 public abstract class TestBase

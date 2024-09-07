@@ -38,7 +38,7 @@ var options = new GooglePhotosOptions
     ClientId = _clientId,
     ClientSecret = _clientSecret,
     //FileDataStoreFullPathOverride = _testFolder,
-    Scopes = new[] { GooglePhotosScope.Access, GooglePhotosScope.Sharing },//Access+Sharing == full access
+    Scopes = [GooglePhotosScope.Access, GooglePhotosScope.Sharing],//Access+Sharing == full access
 };
 
 //3) (Optional) display local OAuth 2.0 JSON file(s);
@@ -66,13 +66,13 @@ if (!await _googlePhotosSvc.LoginAsync()) throw new Exception($"login failed!");
 
 //get existing/create new album
 var albumTitle = $"{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}-{Guid.NewGuid()}";//make-up a random title
-var album = await _googlePhotosSvc.GetOrCreateAlbumAsync(albumTitle);
-if (album is null) throw new Exception("album creation failed!");
+var album = await _googlePhotosSvc.GetOrCreateAlbumAsync(albumTitle) ?? throw new Exception("album creation failed!");
+
 Console.WriteLine($"{nameof(album)} '{album.title}' id is '{album.id}'");
 
 //upload single media item and assign to album
-var mediaItem = await _googlePhotosSvc.UploadSingle($"{_testFolder}test1.jpg", album.id);
-if (mediaItem is null) throw new Exception("media item upload failed!");
+var mediaItem = await _googlePhotosSvc.UploadSingle($"{_testFolder}test1.jpg", album.id) ?? throw new Exception("media item upload failed!");
+
 Console.WriteLine($"{nameof(mediaItem)} '{mediaItem.mediaItem.filename}' id is '{mediaItem.mediaItem.id}'");
 
 //retrieve all media items in the album
