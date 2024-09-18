@@ -19,7 +19,7 @@ public class ExifTests : TestBase
         var loginResult = await _googlePhotosSvc.LoginAsync();
         Assert.True(loginResult);
 
-        var tplOriginal = await ExifTests.GetExifInfo(path);
+        var tplOriginal = await GetExifInfo(path);
         Assert.Equal(latitude, tplOriginal.latitude);
         Assert.Equal(longitude, tplOriginal.longitude);
         Assert.Equal(exifTagCount, tplOriginal.exifTagCount);
