@@ -1,13 +1,4 @@
-﻿using CasCap.Models;
-using CasCap.Services;
-using CasCap.Xunit;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Metadata.Profiles.Exif;
-using System.Diagnostics;
-using Xunit;
-using Xunit.Abstractions;
-
-namespace CasCap.Apis.GooglePhotos.Tests;
+﻿namespace CasCap.Tests;
 
 public class ExifTests : TestBase
 {

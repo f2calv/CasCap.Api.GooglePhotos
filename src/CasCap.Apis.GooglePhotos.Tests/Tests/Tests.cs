@@ -1,12 +1,4 @@
-﻿using CasCap.Common.Extensions;
-using CasCap.Models;
-using CasCap.Services;
-using CasCap.Xunit;
-using System.Diagnostics;
-using Xunit;
-using Xunit.Abstractions;
-
-namespace CasCap.Apis.GooglePhotos.Tests;
+﻿namespace CasCap.Tests;
 
 /// <summary>
 /// Integration tests for GooglePhotos API library, update appsettings.Test.json with appropriate login values before running.
