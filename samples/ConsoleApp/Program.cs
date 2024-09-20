@@ -1,17 +1,9 @@
-﻿using CasCap.Exceptions;
-using CasCap.Models;
-using CasCap.Services;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using System.Diagnostics;
-using System.Net;
-
-string _user = null;//e.g. "your.email@mydomain.com";
+﻿string _user = null;//e.g. "your.email@mydomain.com";
 string _clientId = null;//e.g. "012345678901-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.apps.googleusercontent.com";
 string _clientSecret = null;//e.g. "abcabcabcabcabcabcabcabc";
 const string _testFolder = "c:/temp/GooglePhotos/";//local folder of test media files
 
-if (new[] { _user, _clientId, _clientSecret }.Any(p => string.IsNullOrWhiteSpace(p)))
+if (new[] { _user, _clientId, _clientSecret }.Any(string.IsNullOrWhiteSpace))
 {
     Console.WriteLine("Please populate authentication details to continue...");
     Debugger.Break();
@@ -63,7 +55,8 @@ var client = new HttpClient(handler) { BaseAddress = new Uri(options.BaseAddress
 var _googlePhotosSvc = new GooglePhotosService(logger, Options.Create(options), client);
 
 //6) log-in
-if (!await _googlePhotosSvc.LoginAsync()) throw new GooglePhotosException($"login failed!");
+if (!await _googlePhotosSvc.LoginAsync())
+    throw new GooglePhotosException($"login failed!");
 
 //get existing/create new album
 var albumTitle = $"{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}-{Guid.NewGuid()}";//make-up a random title
