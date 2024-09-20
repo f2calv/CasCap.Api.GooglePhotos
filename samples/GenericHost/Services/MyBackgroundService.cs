@@ -1,6 +1,4 @@
-﻿using CasCap.Exceptions;
-
-namespace CasCap.Services;
+﻿namespace CasCap.Services;
 
 public class MyBackgroundService : BackgroundService
 {
