@@ -24,7 +24,7 @@ public abstract class TestBase
         _logger = ApplicationLogging.LoggerFactory.CreateLogger<TestBase>();
 
         //add services
-        services.AddGooglePhotos();
+        services.AddGooglePhotos(configuration);
 
         //retrieve services
         var serviceProvider = services.BuildServiceProvider();

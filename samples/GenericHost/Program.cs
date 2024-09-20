@@ -16,7 +16,7 @@ public class Program
             })
             .ConfigureServices((hostContext, services) =>
             {
-                services.AddGooglePhotos();
+                services.AddGooglePhotos(hostContext.Configuration);
                 services.AddHostedService<MyBackgroundService>();
             })
             .Build().Run();

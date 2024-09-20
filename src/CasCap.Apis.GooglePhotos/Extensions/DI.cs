@@ -6,24 +6,46 @@ namespace Microsoft.Extensions.DependencyInjection;
 
 public static class DI
 {
-    public static void AddGooglePhotos(this IServiceCollection services)
-        => services.AddGooglePhotos(_ => { });
+    public static void AddGooglePhotos(this IServiceCollection services, IConfiguration configuration, string sectionKey = GooglePhotosOptions.SectionKey)
+        => services.AddServices(configuration: configuration, sectionKey: sectionKey);
 
-    static readonly string sectionKey = $"{nameof(CasCap)}:{nameof(GooglePhotosOptions)}";
+    public static void AddGooglePhotos(this IServiceCollection services, GooglePhotosOptions googlePhotosOptions)
+        => services.AddServices(googlePhotosOptions: googlePhotosOptions);
 
-    public static void AddGooglePhotos(this IServiceCollection services, Action<GooglePhotosOptions> configure)
+    public static void AddGooglePhotos(this IServiceCollection services, Action<GooglePhotosOptions> configureOptions)
+        => services.AddServices(configureOptions: configureOptions);
+
+    static void AddServices(this IServiceCollection services,
+        IConfiguration? configuration = null,
+        string sectionKey = GooglePhotosOptions.SectionKey,
+        GooglePhotosOptions? googlePhotosOptions = null,
+        Action<GooglePhotosOptions>? configureOptions = null
+        )
     {
-        services.AddSingleton<IConfigureOptions<GooglePhotosOptions>>(s =>
+        if (configuration is not null)
         {
-            var configuration = s.GetService<IConfiguration?>();
-            return new ConfigureOptions<GooglePhotosOptions>(options => configuration?.Bind(sectionKey, options));
-        });
+            var configSection = configuration.GetSection(sectionKey);
+            googlePhotosOptions = configSection.Get<GooglePhotosOptions>();
+            if (googlePhotosOptions is not null)
+                services.Configure<GooglePhotosOptions>(configSection);
+        }
+        else if (googlePhotosOptions is not null)
+        {
+            var options = Options.Options.Create(googlePhotosOptions);
+            services.AddSingleton(options);
+        }
+        else if (configureOptions is not null)
+        {
+            services.Configure(configureOptions);
+            googlePhotosOptions = new();
+            configureOptions.Invoke(googlePhotosOptions);
+        }
+        if (googlePhotosOptions is null)
+            throw new GooglePhotosException($"configuration object {nameof(GooglePhotosOptions)} is null so cannot continue");
+
         services.AddHttpClient<GooglePhotosService>((s, client) =>
         {
-            var configuration = s.GetRequiredService<IConfiguration>();
-            var options = configuration.GetSection(sectionKey).Get<GooglePhotosOptions>();
-            options ??= new GooglePhotosOptions();//we use default BaseAddress if no config object injected in
-            client.BaseAddress = new Uri(options.BaseAddress);
+            client.BaseAddress = new Uri(googlePhotosOptions.BaseAddress);
             client.DefaultRequestHeaders.Add("User-Agent", $"{nameof(CasCap)}.{AppDomain.CurrentDomain.FriendlyName}.{Environment.MachineName}");
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             client.DefaultRequestHeaders.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));
