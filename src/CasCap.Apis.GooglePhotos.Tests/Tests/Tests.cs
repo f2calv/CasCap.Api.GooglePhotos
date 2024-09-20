@@ -141,7 +141,7 @@ public class Tests : TestBase
         Assert.Equal(1, ids.Count - mediaItems2.Count);//should have 1 failed item
         foreach (var _mi in mediaItems2)
         {
-            Debug.WriteLine(_mi.ToJSON());
+            Debug.WriteLine(_mi.ToJson());
         }
         Assert.True(true);
     }
