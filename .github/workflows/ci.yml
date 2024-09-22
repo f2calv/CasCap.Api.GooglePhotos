@@ -44,7 +44,7 @@ jobs:
         run: |
           pwd
           TOKEN_RESPONSE=${{ secrets.GOOGLE_PHOTOS_TOKEN_RESPONSE }}
-          echo $TOKEN_RESPONSE > Google.Apis.Auth.OAuth2.Responses.TokenResponse-${{ secrets.GOOGLE_PHOTOS_EMAIL }}.json
+          cat >> oogle.Apis.Auth.OAuth2.Responses.TokenResponse-${{ secrets.GOOGLE_PHOTOS_EMAIL }}.json $TOKEN_RESPONSE
           ls -ls
           cat Google.Apis.Auth.OAuth2.Responses.TokenResponse-${{ secrets.GOOGLE_PHOTOS_EMAIL }}.json
 
