@@ -30,10 +30,36 @@ jobs:
   lint:
     uses: f2calv/gha-workflows/.github/workflows/lint.yml@v1
 
-  ci:
-    uses: f2calv/gha-workflows/.github/workflows/dotnet-publish-nuget.yml@v1
+  versioning:
+    uses: f2calv/gha-workflows/.github/workflows/gha-release-versioning.yml@v1
     with:
-      configuration: ${{ github.event.inputs.configuration }}
-      push-preview: ${{ github.event.inputs.push-preview }}
-    secrets:
-      NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+      tag-prefix: ''
+      tag-and-release: false
+
+  build:
+    runs-on: ubuntu-latest
+    needs: [versioning]
+    steps:
+      - uses: f2calv/gha-dotnet-nuget@v2
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+          configuration: ${{ inputs.configuration }}
+          push-preview: ${{ inputs.push-preview }}
+          version: ${{ needs.versioning.outputs.version }}
+        env:
+          CasCap__GooglePhotosOptions__User: ${{ secrets.GOOGLE_PHOTOS_EMAIL }}
+          CasCap__GooglePhotosOptions__ClientId: ${{ secrets.GOOGLE_PHOTOS_CLIENTID }}
+          CasCap__GooglePhotosOptions__ClientSecret: ${{ secrets.GOOGLE_PHOTOS_SECRET }}
+
+  release:
+    needs: [versioning, build]
+    if: needs.versioning.outputs.release-exists == 'false'
+      && (github.ref == format('refs/heads/{0}', github.event.repository.default_branch) || inputs.push-preview == 'true')
+    uses: f2calv/gha-workflows/.github/workflows/gha-release-versioning.yml@v1
+    permissions:
+      contents: write
+    with:
+      semVer: ${{ needs.versioning.outputs.version }}
+      tag-prefix: ''
+      move-major-tag: false

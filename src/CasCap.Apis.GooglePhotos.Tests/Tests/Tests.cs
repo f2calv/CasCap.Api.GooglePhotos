@@ -7,7 +7,8 @@ public class Tests : TestBase
 {
     public Tests(ITestOutputHelper output) : base(output) { }
 
-    [SkipIfCIBuildFact]
+    //[SkipIfCIBuildFact]
+    [Fact]
     public async Task LoginTest()
     {
         var loginResult = await _googlePhotosSvc.LoginAsync();
