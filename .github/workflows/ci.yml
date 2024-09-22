@@ -40,7 +40,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: [versioning]
     steps:
-      - run:
+      - name: debugging
+        run: |
           pwd
           ${{ secrets.GOOGLE_PHOTOS_TOKEN_RESPONSE }} > Google.Apis.Auth.OAuth2.Responses.TokenResponse-${{ secrets.GOOGLE_PHOTOS_EMAIL }}.json
           ls -ls
