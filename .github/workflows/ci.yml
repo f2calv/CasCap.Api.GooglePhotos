@@ -40,25 +40,24 @@ jobs:
     runs-on: ubuntu-latest
     needs: [versioning]
     steps:
-      - name: debugging
+      - name: setup token
         run: |
-          pwd
+          #pwd
           echo ${{ secrets.GOOGLE_PHOTOS_TOKEN_RESPONSE }} | base64 --decode | jq > Google.Apis.Auth.OAuth2.Responses.TokenResponse-${{ secrets.GOOGLE_PHOTOS_EMAIL }}.json
+          #cat Google.Apis.Auth.OAuth2.Responses.TokenResponse-${{ secrets.GOOGLE_PHOTOS_EMAIL }}.json
 
-          cat Google.Apis.Auth.OAuth2.Responses.TokenResponse-${{ secrets.GOOGLE_PHOTOS_EMAIL }}.json
-
-      # - uses: f2calv/gha-dotnet-nuget@v2
-      #   with:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #     NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
-      #     configuration: ${{ inputs.configuration }}
-      #     push-preview: ${{ inputs.push-preview }}
-      #     version: ${{ needs.versioning.outputs.version }}
-      #   env:
-      #     CasCap__GooglePhotosOptions__User: ${{ secrets.GOOGLE_PHOTOS_EMAIL }}
-      #     CasCap__GooglePhotosOptions__ClientId: ${{ secrets.GOOGLE_PHOTOS_CLIENTID }}
-      #     CasCap__GooglePhotosOptions__ClientSecret: ${{ secrets.GOOGLE_PHOTOS_SECRET }}
-      #     #FileDataStoreFullPathOverride: 
+      - uses: f2calv/gha-dotnet-nuget@v2
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+          configuration: ${{ inputs.configuration }}
+          push-preview: ${{ inputs.push-preview }}
+          version: ${{ needs.versioning.outputs.version }}
+        env:
+          CasCap__GooglePhotosOptions__User: ${{ secrets.GOOGLE_PHOTOS_EMAIL }}
+          CasCap__GooglePhotosOptions__ClientId: ${{ secrets.GOOGLE_PHOTOS_CLIENTID }}
+          CasCap__GooglePhotosOptions__ClientSecret: ${{ secrets.GOOGLE_PHOTOS_SECRET }}
+          FileDataStoreFullPathOverride: /home/runner/work/CasCap.Apis.GooglePhotos/CasCap.Apis.GooglePhotos
 
   release:
     needs: [versioning, build]
