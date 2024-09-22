@@ -51,9 +51,10 @@ jobs:
           #cat Google.Apis.Auth.OAuth2.Responses.TokenResponse-${{ secrets.GOOGLE_PHOTOS_EMAIL }}.json
           ls -lsa
 
-      - #uses: f2calv/gha-dotnet-nuget@v2
-      uses: f2calv/gha-dotnet-nuget@f2calv/2024-09-checkout
+      #- uses: f2calv/gha-dotnet-nuget@v2
+      - uses: f2calv/gha-dotnet-nuget@f2calv/2024-09-checkout
         with:
+          checkout: false
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
           configuration: ${{ inputs.configuration }}
