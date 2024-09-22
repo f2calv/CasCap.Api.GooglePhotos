@@ -40,13 +40,19 @@ jobs:
     runs-on: ubuntu-latest
     needs: [versioning]
     steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - name: setup token
         run: |
           #pwd
           echo ${{ secrets.GOOGLE_PHOTOS_TOKEN_RESPONSE }} | base64 --decode | jq > Google.Apis.Auth.OAuth2.Responses.TokenResponse-${{ secrets.GOOGLE_PHOTOS_EMAIL }}.json
           #cat Google.Apis.Auth.OAuth2.Responses.TokenResponse-${{ secrets.GOOGLE_PHOTOS_EMAIL }}.json
+          ls -lsa
 
-      - uses: f2calv/gha-dotnet-nuget@v2
+      - #uses: f2calv/gha-dotnet-nuget@v2
+      uses: f2calv/gha-dotnet-nuget@f2calv/2024-09-checkout
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
