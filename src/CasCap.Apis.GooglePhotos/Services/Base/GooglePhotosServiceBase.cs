@@ -26,7 +26,7 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
 
     const int defaultBatchSizeMediaItems = 50;
 
-    GooglePhotosOptions? _options;
+    GooglePhotosOptions _options;
 
     public GooglePhotosServiceBase(ILogger<GooglePhotosService> logger,
         IOptions<GooglePhotosOptions> options,
@@ -34,7 +34,7 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
         )
     {
         _logger = logger;
-        _options = options.Value;// ?? throw new ArgumentNullException(nameof(options), $"{nameof(GooglePhotosOptions)} cannot be null!");
+        _options = options?.Value;// ?? throw new ArgumentNullException(nameof(options), $"{nameof(GooglePhotosOptions)} cannot be null!");
         _client = client ?? throw new ArgumentNullException(nameof(client), $"{nameof(HttpClient)} cannot be null!");
     }
 
@@ -126,7 +126,11 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
 
     public async Task<bool> LoginAsync(CancellationToken cancellationToken = default)
     {
-        if (_options is null) throw new ArgumentNullException(nameof(_options), $"{nameof(GooglePhotosOptions)}.{nameof(_options)} cannot be null!");
+        _logger.LogInformation("FileDataStoreFullPathDefault={path}", _options.FileDataStoreFullPathDefault);
+        _logger.LogInformation("FileDataStoreFullPathOverride={path}", _options.FileDataStoreFullPathOverride);
+        Console.WriteLine($"FileDataStoreFullPathDefault={_options.FileDataStoreFullPathDefault}");
+        Console.WriteLine($"FileDataStoreFullPathOverride={_options.FileDataStoreFullPathOverride}");
+
         if (string.IsNullOrWhiteSpace(_options.User)) throw new ArgumentNullException(nameof(_options.User), $"{nameof(GooglePhotosOptions)}.{nameof(_options.User)} cannot be null!");
         if (string.IsNullOrWhiteSpace(_options.ClientId)) throw new ArgumentNullException(nameof(_options.ClientId), $"{nameof(GooglePhotosOptions)}.{nameof(_options.ClientId)} cannot be null!");
         if (string.IsNullOrWhiteSpace(_options.ClientSecret)) throw new ArgumentNullException(nameof(_options.ClientSecret), $"{nameof(GooglePhotosOptions)}.{nameof(_options.ClientSecret)} cannot be null!");

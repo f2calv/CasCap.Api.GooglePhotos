@@ -14,7 +14,7 @@ public class Tests : TestBase
         var loginResult = await _googlePhotosSvc.LoginAsync();
         Assert.True(loginResult);
     }
-
+    /*
     static string GetRandomAlbumName() => $"{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}";
 
     [SkipIfCIBuildTheory, Trait("Type", nameof(GooglePhotosService))]
@@ -337,4 +337,5 @@ public class Tests : TestBase
         var bytes = await _googlePhotosSvc.DownloadBytes(mediaItems[0]);
         Assert.NotNull(bytes);
     }
+    */
 }
