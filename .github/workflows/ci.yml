@@ -50,11 +50,13 @@ jobs:
           echo ${{ secrets.GOOGLE_PHOTOS_TOKEN_RESPONSE }} | base64 --decode | jq > Google.Apis.Auth.OAuth2.Responses.TokenResponse-${{ secrets.GOOGLE_PHOTOS_EMAIL }}.json
           #cat Google.Apis.Auth.OAuth2.Responses.TokenResponse-${{ secrets.GOOGLE_PHOTOS_EMAIL }}.json
           ls -lsa
+          echo "folder is;"
+          pwd
 
-      - name: xdg-utils
-        run: |
-          sudo apt-get update
-          sudo apt-get install xdg-utils -y
+      # - name: xdg-utils
+      #   run: |
+      #     sudo apt-get update
+      #     sudo apt-get install xdg-utils -y
 
       #- uses: f2calv/gha-dotnet-nuget@v2
       - uses: f2calv/gha-dotnet-nuget@f2calv/2024-09-checkout
