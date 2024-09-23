@@ -11,6 +11,7 @@ public class Tests : TestBase
     [Fact]
     public async Task LoginTest()
     {
+        _logger.Log
         var loginResult = await _googlePhotosSvc.LoginAsync();
         Assert.True(loginResult);
     }

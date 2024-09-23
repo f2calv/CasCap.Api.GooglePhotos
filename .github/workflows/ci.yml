@@ -68,7 +68,7 @@ jobs:
           push-preview: ${{ inputs.push-preview }}
           version: ${{ needs.versioning.outputs.version }}
         env:
-          CasCap__GooglePhotosOptions__User: ${{ secrets.GOOGLE_PHOTOS_EMAIL }}
+          CasCap__GooglePhotosOptions__User: f2calv@gmail.com #${{ secrets.GOOGLE_PHOTOS_EMAIL }}
           CasCap__GooglePhotosOptions__ClientId: ${{ secrets.GOOGLE_PHOTOS_CLIENTID }}
           CasCap__GooglePhotosOptions__ClientSecret: ${{ secrets.GOOGLE_PHOTOS_SECRET }}
           CasCap__GooglePhotosOptions__FileDataStoreFullPathOverride: /home/runner/work/CasCap.Apis.GooglePhotos/CasCap.Apis.GooglePhotos
