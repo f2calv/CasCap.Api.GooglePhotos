@@ -47,7 +47,7 @@ jobs:
       - name: setup token
         run: |
           #pwd
-          echo ${{ secrets.GOOGLE_PHOTOS_TOKEN_RESPONSE }} | base64 --decode | jq > Google.Apis.Auth.OAuth2.Responses.TokenResponse-${{ secrets.GOOGLE_PHOTOS_EMAIL }}.json
+          echo ${{ secrets.GOOGLE_PHOTOS_TOKEN_RESPONSE_BASE64 }} | base64 --decode | jq > Google.Apis.Auth.OAuth2.Responses.TokenResponse-${{ secrets.GOOGLE_PHOTOS_EMAIL }}.json
           #cat Google.Apis.Auth.OAuth2.Responses.TokenResponse-${{ secrets.GOOGLE_PHOTOS_EMAIL }}.json
           ls -lsa
           echo "folder is;"
@@ -68,7 +68,7 @@ jobs:
           push-preview: ${{ inputs.push-preview }}
           version: ${{ needs.versioning.outputs.version }}
         env:
-          CasCap__GooglePhotosOptions__User: f2calv@gmail.com #${{ secrets.GOOGLE_PHOTOS_EMAIL }}
+          CasCap__GooglePhotosOptions__User: f2calv@gmail.com
           CasCap__GooglePhotosOptions__ClientId: ${{ secrets.GOOGLE_PHOTOS_CLIENTID }}
           CasCap__GooglePhotosOptions__ClientSecret: ${{ secrets.GOOGLE_PHOTOS_SECRET }}
           CasCap__GooglePhotosOptions__FileDataStoreFullPathOverride: /home/runner/work/CasCap.Apis.GooglePhotos/CasCap.Apis.GooglePhotos
