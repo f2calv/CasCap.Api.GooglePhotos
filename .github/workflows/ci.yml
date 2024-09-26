@@ -67,11 +67,13 @@ jobs:
           configuration: ${{ inputs.configuration }}
           push-preview: ${{ inputs.push-preview }}
           version: ${{ needs.versioning.outputs.version }}
+          solution-name: CasCap.Apis.GooglePhotos.Release.sln
         env:
           CasCap__GooglePhotosOptions__User: f2calv@gmail.com
           CasCap__GooglePhotosOptions__ClientId: ${{ secrets.GOOGLE_PHOTOS_CLIENTID }}
           CasCap__GooglePhotosOptions__ClientSecret: ${{ secrets.GOOGLE_PHOTOS_SECRET }}
           CasCap__GooglePhotosOptions__FileDataStoreFullPathOverride: /home/runner/work/CasCap.Apis.GooglePhotos/CasCap.Apis.GooglePhotos
+          GOOGLE_PHOTOS_ACCESS_TOKEN: ${{ secrets.GOOGLE_PHOTOS_ACCESS_TOKEN }}
 
   release:
     needs: [versioning, build]
