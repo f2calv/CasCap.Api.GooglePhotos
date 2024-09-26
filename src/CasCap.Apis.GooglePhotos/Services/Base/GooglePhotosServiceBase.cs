@@ -34,7 +34,7 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
         )
     {
         _logger = logger;
-        _options = options?.Value;// ?? throw new ArgumentNullException(nameof(options), $"{nameof(GooglePhotosOptions)} cannot be null!");
+        _options = options.Value;
         _client = client ?? throw new ArgumentNullException(nameof(client), $"{nameof(HttpClient)} cannot be null!");
     }
 
@@ -165,7 +165,7 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
         }
         else
             _logger.LogDebug("The access token is OK, continue");
-        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(credential.Token.TokenType, credential.Token.AccessToken);
+        SetAuth(credential.Token.TokenType, credential.Token.AccessToken);
         return true;
 
         string[] GetScopes()//todo: make extension method to convert any enum to string[] and move to CasCap.Common.Extensions
@@ -177,6 +177,14 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
             return l.ToArray();
         }
     }
+
+    /// <summary>
+    /// Hack to allow us to set the auth header when running integration tests from CI.
+    /// </summary>
+    /// <param name="tokenType"></param>
+    /// <param name="accessToken"></param>
+    public void SetAuth(string tokenType, string accessToken)
+        => _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(tokenType, accessToken);
 
     #region https://photoslibrary.googleapis.com/v1/albums
 

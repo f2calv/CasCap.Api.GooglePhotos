@@ -7,18 +7,44 @@ public class Tests : TestBase
 {
     public Tests(ITestOutputHelper output) : base(output) { }
 
-    //[SkipIfCIBuildFact]
-    [Fact]
+    [SkipIfCIBuildFact]
+    //[Fact]
     public async Task LoginTest()
     {
-        _logger.LogInformation("test123");
-        Console.WriteLine("test345");
-        var loginResult = await _googlePhotosSvc.LoginAsync();
+        var loginResult = await DoLogin();
         Assert.True(loginResult);
     }
-    /*
+
+    async Task<bool> DoLogin()
+    {
+        if (IsCI())
+        {
+            var accessToken = Environment.GetEnvironmentVariable("GOOGLE_PHOTOS_ACCESS_TOKEN");
+            if (string.IsNullOrWhiteSpace(accessToken)) throw new ArgumentNullException(nameof(accessToken));
+            _googlePhotosSvc.SetAuth("Bearer", accessToken);
+            return true;
+        }
+        else
+            return await _googlePhotosSvc.LoginAsync();
+    }
+
+    [Fact]
+    public async Task HackTest()
+    {
+        await DoLogin();
+        //get or create new album
+        var albumName = GetRandomAlbumName();
+        var album = await _googlePhotosSvc.GetOrCreateAlbumAsync(albumName);
+        Assert.NotNull(album);
+        Assert.NotNull(album.id);
+    }
+
+    static bool IsCI() => Environment.GetEnvironmentVariable("TF_BUILD") is not null
+        || Environment.GetEnvironmentVariable("GITHUB_ACTIONS") is not null;
+
     static string GetRandomAlbumName() => $"{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}";
 
+    /*
     [SkipIfCIBuildTheory, Trait("Type", nameof(GooglePhotosService))]
     [InlineData(GooglePhotosUploadMethod.Simple)]
     [InlineData(GooglePhotosUploadMethod.ResumableSingle)]
