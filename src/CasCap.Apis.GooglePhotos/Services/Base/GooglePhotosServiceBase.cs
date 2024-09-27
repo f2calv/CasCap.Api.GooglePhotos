@@ -126,11 +126,6 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
 
     public async Task<bool> LoginAsync(CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation("FileDataStoreFullPathDefault={path}", _options.FileDataStoreFullPathDefault);
-        _logger.LogInformation("FileDataStoreFullPathOverride={path}", _options.FileDataStoreFullPathOverride);
-        Console.WriteLine($"FileDataStoreFullPathDefault={_options.FileDataStoreFullPathDefault}");
-        Console.WriteLine($"FileDataStoreFullPathOverride={_options.FileDataStoreFullPathOverride}");
-
         if (string.IsNullOrWhiteSpace(_options.User)) throw new ArgumentNullException(nameof(_options.User), $"{nameof(GooglePhotosOptions)}.{nameof(_options.User)} cannot be null!");
         if (string.IsNullOrWhiteSpace(_options.ClientId)) throw new ArgumentNullException(nameof(_options.ClientId), $"{nameof(GooglePhotosOptions)}.{nameof(_options.ClientId)} cannot be null!");
         if (string.IsNullOrWhiteSpace(_options.ClientSecret)) throw new ArgumentNullException(nameof(_options.ClientSecret), $"{nameof(GooglePhotosOptions)}.{nameof(_options.ClientSecret)} cannot be null!");
@@ -179,7 +174,7 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
     }
 
     /// <summary>
-    /// Hack to allow us to set the auth header when running integration tests from CI.
+    /// Workaround to allow setting the auth header when running integration tests from CI.
     /// </summary>
     /// <param name="tokenType"></param>
     /// <param name="accessToken"></param>

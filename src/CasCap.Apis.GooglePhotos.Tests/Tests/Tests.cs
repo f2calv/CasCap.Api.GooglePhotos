@@ -17,15 +17,16 @@ public class Tests : TestBase
 
     async Task<bool> DoLogin()
     {
-        //if (IsCI())
-        //{
-        //    var accessToken = Environment.GetEnvironmentVariable("GOOGLE_PHOTOS_ACCESS_TOKEN");
-        //    if (string.IsNullOrWhiteSpace(accessToken)) throw new ArgumentNullException(nameof(accessToken));
-        //    _googlePhotosSvc.SetAuth("Bearer", accessToken);
-        //    return true;
-        //}
-        //else
-        return await _googlePhotosSvc.LoginAsync();
+        if (IsCI())
+        {
+            //
+            var accessToken = Environment.GetEnvironmentVariable("GOOGLE_PHOTOS_ACCESS_TOKEN");
+            if (string.IsNullOrWhiteSpace(accessToken)) throw new ArgumentNullException(nameof(accessToken));
+            _googlePhotosSvc.SetAuth("Bearer", accessToken);
+            return true;
+        }
+        else
+            return await _googlePhotosSvc.LoginAsync();
     }
 
     [Fact]
@@ -44,14 +45,13 @@ public class Tests : TestBase
 
     static string GetRandomAlbumName() => $"{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}";
 
-    /*
     [SkipIfCIBuildTheory, Trait("Type", nameof(GooglePhotosService))]
     [InlineData(GooglePhotosUploadMethod.Simple)]
     [InlineData(GooglePhotosUploadMethod.ResumableSingle)]
     [InlineData(GooglePhotosUploadMethod.ResumableMultipart)]
     public async Task UploadMediaTests(GooglePhotosUploadMethod uploadMethod)
     {
-        var loginResult = await _googlePhotosSvc.LoginAsync();
+        var loginResult = await DoLogin();
         Assert.True(loginResult);
 
         var paths = Directory.GetFiles(_testFolder);
@@ -71,7 +71,7 @@ public class Tests : TestBase
     [InlineData("test1.jpg", "Урок-английского-10.jpg")]
     public async Task UploadSingleTests(string file1, string file2)
     {
-        var loginResult = await _googlePhotosSvc.LoginAsync();
+        var loginResult = await DoLogin();
         Assert.True(loginResult);
 
         //upload single media item
@@ -110,7 +110,7 @@ public class Tests : TestBase
     [SkipIfCIBuildFact]
     public async Task UploadMultipleTests()
     {
-        var loginResult = await _googlePhotosSvc.LoginAsync();
+        var loginResult = await DoLogin();
         Assert.True(loginResult);
 
         //upload multiple media items
@@ -148,7 +148,7 @@ public class Tests : TestBase
             //retrieve all media items in each album
             var albumMediaItems = await _googlePhotosSvc.GetMediaItemsByAlbumAsync(alb.id).ToListAsync();
             Assert.NotNull(albumMediaItems);
-            Assert.True(albumMediaItems.Count == alb.mediaItemsCount);
+            Assert.True(albumMediaItems.Count.ToString() == alb.mediaItemsCount);
             var i = 1;
             foreach (var mediaItem in albumMediaItems)
             {
@@ -178,7 +178,7 @@ public class Tests : TestBase
     [SkipIfCIBuildFact]
     public async Task FilteringTests()
     {
-        var loginResult = await _googlePhotosSvc.LoginAsync();
+        var loginResult = await DoLogin();
         Assert.True(loginResult);
 
         contentFilter contentFilter = null;
@@ -239,7 +239,7 @@ public class Tests : TestBase
     [SkipIfCIBuildFact]
     public async Task EnrichmentsTests()
     {
-        var loginResult = await _googlePhotosSvc.LoginAsync();
+        var loginResult = await DoLogin();
         Assert.True(loginResult);
 
         var path = $"{_testFolder}test7.jpg";
@@ -279,7 +279,7 @@ public class Tests : TestBase
     [SkipIfCIBuildFact]
     public async Task SharingTests()
     {
-        var loginResult = await _googlePhotosSvc.LoginAsync();
+        var loginResult = await DoLogin();
         Assert.True(loginResult);
 
         //get or create new album
@@ -354,7 +354,7 @@ public class Tests : TestBase
     {
         var expectedCount = Directory.GetFiles(_testFolder).Length;
 
-        var loginResult = await _googlePhotosSvc.LoginAsync();
+        var loginResult = await DoLogin();
         Assert.True(loginResult);
 
         var mediaItems = await _googlePhotosSvc.GetMediaItemsAsync(pageSize, maxPageCount).ToListAsync();
@@ -365,5 +365,4 @@ public class Tests : TestBase
         var bytes = await _googlePhotosSvc.DownloadBytes(mediaItems[0]);
         Assert.NotNull(bytes);
     }
-    */
 }
