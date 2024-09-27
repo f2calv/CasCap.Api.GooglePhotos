@@ -17,15 +17,15 @@ public class Tests : TestBase
 
     async Task<bool> DoLogin()
     {
-        if (IsCI())
-        {
-            var accessToken = Environment.GetEnvironmentVariable("GOOGLE_PHOTOS_ACCESS_TOKEN");
-            if (string.IsNullOrWhiteSpace(accessToken)) throw new ArgumentNullException(nameof(accessToken));
-            _googlePhotosSvc.SetAuth("Bearer", accessToken);
-            return true;
-        }
-        else
-            return await _googlePhotosSvc.LoginAsync();
+        //if (IsCI())
+        //{
+        //    var accessToken = Environment.GetEnvironmentVariable("GOOGLE_PHOTOS_ACCESS_TOKEN");
+        //    if (string.IsNullOrWhiteSpace(accessToken)) throw new ArgumentNullException(nameof(accessToken));
+        //    _googlePhotosSvc.SetAuth("Bearer", accessToken);
+        //    return true;
+        //}
+        //else
+        return await _googlePhotosSvc.LoginAsync();
     }
 
     [Fact]
