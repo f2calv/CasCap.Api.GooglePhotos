@@ -199,6 +199,7 @@ public class gDateRange
     public gDate endDate { get; set; } = default!;
 }
 
+[JsonNumberHandling(JsonNumberHandling.AllowReadingFromString)]
 public class Album
 {
     /// <summary>
@@ -234,8 +235,7 @@ public class Album
     /// <summary>
     /// [Output only] The number of media items in the album.
     /// </summary>
-    public string? mediaItemsCount { get; set; }
-    //TODO: should be a long, System.Text.Json cannot handle the conversion by default need a convertor see https://stackoverflow.com/questions/59097784/system-text-json-deserialize-json-with-automatic-casting
+    public long? mediaItemsCount { get; set; }
 
     /// <summary>
     /// [Output only] Information related to shared albums.This field is only populated if the album is a shared album, the developer created the album and the user has granted the photoslibrary.sharing scope.

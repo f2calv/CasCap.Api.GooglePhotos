@@ -156,7 +156,7 @@ public class Tests : TestBase
             //retrieve all media items in each album
             var albumMediaItems = await _googlePhotosSvc.GetMediaItemsByAlbumAsync(alb.id).ToListAsync();
             Assert.NotNull(albumMediaItems);
-            Assert.True(albumMediaItems.Count.ToString() == alb.mediaItemsCount);
+            Assert.True(albumMediaItems.Count == alb.mediaItemsCount);
             var i = 1;
             foreach (var mediaItem in albumMediaItems)
             {
