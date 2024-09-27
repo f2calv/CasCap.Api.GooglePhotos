@@ -3,10 +3,8 @@
 /// <summary>
 /// Integration tests for GooglePhotos API library, update appsettings.Test.json with appropriate login values before running.
 /// </summary>
-public class Tests : TestBase
+public class Tests(ITestOutputHelper output) : TestBase(output)
 {
-    public Tests(ITestOutputHelper output) : base(output) { }
-
     [SkipIfCIBuildFact]
     //[Fact]
     public async Task LoginTest()
@@ -360,7 +358,7 @@ public class Tests : TestBase
     [InlineData(20, 10)]
     public async Task DownloadBytesTests(int pageSize, int maxPageCount)
     {
-        var expectedCount = Directory.GetFiles(_testFolder).Length;
+        //var expectedCount = Directory.GetFiles(_testFolder).Length;
 
         var loginResult = await DoLogin();
         Assert.True(loginResult);

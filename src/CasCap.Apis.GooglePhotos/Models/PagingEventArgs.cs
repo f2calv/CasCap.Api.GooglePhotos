@@ -1,17 +1,10 @@
 ﻿namespace CasCap.Models;
 
-public class PagingEventArgs : EventArgs
+public class PagingEventArgs(int pageSize, int pageNumber, int recordCount) : EventArgs
 {
-    public PagingEventArgs(int pageSize, int pageNumber, int recordCount)
-    {
-        this.pageSize = pageSize;
-        this.pageNumber = pageNumber;
-        this.recordCount = recordCount;
-    }
-
-    public int pageSize { get; }
-    public int pageNumber { get; }
-    public int recordCount { get; }
+    public int pageSize { get; } = pageSize;
+    public int pageNumber { get; } = pageNumber;
+    public int recordCount { get; } = recordCount;
     public DateTime? minDate { get; set; }
     public DateTime? maxDate { get; set; }
 }

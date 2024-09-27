@@ -441,100 +441,72 @@ public class EnrichmentItem
 /// Text for this enrichment item.
 /// https://developers.google.com/photos/library/reference/rest/v1/albums/addEnrichment#textenrichment
 /// </summary>
-public class TextEnrichment
+public class TextEnrichment(string text)
 {
-    public TextEnrichment(string text)
-    {
-        this.text = text;
-    }
-
-    public string text { get; set; }
+    public string text { get; set; } = text;
 }
 
 /// <summary>
 /// An enrichment containing a single location.
 /// https://developers.google.com/photos/library/reference/rest/v1/albums/addEnrichment#locationenrichment
 /// </summary>
-public class LocationEnrichment
+public class LocationEnrichment(Location location)
 {
-    public LocationEnrichment(Location location)
-    {
-        this.location = location;
-    }
-
     /// <summary>
     /// Location for this enrichment item.
     /// </summary>
-    public Location location { get; set; }
+    public Location location { get; set; } = location;
 }
 
 /// <summary>
 /// Represents a physical location.
 /// https://developers.google.com/photos/library/reference/rest/v1/albums/addEnrichment#location
 /// </summary>
-public class Location
+public class Location(string locationName, Latlng latlng)
 {
-    public Location(string locationName, Latlng latlng)
-    {
-        this.locationName = locationName;
-        this.latlng = latlng;
-    }
-
     /// <summary>
     /// Name of the location to be displayed.
     /// </summary>
-    public string locationName { get; set; }
+    public string locationName { get; set; } = locationName;
 
     /// <summary>
     /// Position of the location on the map.
     /// </summary>
-    public Latlng latlng { get; set; }
+    public Latlng latlng { get; set; } = latlng;
 }
 
 /// <summary>
 /// An object representing a latitude/longitude pair. This is expressed as a pair of doubles representing degrees latitude and degrees longitude. Unless specified otherwise, this must conform to the WGS84 standard. Values must be within normalized ranges.
 /// https://developers.google.com/photos/library/reference/rest/v1/albums/addEnrichment#latlng
 /// </summary>
-public class Latlng
+public class Latlng(double latitude, double longitude)
 {
-    public Latlng(double latitude, double longitude)
-    {
-        this.latitude = latitude;
-        this.longitude = longitude;
-    }
-
     /// <summary>
     /// The latitude in degrees. It must be in the range [-90.0, +90.0].
     /// </summary>
-    public double latitude { get; set; }
+    public double latitude { get; set; } = latitude;
 
     /// <summary>
     /// The longitude in degrees. It must be in the range [-180.0, +180.0].
     /// </summary>
-    public double longitude { get; set; }
+    public double longitude { get; set; } = longitude;
 }
 
 /// <summary>
 /// An enrichment containing a map, showing origin and destination locations.
 /// https://developers.google.com/photos/library/reference/rest/v1/albums/addEnrichment#mapenrichment
 /// </summary>
-public class MapEnrichment
+public class MapEnrichment(Location origin, Location destination)
 {
-    public MapEnrichment(Location origin, Location destination)
-    {
-        this.origin = origin;
-        this.destination = destination;
-    }
-
     /// <summary>
     /// Origin location for this enrichment item.
     /// </summary>
-    public Location origin { get; set; }
+    public Location origin { get; set; } = origin;
 
     /// <summary>
     /// Destination location for this enrichment item.
     /// </summary>
-    public Location destination { get; set; }
+    public Location destination { get; set; } = destination;
 }
 #endregion
 

@@ -126,10 +126,10 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
 
     public async Task<bool> LoginAsync(CancellationToken cancellationToken = default)
     {
-        if (string.IsNullOrWhiteSpace(_options.User)) throw new ArgumentNullException(nameof(_options.User), $"{nameof(GooglePhotosOptions)}.{nameof(_options.User)} cannot be null!");
-        if (string.IsNullOrWhiteSpace(_options.ClientId)) throw new ArgumentNullException(nameof(_options.ClientId), $"{nameof(GooglePhotosOptions)}.{nameof(_options.ClientId)} cannot be null!");
-        if (string.IsNullOrWhiteSpace(_options.ClientSecret)) throw new ArgumentNullException(nameof(_options.ClientSecret), $"{nameof(GooglePhotosOptions)}.{nameof(_options.ClientSecret)} cannot be null!");
-        if (_options.Scopes.IsNullOrEmpty()) throw new ArgumentNullException(nameof(_options.Scopes), $"{nameof(GooglePhotosOptions)}.{nameof(_options.Scopes)} cannot be null/empty!");
+        if (string.IsNullOrWhiteSpace(_options.User)) throw new GooglePhotosException($"{nameof(GooglePhotosOptions)}.{nameof(_options.User)} cannot be null!");
+        if (string.IsNullOrWhiteSpace(_options.ClientId)) throw new GooglePhotosException($"{nameof(GooglePhotosOptions)}.{nameof(_options.ClientId)} cannot be null!");
+        if (string.IsNullOrWhiteSpace(_options.ClientSecret)) throw new GooglePhotosException($"{nameof(GooglePhotosOptions)}.{nameof(_options.ClientSecret)} cannot be null!");
+        if (_options.Scopes.IsNullOrEmpty()) throw new GooglePhotosException($"{nameof(GooglePhotosOptions)}.{nameof(_options.Scopes)} cannot be null/empty!");
 
         var secrets = new ClientSecrets { ClientId = _options.ClientId, ClientSecret = _options.ClientSecret };
 

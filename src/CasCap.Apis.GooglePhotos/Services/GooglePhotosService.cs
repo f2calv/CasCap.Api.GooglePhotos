@@ -5,16 +5,9 @@
 /// </summary>
 //https://developers.google.com/photos/library/guides/get-started
 //https://developers.google.com/photos/library/guides/authentication-authorization
-public class GooglePhotosService : GooglePhotosServiceBase
+public class GooglePhotosService(ILogger<GooglePhotosService> logger, IOptions<GooglePhotosOptions> options, HttpClient client)
+    : GooglePhotosServiceBase(logger, options, client)
 {
-    public GooglePhotosService(ILogger<GooglePhotosService> logger,
-        IOptions<GooglePhotosOptions> options,
-        HttpClient client
-        ) : base(logger, options, client)
-    {
-
-    }
-
     public async Task<Album?> GetOrCreateAlbumAsync(string title, StringComparison comparisonType = StringComparison.OrdinalIgnoreCase)
     {
         var album = await GetAlbumByTitleAsync(title, comparisonType);
