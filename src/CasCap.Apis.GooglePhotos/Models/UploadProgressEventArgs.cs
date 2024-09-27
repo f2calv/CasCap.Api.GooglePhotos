@@ -1,6 +1,6 @@
 ﻿namespace CasCap.Models;
 
-public class UploadProgressArgs(string fileName, long totalBytes, int batchIndex, long uploadedBytes, long batchSize) : EventArgs
+public class UploadProgressEventArgs(string fileName, long totalBytes, int batchIndex, long uploadedBytes, long batchSize) : EventArgs
 {
     public string fileName { get; } = fileName;
     public long totalBytes { get; } = totalBytes;

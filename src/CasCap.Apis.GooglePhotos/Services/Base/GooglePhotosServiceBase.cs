@@ -41,8 +41,8 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
     protected virtual void RaisePagingEvent(PagingEventArgs args) => PagingEvent?.Invoke(this, args);
     public event EventHandler<PagingEventArgs>? PagingEvent;
 
-    protected virtual void RaiseUploadProgressEvent(UploadProgressArgs args) => UploadProgressEvent?.Invoke(this, args);
-    public event EventHandler<UploadProgressArgs>? UploadProgressEvent;
+    protected virtual void RaiseUploadProgressEvent(UploadProgressEventArgs args) => UploadProgressEvent?.Invoke(this, args);
+    public event EventHandler<UploadProgressEventArgs>? UploadProgressEvent;
 
     public static bool IsFileUploadable(string path) => IsFileUploadableByExtension(Path.GetExtension(path));
 
@@ -721,7 +721,7 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
                     {
                         attemptCount = 0;//reset retry count
                         offset += bytes.Length;
-                        RaiseUploadProgressEvent(new UploadProgressArgs(Path.GetFileName(path), size, batchIndex, offset, bytes.Length));
+                        RaiseUploadProgressEvent(new UploadProgressEventArgs(Path.GetFileName(path), size, batchIndex, offset, bytes.Length));
                         batchIndex++;
                         //if (callback is not null)
                         //    callback(bytes.Length);
