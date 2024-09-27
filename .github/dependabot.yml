@@ -17,5 +17,4 @@ updates:
     - dependency-name: CasCap.Common.*
     - dependency-name: coverlet.*
     - dependency-name: Microsoft.NET.Test.Sdk
-    - dependency-name: Newtonsoft.Json
     - dependency-name: xunit.*

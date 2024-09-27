@@ -1,9 +1,6 @@
-﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
+﻿namespace CasCap.Models;
 
-namespace CasCap.Models;
-
-[JsonConverter(typeof(StringEnumConverter))]
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum GooglePhotosScope
 {
     /// <summary>
@@ -44,7 +41,7 @@ public enum GooglePhotosScope
     Sharing
 }
 
-[JsonConverter(typeof(StringEnumConverter))]
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum GooglePhotosUploadMethod
 {
     Simple,
@@ -52,7 +49,7 @@ public enum GooglePhotosUploadMethod
     ResumableMultipart
 }
 
-[JsonConverter(typeof(StringEnumConverter))]
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum GooglePhotosPositionType
 {
     /// <summary>
@@ -81,20 +78,20 @@ public enum GooglePhotosPositionType
     AFTER_ENRICHMENT_ITEM
 }
 
-[JsonConverter(typeof(StringEnumConverter))]
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum GooglePhotosMediaType
 {
     PHOTO,
     VIDEO
 }
 
-[JsonConverter(typeof(StringEnumConverter))]
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum GooglePhotosFeatureType
 {
     FAVORITES
 }
 
-[JsonConverter(typeof(StringEnumConverter))]
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum GooglePhotosContentCategoryType
 {
     ANIMALS,
