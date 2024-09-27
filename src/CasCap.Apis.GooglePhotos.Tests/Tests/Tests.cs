@@ -15,11 +15,19 @@ public class Tests : TestBase
         Assert.True(loginResult);
     }
 
+    /// <summary>
+    /// When running integration tests under GitHub Actions you should first run the tests locally with the test account
+    /// and then update the GitHub Actions secret to the access_token from the local JSON file, e.g.
+    ///     C:\Users\???\AppData\Roaming\Google.Apis.Auth\Google.Apis.Auth.OAuth2.Responses.TokenResponse-???@???.com
+    /// This is because the current method of Google Photos authentication requires browser interaction which is not
+    /// possible during the CI.
+    /// </summary>
+    /// <returns></returns>
+    /// <exception cref="ArgumentNullException"></exception>
     async Task<bool> DoLogin()
     {
         if (IsCI())
         {
-            //
             var accessToken = Environment.GetEnvironmentVariable("GOOGLE_PHOTOS_ACCESS_TOKEN");
             if (string.IsNullOrWhiteSpace(accessToken)) throw new ArgumentNullException(nameof(accessToken));
             _googlePhotosSvc.SetAuth("Bearer", accessToken);
