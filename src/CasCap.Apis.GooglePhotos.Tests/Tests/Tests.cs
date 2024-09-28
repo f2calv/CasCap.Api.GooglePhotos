@@ -1,28 +1,19 @@
 ﻿namespace CasCap.Tests;
 
 /// <summary>
-/// Integration tests for GooglePhotos API library, update appsettings.Test.json with appropriate login values before running.
+/// Integration tests for CasCap.Apis.GooglePhotos library.
+/// For local testing update appsettings.Test.json and/or add values to UserSecrets before running.
+/// 
+/// When running integration tests under GitHub Actions you should first run the tests locally with the test account
+/// and then update the GitHub Actions secret to the access_token from the local JSON file, e.g.
+///     C:\Users\???\AppData\Roaming\Google.Apis.Auth\Google.Apis.Auth.OAuth2.Responses.TokenResponse-???@???.com
+/// This is because the current method of authentication used by CasCap.Apis.GooglePhotos requires
+/// browser interaction which is not possible during CI.
 /// </summary>
 public class Tests(ITestOutputHelper output) : TestBase(output)
 {
     [SkipIfCIBuildFact]
-    //[Fact]
-    public async Task LoginTest()
-    {
-        var loginResult = await DoLogin();
-        Assert.True(loginResult);
-    }
-
-    /// <summary>
-    /// When running integration tests under GitHub Actions you should first run the tests locally with the test account
-    /// and then update the GitHub Actions secret to the access_token from the local JSON file, e.g.
-    ///     C:\Users\???\AppData\Roaming\Google.Apis.Auth\Google.Apis.Auth.OAuth2.Responses.TokenResponse-???@???.com
-    /// This is because the current method of Google Photos authentication requires browser interaction which is not
-    /// possible during the CI.
-    /// </summary>
-    /// <returns></returns>
-    /// <exception cref="ArgumentNullException"></exception>
-    async Task<bool> DoLogin()
+    public async Task<bool> DoLogin()
     {
         if (IsCI())
         {
@@ -32,18 +23,10 @@ public class Tests(ITestOutputHelper output) : TestBase(output)
             return true;
         }
         else
+        {
+            Assert.True(true);
             return await _googlePhotosSvc.LoginAsync();
-    }
-
-    [Fact]
-    public async Task HackTest()
-    {
-        await DoLogin();
-        //get or create new album
-        var albumName = GetRandomAlbumName();
-        var album = await _googlePhotosSvc.GetOrCreateAlbumAsync(albumName);
-        Assert.NotNull(album);
-        Assert.NotNull(album.id);
+        }
     }
 
     static bool IsCI() => Environment.GetEnvironmentVariable("TF_BUILD") is not null
@@ -51,7 +34,7 @@ public class Tests(ITestOutputHelper output) : TestBase(output)
 
     static string GetRandomAlbumName() => $"{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}";
 
-    [SkipIfCIBuildTheory, Trait("Type", nameof(GooglePhotosService))]
+    [Theory, Trait("Type", nameof(GooglePhotosService))]
     [InlineData(GooglePhotosUploadMethod.Simple)]
     [InlineData(GooglePhotosUploadMethod.ResumableSingle)]
     [InlineData(GooglePhotosUploadMethod.ResumableMultipart)]
@@ -72,7 +55,7 @@ public class Tests(ITestOutputHelper output) : TestBase(output)
         }
     }
 
-    [SkipIfCIBuildTheory]
+    [Theory]
     [InlineData("test1.jpg", "test2.jpg")]
     [InlineData("test1.jpg", "Урок-английского-10.jpg")]
     public async Task UploadSingleTests(string file1, string file2)
@@ -113,7 +96,7 @@ public class Tests(ITestOutputHelper output) : TestBase(output)
         Assert.Single(albumMediaItems);
     }
 
-    [SkipIfCIBuildFact]
+    [Fact]
     public async Task UploadMultipleTests()
     {
         var loginResult = await DoLogin();
@@ -181,7 +164,7 @@ public class Tests(ITestOutputHelper output) : TestBase(output)
         Assert.True(true);
     }
 
-    [SkipIfCIBuildFact]
+    [Fact]
     public async Task FilteringTests()
     {
         var loginResult = await DoLogin();
@@ -242,7 +225,7 @@ public class Tests(ITestOutputHelper output) : TestBase(output)
         Assert.True(true);
     }
 
-    [SkipIfCIBuildFact]
+    [Fact]
     public async Task EnrichmentsTests()
     {
         var loginResult = await DoLogin();
@@ -282,7 +265,7 @@ public class Tests(ITestOutputHelper output) : TestBase(output)
         Assert.NotNull(enrichmentId2);
     }
 
-    [SkipIfCIBuildFact]
+    [Fact]
     public async Task SharingTests()
     {
         var loginResult = await DoLogin();
@@ -345,8 +328,8 @@ public class Tests(ITestOutputHelper output) : TestBase(output)
         Assert.True(result4);
     }
 
-    //[SkipIfCIBuildFact]
-    [SkipIfCIBuildTheory]
+    //[Fact]
+    [Theory]
     [InlineData(1, 10)]
     [InlineData(1, 100)]
     [InlineData(2, 10)]
