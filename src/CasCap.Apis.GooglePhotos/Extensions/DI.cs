@@ -1,5 +1,4 @@
-﻿using Polly;
-using System.Net;
+﻿using System.Net;
 using System.Net.Http.Headers;
 
 namespace Microsoft.Extensions.DependencyInjection;
@@ -59,9 +58,25 @@ public static class DI
         .SetHandlerLifetime(Timeout.InfiniteTimeSpan)
         .AddStandardResilienceHandler((options) =>
         {
+            //RateLimiter
+            options.TotalRequestTimeout = new Http.Resilience.HttpTimeoutStrategyOptions
+            {
+                Timeout = TimeSpan.FromSeconds(90)
+            };
+            //Retry
             options.Retry = new Http.Resilience.HttpRetryStrategyOptions
             {
                 MaxRetryAttempts = 6
+            };
+            //Circuit Breaker
+            options.CircuitBreaker = new Http.Resilience.HttpCircuitBreakerStrategyOptions
+            {
+                SamplingDuration = TimeSpan.FromSeconds(180)
+            };
+            //AttemptTimeout
+            options.AttemptTimeout = new Http.Resilience.HttpTimeoutStrategyOptions
+            {
+                Timeout = TimeSpan.FromSeconds(90)
             };
         });
     }
