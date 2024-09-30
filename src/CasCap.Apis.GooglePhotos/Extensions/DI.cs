@@ -55,11 +55,14 @@ public static class DI
         {
             AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
         })
-        .AddTransientHttpErrorPolicy(policyBuilder =>
-        {
-            return policyBuilder.RetryAsync(retryCount: 3);
-        })
         //https://github.com/aspnet/AspNetCore/issues/6804
-        .SetHandlerLifetime(Timeout.InfiniteTimeSpan);
+        .SetHandlerLifetime(Timeout.InfiniteTimeSpan)
+        .AddStandardResilienceHandler((options) =>
+        {
+            options.Retry = new Http.Resilience.HttpRetryStrategyOptions
+            {
+                Delay = TimeSpan.FromSeconds(30)
+            };
+        });
     }
 }
