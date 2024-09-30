@@ -61,7 +61,9 @@ public static class DI
         {
             options.Retry = new Http.Resilience.HttpRetryStrategyOptions
             {
-                Delay = TimeSpan.FromSeconds(30)
+                Delay = TimeSpan.FromSeconds(1),
+                BackoffType = DelayBackoffType.Exponential,
+                MaxRetryAttempts = 6
             };
         });
     }
