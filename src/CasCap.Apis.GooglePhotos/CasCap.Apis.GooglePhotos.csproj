@@ -26,18 +26,18 @@
 
   <ItemGroup>
     <PackageReference Include="Google.Apis.Auth" Version="1.68.0" />
-    <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="8.0.8" />
+    <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="8.0.11" />
     <PackageReference Include="MimeTypeMapOfficial" Version="1.0.17" />
-    <PackageReference Include="Microsoft.Extensions.Http.Resilience" Version="8.9.1" />
+    <PackageReference Include="Microsoft.Extensions.Http.Resilience" Version="9.0.0" />
     <PackageReference Include="System.Linq.Async" Version="6.0.1" />
-    <PackageReference Include="System.Text.Json" Version="8.0.4" />
+    <PackageReference Include="System.Text.Json" Version="9.0.0" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)'=='Debug'">
     <ProjectReference Include="..\..\..\CasCap.Common\src\CasCap.Common.Net\CasCap.Common.Net.csproj" />
   </ItemGroup>
   <ItemGroup Condition="'$(Configuration)'=='Release'">
-    <PackageReference Include="CasCap.Common.Net" Version="4.1.0" />
+    <PackageReference Include="CasCap.Common.Net" Version="4.2.2" />
   </ItemGroup>
 
 </Project>
