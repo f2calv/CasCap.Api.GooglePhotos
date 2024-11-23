@@ -1,13 +1,10 @@
-
 <Project>
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
-
   <ItemGroup>
-
-    <PackageVersion Include="CasCap.Common.Net" Version="4.2.2" />
-    <PackageVersion Include="CasCap.Common.Testing" Version="4.2.2" />
+    <PackageVersion Include="CasCap.Common.Net" Version="4.2.3" />
+    <PackageVersion Include="CasCap.Common.Testing" Version="4.2.3" />
     <PackageVersion Include="Google.Apis.Auth" Version="1.68.0" />
     <PackageVersion Include="Google.Apis.IAMCredentials.v1" Version="1.68.0.3584" />
     <PackageVersion Include="Microsoft.AspNetCore.WebUtilities" Version="8.0.11" />
@@ -29,6 +26,5 @@
     <PackageVersion Include="coverlet.msbuild" Version="6.0.2" />
     <PackageVersion Include="xunit" Version="2.9.2" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="2.8.2" />
-  
   </ItemGroup>
 </Project>
