@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
     <!--<GenerateDocumentationFile>true</GenerateDocumentationFile>-->
     <IsPackable>true</IsPackable>
     <Nullable>enable</Nullable>
@@ -19,25 +19,25 @@
 
       For more details about the underlying API see the official site, https://developers.google.com/photos
 
-      For usage examples see the docs on github, https://github.com/f2calv/CasCap.Apis.GooglePhotos
+      For usage examples see the docs on github, https://github.com/f2calv/CasCap.Api.GooglePhotos
     </PackageDescription>
     <PackageTags>google, photos, rest, api, wrapper</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Google.Apis.Auth" Version="1.68.0" />
-    <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="8.0.11" />
-    <PackageReference Include="MimeTypeMapOfficial" Version="1.0.17" />
-    <PackageReference Include="Microsoft.Extensions.Http.Resilience" Version="9.0.0" />
-    <PackageReference Include="System.Linq.Async" Version="6.0.1" />
-    <PackageReference Include="System.Text.Json" Version="9.0.0" />
+    <PackageReference Include="Google.Apis.Auth" />
+    <PackageReference Include="Microsoft.AspNetCore.WebUtilities" />
+    <PackageReference Include="MimeTypeMapOfficial" />
+    <PackageReference Include="Microsoft.Extensions.Http.Resilience" />
+    <PackageReference Include="System.Linq.Async" />
+    <PackageReference Include="System.Text.Json" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)'=='Debug'">
     <ProjectReference Include="..\..\..\CasCap.Common\src\CasCap.Common.Net\CasCap.Common.Net.csproj" />
   </ItemGroup>
   <ItemGroup Condition="'$(Configuration)'=='Release'">
-    <PackageReference Include="CasCap.Common.Net" Version="4.2.2" />
+    <PackageReference Include="CasCap.Common.Net" />
   </ItemGroup>
 
 </Project>

@@ -1,13 +1,13 @@
 ﻿namespace CasCap.Tests;
 
 /// <summary>
-/// Integration tests for CasCap.Apis.GooglePhotos library.
+/// Integration tests for CasCap.Api.GooglePhotos library.
 /// For local testing update appsettings.Test.json and/or add values to UserSecrets before running.
 ///
 /// When running integration tests under GitHub Actions you should first run the tests locally with the test account
 /// and then update the GitHub Actions secret to the access_token from the local JSON file, e.g.
 ///     C:\Users\???\AppData\Roaming\Google.Apis.Auth\Google.Apis.Auth.OAuth2.Responses.TokenResponse-???@???.com
-/// This is because the current method of authentication used by CasCap.Apis.GooglePhotos requires
+/// This is because the current method of authentication used by CasCap.Api.GooglePhotos requires
 /// browser interaction which is not possible during CI.
 /// </summary>
 public class Tests(ITestOutputHelper output) : TestBase(output)
