@@ -52,6 +52,7 @@ jobs:
           push-preview: ${{ inputs.push-preview }}
           version: ${{ needs.versioning.outputs.version }}
           solution-name: CasCap.Api.GooglePhotos.Release.sln
+          execute-tests: false #Note: tests fail in Actions due to rate limiting issues from the Google side :/
         env:
           GOOGLE_PHOTOS_ACCESS_TOKEN: ${{ secrets.GOOGLE_PHOTOS_ACCESS_TOKEN }}
 
