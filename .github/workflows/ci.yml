@@ -44,14 +44,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      # - name: load auth token from secrets
-      #   run: |
-      #     echo ${{ secrets.GOOGLE_PHOTOS_TOKEN_RESPONSE_BASE64 }} | base64 --decode | jq > Google.Apis.Auth.OAuth2.Responses.TokenResponse-${{ secrets.GOOGLE_PHOTOS_EMAIL }}.json
-      #     #cat Google.Apis.Auth.OAuth2.Responses.TokenResponse-${{ secrets.GOOGLE_PHOTOS_EMAIL }}.json
-      #     ls -lsa
-      #     echo "folder is;"
-      #     pwd
-
       - uses: f2calv/gha-dotnet-nuget@v2
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -61,10 +53,6 @@ jobs:
           version: ${{ needs.versioning.outputs.version }}
           solution-name: CasCap.Api.GooglePhotos.Release.sln
         env:
-          # CasCap__GooglePhotosOptions__User: f2calv@gmail.com
-          # CasCap__GooglePhotosOptions__ClientId: ${{ secrets.GOOGLE_PHOTOS_CLIENTID }}
-          # CasCap__GooglePhotosOptions__ClientSecret: ${{ secrets.GOOGLE_PHOTOS_SECRET }}
-          # CasCap__GooglePhotosOptions__FileDataStoreFullPathOverride: /home/runner/work/CasCap.Api.GooglePhotos/CasCap.Api.GooglePhotos
           GOOGLE_PHOTOS_ACCESS_TOKEN: ${{ secrets.GOOGLE_PHOTOS_ACCESS_TOKEN }}
 
   release:
