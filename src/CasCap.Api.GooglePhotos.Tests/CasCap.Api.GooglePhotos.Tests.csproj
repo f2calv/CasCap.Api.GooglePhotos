@@ -6,7 +6,6 @@
 
   <ItemGroup>
     <PackageReference Include="Google.Apis.IAMCredentials.v1" />
-    <PackageReference Include="Microsoft.AspNetCore.WebUtilities" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="Microsoft.Extensions.Configuration" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" />
