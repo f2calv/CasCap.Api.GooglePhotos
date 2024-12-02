@@ -4,6 +4,11 @@
 public class GooglePhotosOptions
 {
     /// <summary>
+    /// Configuration sub-section locator key.
+    /// </summary>
+    public const string SectionKey = $"{nameof(CasCap)}:{nameof(GooglePhotosOptions)}";
+
+    /// <summary>
     /// The default endpoint for REST API requests, currently defaults to REST API v1.0
     /// </summary>
     public string BaseAddress { get; set; } = RequestUris.BaseAddress;

@@ -1,0 +1,49 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
+    <!--<GenerateDocumentationFile>true</GenerateDocumentationFile>-->
+    <IsPackable>true</IsPackable>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <Description>Fully featured .NET library/wrapper for the Google Photos REST API.</Description>
+    <PackageDescription>
+      $(Description)
+
+      This *unofficial* library enables programmatic access to the media items and albums of a Google Photos account.
+
+      The library leverages the authentication in the official Google.Apis.Auth library and builds on that
+      by encapsulating all REST API calls in an efficient wrapper returning strongly-typed objects.
+
+      For more details about the underlying API see the official site, https://developers.google.com/photos
+
+      For usage examples see the docs on github, https://github.com/f2calv/CasCap.Api.GooglePhotos
+    </PackageDescription>
+    <PackageTags>google, photos, rest, api, wrapper</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Google.Apis.Auth" />
+    <PackageReference Include="MimeTypeMapOfficial" />
+    <PackageReference Include="Microsoft.Extensions.Http.Resilience" />
+    <PackageReference Include="System.Linq.Async" />
+    <PackageReference Include="System.Text.Json" />
+  </ItemGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net8.0' ">
+    <PackageReference Include="Microsoft.AspNetCore.WebUtilities" VersionOverride="8.0.11" />
+  </ItemGroup>
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net9.0' ">
+    <PackageReference Include="Microsoft.AspNetCore.WebUtilities" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(Configuration)'=='Debug'">
+    <ProjectReference Include="..\..\..\CasCap.Common\src\CasCap.Common.Net\CasCap.Common.Net.csproj" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(Configuration)'=='Release'">
+    <PackageReference Include="CasCap.Common.Net" />
+  </ItemGroup>
+
+</Project>

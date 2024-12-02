@@ -26,7 +26,7 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
 
     const int defaultBatchSizeMediaItems = 50;
 
-    GooglePhotosOptions? _options;
+    GooglePhotosOptions _options;
 
     public GooglePhotosServiceBase(ILogger<GooglePhotosService> logger,
         IOptions<GooglePhotosOptions> options,
@@ -34,15 +34,15 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
         )
     {
         _logger = logger;
-        _options = options.Value;// ?? throw new ArgumentNullException(nameof(options), $"{nameof(GooglePhotosOptions)} cannot be null!");
+        _options = options.Value;
         _client = client ?? throw new ArgumentNullException(nameof(client), $"{nameof(HttpClient)} cannot be null!");
     }
 
     protected virtual void RaisePagingEvent(PagingEventArgs args) => PagingEvent?.Invoke(this, args);
     public event EventHandler<PagingEventArgs>? PagingEvent;
 
-    protected virtual void RaiseUploadProgressEvent(UploadProgressArgs args) => UploadProgressEvent?.Invoke(this, args);
-    public event EventHandler<UploadProgressArgs>? UploadProgressEvent;
+    protected virtual void RaiseUploadProgressEvent(UploadProgressEventArgs args) => UploadProgressEvent?.Invoke(this, args);
+    public event EventHandler<UploadProgressEventArgs>? UploadProgressEvent;
 
     public static bool IsFileUploadable(string path) => IsFileUploadableByExtension(Path.GetExtension(path));
 
@@ -105,7 +105,7 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
         { GooglePhotosScope.Sharing, "https://www.googleapis.com/auth/photoslibrary.sharing" }
     };
 
-    public async Task<bool> LoginAsync(string User, string ClientId, string ClientSecret, GooglePhotosScope[] Scopes, string? FileDataStoreFullPathOverride = null)
+    public async Task<bool> LoginAsync(string User, string ClientId, string ClientSecret, GooglePhotosScope[] Scopes, string? FileDataStoreFullPathOverride = null, CancellationToken cancellationToken = default)
     {
         _options = new GooglePhotosOptions
         {
@@ -115,22 +115,21 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
             Scopes = Scopes,
             FileDataStoreFullPathOverride = FileDataStoreFullPathOverride
         };
-        return await LoginAsync();
+        return await LoginAsync(cancellationToken);
     }
 
-    public async Task<bool> LoginAsync(GooglePhotosOptions options)
+    public async Task<bool> LoginAsync(GooglePhotosOptions options, CancellationToken cancellationToken = default)
     {
         _options = options ?? throw new ArgumentNullException(nameof(options), $"{nameof(GooglePhotosOptions)} cannot be null!");
-        return await LoginAsync();
+        return await LoginAsync(cancellationToken);
     }
 
-    public async Task<bool> LoginAsync()
+    public async Task<bool> LoginAsync(CancellationToken cancellationToken = default)
     {
-        if (_options is null) throw new ArgumentNullException(nameof(_options), $"{nameof(GooglePhotosOptions)}.{nameof(_options)} cannot be null!");
-        if (string.IsNullOrWhiteSpace(_options.User)) throw new ArgumentNullException(nameof(_options.User), $"{nameof(GooglePhotosOptions)}.{nameof(_options.User)} cannot be null!");
-        if (string.IsNullOrWhiteSpace(_options.ClientId)) throw new ArgumentNullException(nameof(_options.ClientId), $"{nameof(GooglePhotosOptions)}.{nameof(_options.ClientId)} cannot be null!");
-        if (string.IsNullOrWhiteSpace(_options.ClientSecret)) throw new ArgumentNullException(nameof(_options.ClientSecret), $"{nameof(GooglePhotosOptions)}.{nameof(_options.ClientSecret)} cannot be null!");
-        if (_options.Scopes.IsNullOrEmpty()) throw new ArgumentNullException(nameof(_options.Scopes), $"{nameof(GooglePhotosOptions)}.{nameof(_options.Scopes)} cannot be null/empty!");
+        if (string.IsNullOrWhiteSpace(_options.User)) throw new GooglePhotosException($"{nameof(GooglePhotosOptions)}.{nameof(_options.User)} cannot be null!");
+        if (string.IsNullOrWhiteSpace(_options.ClientId)) throw new GooglePhotosException($"{nameof(GooglePhotosOptions)}.{nameof(_options.ClientId)} cannot be null!");
+        if (string.IsNullOrWhiteSpace(_options.ClientSecret)) throw new GooglePhotosException($"{nameof(GooglePhotosOptions)}.{nameof(_options.ClientSecret)} cannot be null!");
+        if (_options.Scopes.IsNullOrEmpty()) throw new GooglePhotosException($"{nameof(GooglePhotosOptions)}.{nameof(_options.Scopes)} cannot be null/empty!");
 
         var secrets = new ClientSecrets { ClientId = _options.ClientId, ClientSecret = _options.ClientSecret };
 
@@ -143,10 +142,10 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
             secrets,
             GetScopes(),
             _options.User,
-            CancellationToken.None,
+            cancellationToken,
             dataStore);
 
-        _logger.LogDebug("Authorisation granted or not required (if the saved access token already available)");
+        _logger.LogDebug("Authorization granted or not required (if the saved access token already available)");
 
         if (credential.Token.IsStale)
         {
@@ -161,7 +160,7 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
         }
         else
             _logger.LogDebug("The access token is OK, continue");
-        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(credential.Token.TokenType, credential.Token.AccessToken);
+        SetAuth(credential.Token.TokenType, credential.Token.AccessToken);
         return true;
 
         string[] GetScopes()//todo: make extension method to convert any enum to string[] and move to CasCap.Common.Extensions
@@ -173,6 +172,14 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
             return l.ToArray();
         }
     }
+
+    /// <summary>
+    /// Workaround to allow setting the auth header when running integration tests from CI.
+    /// </summary>
+    /// <param name="tokenType"></param>
+    /// <param name="accessToken"></param>
+    public void SetAuth(string tokenType, string accessToken)
+        => _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(tokenType, accessToken);
 
     #region https://photoslibrary.googleapis.com/v1/albums
 
@@ -224,8 +231,8 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
             else if (tpl.result is not null)//to hide nullability warning
             {
                 var batch = new List<Album>(pageSize);
-                if (!tpl.result.albums.IsNullOrEmpty()) batch = tpl.result.albums ?? new List<Album>();
-                if (!tpl.result.sharedAlbums.IsNullOrEmpty()) batch = tpl.result.sharedAlbums ?? new List<Album>();
+                if (!tpl.result.albums.IsNullOrEmpty()) batch = tpl.result.albums ?? [];
+                if (!tpl.result.sharedAlbums.IsNullOrEmpty()) batch = tpl.result.sharedAlbums ?? [];
                 l.AddRange(batch);
                 if (!string.IsNullOrWhiteSpace(tpl.result.nextPageToken))
                     RaisePagingEvent(new PagingEventArgs(batch.Count, pageNumber, l.Count));
@@ -332,7 +339,7 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
         if (pageSize < minPageSizeMediaItems || pageSize > maxPageSizeMediaItems)
             throw new ArgumentOutOfRangeException($"{nameof(pageSize)} must be between {minPageSizeMediaItems} and {maxPageSizeMediaItems}!");
 
-        //Note: mediaitem results are not garuanteed to be unique so we check returned ids in a volatile hashset
+        //Note: MediaItem results are not guaranteed to be unique so we check returned ids in a volatile HashSet
         var hs = new HashSet<string>();
         var pageToken = string.Empty;
         var pageNumber = 1;
@@ -344,14 +351,14 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
             else if (tpl.result is not null)
             {
                 var batch = new List<MediaItem>(pageSize);
-                if (!tpl.result.mediaItems.IsNullOrEmpty()) batch = tpl.result.mediaItems ?? new List<MediaItem>();
+                if (!tpl.result.mediaItems.IsNullOrEmpty()) batch = tpl.result.mediaItems ?? [];
                 foreach (var mi in batch)
                     if (!hs.Contains(mi.id))
                     {
                         hs.Add(mi.id);
                         yield return mi;
                     }
-                if (!string.IsNullOrWhiteSpace(tpl.result.nextPageToken) && batch.Any())
+                if (!string.IsNullOrWhiteSpace(tpl.result.nextPageToken) && batch.Count != 0)
                 {
                     //Note: low page sizes can return 0 records but still return a continuation token, weirdness
                     RaisePagingEvent(new PagingEventArgs(batch.Count, pageNumber, hs.Count)
@@ -388,14 +395,14 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
             else if (tpl.result is not null)
             {
                 var batch = new List<MediaItem>(pageSize);
-                if (!tpl.result.mediaItems.IsNullOrEmpty()) batch = tpl.result.mediaItems ?? new List<MediaItem>();
+                if (!tpl.result.mediaItems.IsNullOrEmpty()) batch = tpl.result.mediaItems ?? [];
                 foreach (var mi in batch)
                     if (!hs.Contains(mi.id))
                     {
                         hs.Add(mi.id);
                         yield return mi;
                     }
-                if (!string.IsNullOrWhiteSpace(tpl.result.nextPageToken) && batch.Any())
+                if (!string.IsNullOrWhiteSpace(tpl.result.nextPageToken) && batch.Count != 0)
                     RaisePagingEvent(new PagingEventArgs(batch.Count, pageNumber, hs.Count)
                     {
                         minDate = batch.Min(p => p.mediaMetadata.creationTime),
@@ -433,6 +440,7 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
         var batches = mediaItemIds.GetBatches(defaultBatchSizeMediaItems);
         foreach (var batch in batches)
         {
+            if (cancellationToken.IsCancellationRequested) break;
             //see https://github.com/dotnet/aspnetcore/issues/7945 can't use QueryHelpers.AddQueryString
             //var queryParams = new Dictionary<string, string>(batch.Value.Length);
             //foreach (var mediaItemId in batch.Value)
@@ -597,7 +605,7 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
         if (!File.Exists(path)) throw new FileNotFoundException($"can't find '{path}'");
         var size = new FileInfo(path).Length;
 
-        if (size < 1) throw new Exception($"media file {path} has no data?");
+        if (size < 1) throw new GooglePhotosException($"media file {path} has no data?");
         if (IsImage(Path.GetExtension(path)) && size > maxSizeImageBytes)
             throw new NotSupportedException($"Media file {path} is too big for known upload limits of {maxSizeImageBytes} bytes!");
         if (IsVideo(Path.GetExtension(path)) && size > maxSizeVideoBytes)
@@ -613,7 +621,7 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
         {
             headers.Add((X_Goog_Upload_Command, "start"));
             var fileName = Path.GetFileName(path);
-            //Note: UrlPathEncode below is not intended to be used... but fixes https://github.com/f2calv/CasCap.Apis.GooglePhotos/issues/110
+            //Note: UrlPathEncode below is not intended to be used... but fixes https://github.com/f2calv/CasCap.Api.GooglePhotos/issues/110
             headers.Add((X_Goog_Upload_File_Name, HttpUtility.UrlPathEncode(fileName)));
             headers.Add((X_Goog_Upload_Protocol, "resumable"));
             headers.Add((X_Goog_Upload_Raw_Size, size.ToString()));
@@ -622,22 +630,22 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
         if (uploadMethod == GooglePhotosUploadMethod.Simple)
         {
             var bytes = File.ReadAllBytes(path);
-            var tpl = await PostBytes<string, Error>(RequestUris.uploads, uploadMethod == GooglePhotosUploadMethod.ResumableSingle ? Array.Empty<byte>() : bytes, headers: headers);
+            var tpl = await PostBytes<string, Error>(RequestUris.uploads, uploadMethod == GooglePhotosUploadMethod.ResumableSingle ? [] : bytes, headers: headers);
             if (tpl.error is not null) throw new GooglePhotosException(tpl.error);
             return tpl.result;
         }
         else
         {
-            var tpl = await PostBytes<string, Error>(RequestUris.uploads, Array.Empty<byte>(), headers: headers);
+            var tpl = await PostBytes<string, Error>(RequestUris.uploads, [], headers: headers);
             var status = tpl.responseHeaders.TryGetValue(X_Goog_Upload_Status);
 
-            var Upload_URL = tpl.responseHeaders.TryGetValue(X_Goog_Upload_URL) ?? throw new Exception($"{nameof(X_Goog_Upload_URL)}");
+            var Upload_URL = tpl.responseHeaders.TryGetValue(X_Goog_Upload_URL) ?? throw new GooglePhotosException($"{nameof(X_Goog_Upload_URL)}");
             //Debug.WriteLine($"{Upload_URL}={Upload_URL}");
             var sUpload_Chunk_Granularity = tpl.responseHeaders.TryGetValue(X_Goog_Upload_Chunk_Granularity);
             if (int.TryParse(sUpload_Chunk_Granularity, out var Upload_Chunk_Granularity) && Upload_Chunk_Granularity <= 0)
-                throw new Exception($"invalid {X_Goog_Upload_Chunk_Granularity}!");
+                throw new GooglePhotosException($"invalid {X_Goog_Upload_Chunk_Granularity}!");
 
-            headers = new List<(string name, string value)>();
+            headers = [];
 
             if (uploadMethod == GooglePhotosUploadMethod.ResumableSingle)
             {
@@ -650,10 +658,10 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
                 if (tpl.httpStatusCode != HttpStatusCode.OK)
                 {
                     //we were interrupted so query the status of the last upload
-                    headers = new List<(string name, string value)>
-                        {
+                    headers =
+                        [
                             (X_Goog_Upload_Command, "query")
-                        };
+                        ];
 
                     tpl = await PostBytes<string, Error>(Upload_URL, bytes, headers: headers);
                     if (tpl.error is not null) throw new GooglePhotosException(tpl.error);
@@ -682,11 +690,11 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
                     //var lastChunk = offset + Upload_Chunk_Granularity >= size;
                     var lastChunk = batchIndex + 1 == batchCount;
 
-                    headers = new List<(string name, string value)>
-                        {
+                    headers =
+                        [
                             (X_Goog_Upload_Command, $"upload{(lastChunk ? ", finalize" : string.Empty)}"),
                             (X_Goog_Upload_Offset, offset.ToString())
-                        };
+                        ];
 
                     //todo: need to test resuming failed uploads
                     var bytes = reader.ReadBytes(Upload_Chunk_Granularity);
@@ -696,12 +704,12 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
                     if (tpl.httpStatusCode != HttpStatusCode.OK)
                     {
                         //we were interrupted so query the status of the last upload
-                        headers = new List<(string name, string value)>
-                            {
+                        headers =
+                            [
                                 (X_Goog_Upload_Command, "query")
-                            };
+                            ];
                         _logger.LogDebug($"");
-                        tpl = await PostBytes<string, Error>(Upload_URL, Array.Empty<byte>(), headers: headers);
+                        tpl = await PostBytes<string, Error>(Upload_URL, [], headers: headers);
 
                         status = tpl.responseHeaders.TryGetValue(X_Goog_Upload_Status);
                         _logger.LogTrace("{methodName}, status={status}", nameof(UploadMediaAsync), status);
@@ -713,7 +721,7 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
                     {
                         attemptCount = 0;//reset retry count
                         offset += bytes.Length;
-                        RaiseUploadProgressEvent(new UploadProgressArgs(Path.GetFileName(path), size, batchIndex, offset, bytes.Length));
+                        RaiseUploadProgressEvent(new UploadProgressEventArgs(Path.GetFileName(path), size, batchIndex, offset, bytes.Length));
                         batchIndex++;
                         //if (callback is not null)
                         //    callback(bytes.Length);

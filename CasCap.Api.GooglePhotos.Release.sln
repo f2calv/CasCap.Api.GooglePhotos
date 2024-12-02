@@ -1,0 +1,66 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.12.35309.182
+MinimumVisualStudioVersion = 15.0.26124.0
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CasCap.Api.GooglePhotos", "src\CasCap.Api.GooglePhotos\CasCap.Api.GooglePhotos.csproj", "{2A448BCC-84A1-4512-87B3-2685E40B75C4}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CasCap.Api.GooglePhotos.Tests", "src\CasCap.Api.GooglePhotos.Tests\CasCap.Api.GooglePhotos.Tests.csproj", "{943A9741-D29D-455F-917F-95FF428F80FD}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{1FAD3270-948C-415D-9D2C-63D410E92476}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GenericHost", "samples\GenericHost\GenericHost.csproj", "{A6C54B65-6A2D-4BA9-8A11-6097CC351DA5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleApp", "samples\ConsoleApp\ConsoleApp.csproj", "{CACAD45C-8DAF-4E61-B6F3-1C911656DB9D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "CasCap.Common", "CasCap.Common", "{4092EFD9-C0EE-4876-8CEE-AA1289C1AC36}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8EC462FD-D22E-90A8-E5CE-7E832BA40C5D}"
+	ProjectSection(SolutionItems) = preProject
+		Directory.Build.props = Directory.Build.props
+		Directory.Packages.props = Directory.Packages.props
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Release|Any CPU = Release|Any CPU
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{2A448BCC-84A1-4512-87B3-2685E40B75C4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2A448BCC-84A1-4512-87B3-2685E40B75C4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2A448BCC-84A1-4512-87B3-2685E40B75C4}.Release|x64.ActiveCfg = Release|Any CPU
+		{2A448BCC-84A1-4512-87B3-2685E40B75C4}.Release|x64.Build.0 = Release|Any CPU
+		{2A448BCC-84A1-4512-87B3-2685E40B75C4}.Release|x86.ActiveCfg = Release|Any CPU
+		{2A448BCC-84A1-4512-87B3-2685E40B75C4}.Release|x86.Build.0 = Release|Any CPU
+		{943A9741-D29D-455F-917F-95FF428F80FD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{943A9741-D29D-455F-917F-95FF428F80FD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{943A9741-D29D-455F-917F-95FF428F80FD}.Release|x64.ActiveCfg = Release|Any CPU
+		{943A9741-D29D-455F-917F-95FF428F80FD}.Release|x64.Build.0 = Release|Any CPU
+		{943A9741-D29D-455F-917F-95FF428F80FD}.Release|x86.ActiveCfg = Release|Any CPU
+		{943A9741-D29D-455F-917F-95FF428F80FD}.Release|x86.Build.0 = Release|Any CPU
+		{A6C54B65-6A2D-4BA9-8A11-6097CC351DA5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A6C54B65-6A2D-4BA9-8A11-6097CC351DA5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A6C54B65-6A2D-4BA9-8A11-6097CC351DA5}.Release|x64.ActiveCfg = Release|Any CPU
+		{A6C54B65-6A2D-4BA9-8A11-6097CC351DA5}.Release|x64.Build.0 = Release|Any CPU
+		{A6C54B65-6A2D-4BA9-8A11-6097CC351DA5}.Release|x86.ActiveCfg = Release|Any CPU
+		{A6C54B65-6A2D-4BA9-8A11-6097CC351DA5}.Release|x86.Build.0 = Release|Any CPU
+		{CACAD45C-8DAF-4E61-B6F3-1C911656DB9D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CACAD45C-8DAF-4E61-B6F3-1C911656DB9D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CACAD45C-8DAF-4E61-B6F3-1C911656DB9D}.Release|x64.ActiveCfg = Release|Any CPU
+		{CACAD45C-8DAF-4E61-B6F3-1C911656DB9D}.Release|x64.Build.0 = Release|Any CPU
+		{CACAD45C-8DAF-4E61-B6F3-1C911656DB9D}.Release|x86.ActiveCfg = Release|Any CPU
+		{CACAD45C-8DAF-4E61-B6F3-1C911656DB9D}.Release|x86.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{A6C54B65-6A2D-4BA9-8A11-6097CC351DA5} = {1FAD3270-948C-415D-9D2C-63D410E92476}
+		{CACAD45C-8DAF-4E61-B6F3-1C911656DB9D} = {1FAD3270-948C-415D-9D2C-63D410E92476}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {315434A5-DC61-4070-8452-C6695E1B14E0}
+	EndGlobalSection
+EndGlobal

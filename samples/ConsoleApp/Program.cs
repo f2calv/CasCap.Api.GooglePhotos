@@ -1,16 +1,9 @@
-﻿using CasCap.Models;
-using CasCap.Services;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using System.Diagnostics;
-using System.Net;
-
-string _user = null;//e.g. "your.email@mydomain.com";
+﻿string _user = null;//e.g. "your.email@mydomain.com";
 string _clientId = null;//e.g. "012345678901-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.apps.googleusercontent.com";
 string _clientSecret = null;//e.g. "abcabcabcabcabcabcabcabc";
 const string _testFolder = "c:/temp/GooglePhotos/";//local folder of test media files
 
-if (new[] { _user, _clientId, _clientSecret }.Any(p => string.IsNullOrWhiteSpace(p)))
+if (new[] { _user, _clientId, _clientSecret }.Any(string.IsNullOrWhiteSpace))
 {
     Console.WriteLine("Please populate authentication details to continue...");
     Debugger.Break();
@@ -38,7 +31,7 @@ var options = new GooglePhotosOptions
     ClientId = _clientId,
     ClientSecret = _clientSecret,
     //FileDataStoreFullPathOverride = _testFolder,
-    Scopes = new[] { GooglePhotosScope.Access, GooglePhotosScope.Sharing },//Access+Sharing == full access
+    Scopes = [GooglePhotosScope.Access, GooglePhotosScope.Sharing],//Access+Sharing == full access
 };
 
 //3) (Optional) display local OAuth 2.0 JSON file(s);
@@ -62,17 +55,18 @@ var client = new HttpClient(handler) { BaseAddress = new Uri(options.BaseAddress
 var _googlePhotosSvc = new GooglePhotosService(logger, Options.Create(options), client);
 
 //6) log-in
-if (!await _googlePhotosSvc.LoginAsync()) throw new Exception($"login failed!");
+if (!await _googlePhotosSvc.LoginAsync())
+    throw new GooglePhotosException($"login failed!");
 
 //get existing/create new album
 var albumTitle = $"{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}-{Guid.NewGuid()}";//make-up a random title
-var album = await _googlePhotosSvc.GetOrCreateAlbumAsync(albumTitle);
-if (album is null) throw new Exception("album creation failed!");
+var album = await _googlePhotosSvc.GetOrCreateAlbumAsync(albumTitle) ?? throw new GooglePhotosException("album creation failed!");
+
 Console.WriteLine($"{nameof(album)} '{album.title}' id is '{album.id}'");
 
 //upload single media item and assign to album
-var mediaItem = await _googlePhotosSvc.UploadSingle($"{_testFolder}test1.jpg", album.id);
-if (mediaItem is null) throw new Exception("media item upload failed!");
+var mediaItem = await _googlePhotosSvc.UploadSingle($"{_testFolder}test1.jpg", album.id) ?? throw new GooglePhotosException("media item upload failed!");
+
 Console.WriteLine($"{nameof(mediaItem)} '{mediaItem.mediaItem.filename}' id is '{mediaItem.mediaItem.id}'");
 
 //retrieve all media items in the album
@@ -82,4 +76,4 @@ await foreach (var item in _googlePhotosSvc.GetMediaItemsByAlbumAsync(album.id))
     i++;
     Console.WriteLine($"{i}\t{item.filename}\t{item.mediaMetadata.width}x{item.mediaMetadata.height}");
 }
-if (i == 0) throw new Exception("retrieve media items by album id failed!");
+if (i == 0) throw new GooglePhotosException("retrieve media items by album id failed!");

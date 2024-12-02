@@ -1,11 +1,11 @@
-# CasCap.Apis.GooglePhotos
+# CasCap.Api.GooglePhotos
 
 ## _Unofficial_ Google Photos Library API wrapper library for .NET applications
 
-[cascap.apis.googlephotos-badge]: https://img.shields.io/nuget/v/CasCap.Apis.GooglePhotos?color=blue
-[cascap.apis.googlephotos-url]: https://nuget.org/packages/CasCap.Apis.GooglePhotos
+[CasCap.Api.GooglePhotos-badge]: https://img.shields.io/nuget/v/CasCap.Api.GooglePhotos?color=blue
+[CasCap.Api.GooglePhotos-url]: https://nuget.org/packages/CasCap.Api.GooglePhotos
 
-![CI](https://github.com/f2calv/CasCap.Apis.GooglePhotos/actions/workflows/ci.yml/badge.svg) [![Coverage Status](https://coveralls.io/repos/github/f2calv/CasCap.Apis.GooglePhotos/badge.svg?branch=main)](https://coveralls.io/github/f2calv/CasCap.Apis.GooglePhotos?branch=main) [![SonarCloud Coverage](https://sonarcloud.io/api/project_badges/measure?project=f2calv_CasCap.Apis.GooglePhotos&metric=code_smells)](https://sonarcloud.io/component_measures/metric/code_smells/list?id=f2calv_CasCap.Apis.GooglePhotos) [![Nuget][cascap.apis.googlephotos-badge]][cascap.apis.googlephotos-url]
+![CI](https://github.com/f2calv/CasCap.Api.GooglePhotos/actions/workflows/ci.yml/badge.svg) [![Coverage Status](https://coveralls.io/repos/github/f2calv/CasCap.Api.GooglePhotos/badge.svg?branch=main)](https://coveralls.io/github/f2calv/CasCap.Api.GooglePhotos?branch=main) [![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=f2calv_CasCap.Api.GooglePhotos&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=f2calv_CasCap.Api.GooglePhotos) [![Nuget][CasCap.Api.GooglePhotos-badge]][CasCap.Api.GooglePhotos-url]
 
 > Want to save yourself some coding? See the _preview_ release of [GooglePhotosCli](https://github.com/f2calv/CasCap.GooglePhotosCli) using this library...
 
@@ -17,7 +17,7 @@ If you find this library of use then please give it a thumbs-up by giving this r
 
 If you wish to interact with your Google Photos media items/albums then there are official [PHP and Java Client Libraries](https://developers.google.com/photos/library/guides/client-libraries). However if you're looking for a comprehensive .NET library then you were out of luck... until now :)
 
-The _CasCap.Apis.GooglePhotos_ library wraps up all the available functionality of the Google Photos REST API in easy to use methods.
+The _CasCap.Api.GooglePhotos_ library wraps up all the available functionality of the Google Photos REST API in easy to use methods.
 
 Note: Before you jump in and use this library you should be aware that the [Google Photos Library API](https://developers.google.com/photos/library/reference/rest) has some key limitations. The biggest of these is that the API only allows the upload/addition of images/videos to the library, no edits or deletion are possible and have to be done manually via [https://photos.google.com](https://photos.google.com).
 
@@ -40,7 +40,7 @@ Using your Google Account the steps are\*;
 
 ## Library Configuration/Usage
 
-Install the package into your project using NuGet ([see details here](https://www.nuget.org/packages/CasCap.Apis.GooglePhotos/)).
+Install the package into your project using NuGet ([see details here](https://www.nuget.org/packages/CasCap.Api.GooglePhotos/)).
 
 For .NET Core applications using dependency injection the primary API usage is to call IServiceCollection.AddGooglePhotos in the Startup.cs ConfigureServices method.
 
@@ -255,9 +255,9 @@ public class Startup
 
 All API functions are exposed by the GooglePhotosService class. There are several sample .NET Core applications which show the basics on how to set-up/config/use the library;
 
-- [Console App](https://github.com/f2calv/CasCap.Apis.GooglePhotos/tree/master/samples/ConsoleApp) with no dependency injection.
-- [Console App](https://github.com/f2calv/CasCap.Apis.GooglePhotos/tree/master/samples/GenericHost) using configuration, logging and dependency injection via the [.NET Generic Host](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/host/generic-host?view=aspnetcore-3.1).
-- [Integration Test App](https://github.com/f2calv/CasCap.Apis.GooglePhotos/blob/master/src/CasCap.Apis.GooglePhotos.Tests/Tests/Tests.cs) has the majority of the commented examples of various interactions.
+- [Console App](https://github.com/f2calv/CasCap.Api.GooglePhotos/tree/master/samples/ConsoleApp) with no dependency injection.
+- [Console App](https://github.com/f2calv/CasCap.Api.GooglePhotos/tree/master/samples/GenericHost) using configuration, logging and dependency injection via the [.NET Generic Host](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/host/generic-host?view=aspnetcore-3.1).
+- [Integration Test App](https://github.com/f2calv/CasCap.Api.GooglePhotos/blob/master/src/CasCap.Api.GooglePhotos.Tests/Tests/Tests.cs) has the majority of the commented examples of various interactions.
 
 ### Core Dependencies
 
@@ -267,20 +267,20 @@ All API functions are exposed by the GooglePhotosService class. There are severa
 
 ### Misc Tips
 
-- The [NuGet package](https://www.nuget.org/packages/CasCap.Apis.GooglePhotos/) includes [SourceLink](https://github.com/dotnet/sourcelink) which enables you to jump inside the library and debug the API yourself. By default Visual Studio 2017/2019 does not allow this and will pop up an message "You are debugging a Release build of...", to disable this message go into the Visual Studio debugging options and un-check the 'Just My Code' option (menu path, Tools > Options > Debugging).
+- The [NuGet package](https://www.nuget.org/packages/CasCap.Api.GooglePhotos/) includes [SourceLink](https://github.com/dotnet/sourcelink) which enables you to jump inside the library and debug the API yourself. By default Visual Studio 2017/2019 does not allow this and will pop up an message "You are debugging a Release build of...", to disable this message go into the Visual Studio debugging options and un-check the 'Just My Code' option (menu path, Tools > Options > Debugging).
 
 ### Resources
 
-- https://developers.google.com/photos
-- https://console.developers.google.com
+- <https://developers.google.com/photos>
+- <https://console.developers.google.com>
 - [Google Photos Library API](https://developers.google.com/photos)
 - [Google Photos Library API REST Reference](https://developers.google.com/photos/library/reference/rest)
 - [Google Photos Library API Authorisation Scopes](https://developers.google.com/photos/library/guides/authorization)
 
 ### Feedback/Issues
 
-Please post any issues or feedback [here](https://github.com/f2calv/CasCap.Apis.GooglePhotos/issues).
+Please post any issues or feedback [here](https://github.com/f2calv/CasCap.Api.GooglePhotos/issues).
 
 ### License
 
-CasCap.Apis.GooglePhotos is Copyright &copy; 2020 [Alex Vincent](https://github.com/f2calv) under the [MIT license](LICENSE).
+CasCap.Api.GooglePhotos is Copyright &copy; 2020 [Alex Vincent](https://github.com/f2calv) under the [MIT license](LICENSE).

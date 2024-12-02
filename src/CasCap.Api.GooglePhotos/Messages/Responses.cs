@@ -22,23 +22,17 @@ public class mediaItemsCreateResponse//todo: should this be internal?
 /// <summary>
 /// https://developers.google.com/photos/library/reference/rest/v1/albums/addEnrichment#request-body
 /// </summary>
-internal class AddEnrichmentRequest
+internal class AddEnrichmentRequest(NewEnrichmentItem newEnrichmentItem, AlbumPosition albumPosition)
 {
-    public AddEnrichmentRequest(NewEnrichmentItem newEnrichmentItem, AlbumPosition albumPosition)
-    {
-        this.newEnrichmentItem = newEnrichmentItem;
-        this.albumPosition = albumPosition;
-    }
-
     /// <summary>
     /// The enrichment to be added.
     /// </summary>
-    public NewEnrichmentItem newEnrichmentItem { get; set; }
+    public NewEnrichmentItem newEnrichmentItem { get; set; } = newEnrichmentItem;
 
     /// <summary>
     /// The position in the album where the enrichment is to be inserted.
     /// </summary>
-    public AlbumPosition albumPosition { get; set; }
+    public AlbumPosition albumPosition { get; set; } = albumPosition;
 }
 
 /// <summary>

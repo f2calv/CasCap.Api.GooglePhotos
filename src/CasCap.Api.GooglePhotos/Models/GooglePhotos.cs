@@ -1,8 +1,6 @@
-﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
-namespace CasCap.Models;
+﻿namespace CasCap.Models;
 
-[JsonConverter(typeof(StringEnumConverter))]
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum GooglePhotosScope
 {
     /// <summary>
@@ -26,12 +24,12 @@ public enum GooglePhotosScope
     /// <summary>
     /// Read access to media items and albums created by the developer. For more information, see Access media items and List library contents, albums, and media items.
     ///
-    /// Intended to be requested together with the.appendonly scope.
+    /// Intended to be requested together with the AppendOnly scope.
     /// </summary>
     AppCreatedData,
 
     /// <summary>
-    /// Access to both the .appendonly and .readonly scopes. Doesn't include .sharing.
+    /// Access to both the AppendOnly and ReadOnly scopes. Doesn't include Sharing scope.
     /// </summary>
     Access,
 
@@ -43,7 +41,7 @@ public enum GooglePhotosScope
     Sharing
 }
 
-[JsonConverter(typeof(StringEnumConverter))]
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum GooglePhotosUploadMethod
 {
     Simple,
@@ -51,7 +49,7 @@ public enum GooglePhotosUploadMethod
     ResumableMultipart
 }
 
-[JsonConverter(typeof(StringEnumConverter))]
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum GooglePhotosPositionType
 {
     /// <summary>
@@ -80,20 +78,20 @@ public enum GooglePhotosPositionType
     AFTER_ENRICHMENT_ITEM
 }
 
-[JsonConverter(typeof(StringEnumConverter))]
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum GooglePhotosMediaType
 {
     PHOTO,
     VIDEO
 }
 
-[JsonConverter(typeof(StringEnumConverter))]
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum GooglePhotosFeatureType
 {
     FAVORITES
 }
 
-[JsonConverter(typeof(StringEnumConverter))]
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum GooglePhotosContentCategoryType
 {
     ANIMALS,
@@ -132,15 +130,15 @@ public class Filter
     {
         dateFilter = new dateFilter
         {
-            ranges = new[] { new gDateRange { startDate = new gDate(startDate), endDate = new gDate(endDate) } }
+            ranges = [new() { startDate = new gDate(startDate), endDate = new gDate(endDate) }]
         };
     }
 
-    public Filter(GooglePhotosContentCategoryType category) => this.contentFilter = new contentFilter { includedContentCategories = new[] { category } };
+    public Filter(GooglePhotosContentCategoryType category) => contentFilter = new contentFilter { includedContentCategories = [category] };
 
-    public Filter(GooglePhotosContentCategoryType[] categories) => this.contentFilter = new contentFilter { includedContentCategories = categories };
+    public Filter(GooglePhotosContentCategoryType[] categories) => contentFilter = new contentFilter { includedContentCategories = categories };
 
-    public Filter(List<GooglePhotosContentCategoryType> categories) => this.contentFilter = new contentFilter { includedContentCategories = categories.ToArray() };
+    public Filter(List<GooglePhotosContentCategoryType> categories) => contentFilter = new contentFilter { includedContentCategories = categories.ToArray() };
 
     public contentFilter? contentFilter { get; set; }
     public dateFilter? dateFilter { get; set; }
@@ -201,6 +199,7 @@ public class gDateRange
     public gDate endDate { get; set; } = default!;
 }
 
+[JsonNumberHandling(JsonNumberHandling.AllowReadingFromString)]
 public class Album
 {
     /// <summary>
@@ -236,7 +235,7 @@ public class Album
     /// <summary>
     /// [Output only] The number of media items in the album.
     /// </summary>
-    public int mediaItemsCount { get; set; }
+    public long? mediaItemsCount { get; set; }
 
     /// <summary>
     /// [Output only] Information related to shared albums.This field is only populated if the album is a shared album, the developer created the album and the user has granted the photoslibrary.sharing scope.
@@ -442,100 +441,72 @@ public class EnrichmentItem
 /// Text for this enrichment item.
 /// https://developers.google.com/photos/library/reference/rest/v1/albums/addEnrichment#textenrichment
 /// </summary>
-public class TextEnrichment
+public class TextEnrichment(string text)
 {
-    public TextEnrichment(string text)
-    {
-        this.text = text;
-    }
-
-    public string text { get; set; }
+    public string text { get; set; } = text;
 }
 
 /// <summary>
 /// An enrichment containing a single location.
 /// https://developers.google.com/photos/library/reference/rest/v1/albums/addEnrichment#locationenrichment
 /// </summary>
-public class LocationEnrichment
+public class LocationEnrichment(Location location)
 {
-    public LocationEnrichment(Location location)
-    {
-        this.location = location;
-    }
-
     /// <summary>
     /// Location for this enrichment item.
     /// </summary>
-    public Location location { get; set; }
+    public Location location { get; set; } = location;
 }
 
 /// <summary>
 /// Represents a physical location.
 /// https://developers.google.com/photos/library/reference/rest/v1/albums/addEnrichment#location
 /// </summary>
-public class Location
+public class Location(string locationName, Latlng latlng)
 {
-    public Location(string locationName, Latlng latlng)
-    {
-        this.locationName = locationName;
-        this.latlng = latlng;
-    }
-
     /// <summary>
     /// Name of the location to be displayed.
     /// </summary>
-    public string locationName { get; set; }
+    public string locationName { get; set; } = locationName;
 
     /// <summary>
     /// Position of the location on the map.
     /// </summary>
-    public Latlng latlng { get; set; }
+    public Latlng latlng { get; set; } = latlng;
 }
 
 /// <summary>
 /// An object representing a latitude/longitude pair. This is expressed as a pair of doubles representing degrees latitude and degrees longitude. Unless specified otherwise, this must conform to the WGS84 standard. Values must be within normalized ranges.
 /// https://developers.google.com/photos/library/reference/rest/v1/albums/addEnrichment#latlng
 /// </summary>
-public class Latlng
+public class Latlng(double latitude, double longitude)
 {
-    public Latlng(double latitude, double longitude)
-    {
-        this.latitude = latitude;
-        this.longitude = longitude;
-    }
-
     /// <summary>
     /// The latitude in degrees. It must be in the range [-90.0, +90.0].
     /// </summary>
-    public double latitude { get; set; }
+    public double latitude { get; set; } = latitude;
 
     /// <summary>
     /// The longitude in degrees. It must be in the range [-180.0, +180.0].
     /// </summary>
-    public double longitude { get; set; }
+    public double longitude { get; set; } = longitude;
 }
 
 /// <summary>
 /// An enrichment containing a map, showing origin and destination locations.
 /// https://developers.google.com/photos/library/reference/rest/v1/albums/addEnrichment#mapenrichment
 /// </summary>
-public class MapEnrichment
+public class MapEnrichment(Location origin, Location destination)
 {
-    public MapEnrichment(Location origin, Location destination)
-    {
-        this.origin = origin;
-        this.destination = destination;
-    }
-
     /// <summary>
     /// Origin location for this enrichment item.
     /// </summary>
-    public Location origin { get; set; }
+    public Location origin { get; set; } = origin;
 
     /// <summary>
     /// Destination location for this enrichment item.
     /// </summary>
-    public Location destination { get; set; }
+    public Location destination { get; set; } = destination;
 }
 #endregion
 

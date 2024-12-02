@@ -1,4 +1,4 @@
-﻿namespace CasCap.Interfaces;
+﻿namespace CasCap.Abstractions;
 
 public interface IPagingToken
 {

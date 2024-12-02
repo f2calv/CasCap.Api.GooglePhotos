@@ -1,9 +1,4 @@
-﻿using CasCap.Services;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Xunit.Abstractions;
-namespace CasCap.Apis.GooglePhotos.Tests;
+﻿namespace CasCap.Tests;
 
 public abstract class TestBase
 {
@@ -29,7 +24,7 @@ public abstract class TestBase
         _logger = ApplicationLogging.LoggerFactory.CreateLogger<TestBase>();
 
         //add services
-        services.AddGooglePhotos();
+        services.AddGooglePhotos(configuration);
 
         //retrieve services
         var serviceProvider = services.BuildServiceProvider();
