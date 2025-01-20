@@ -12,7 +12,7 @@
     <PackageVersion Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="9.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="9.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.UserSecrets" Version="9.0.0" />
-    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="9.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="9.0.1" />
     <PackageVersion Include="Microsoft.Extensions.Hosting" Version="9.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="9.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Http.Resilience" Version="9.0.0" />
