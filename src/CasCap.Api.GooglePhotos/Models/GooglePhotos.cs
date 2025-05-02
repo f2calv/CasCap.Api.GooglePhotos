@@ -176,9 +176,9 @@ public class gDate
 
     public gDate(DateTime dt)
     {
-        this.year = dt.Year;
-        this.month = dt.Month;
-        this.day = dt.Day;
+        year = dt.Year;
+        month = dt.Month;
+        day = dt.Day;
     }
 
     public gDate(int year, int month, int day)

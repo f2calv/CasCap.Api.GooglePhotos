@@ -48,5 +48,5 @@ public class GooglePhotosOptions
     /// <summary>
     /// e.g. Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Google.Apis.Auth");
     /// </summary>
-    public string FileDataStoreFullPathDefault { get { return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Google.Apis.Auth"); } }
+    public static string FileDataStoreFullPathDefault { get { return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Google.Apis.Auth"); } }
 }

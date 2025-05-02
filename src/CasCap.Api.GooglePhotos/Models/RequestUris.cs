@@ -1,6 +1,6 @@
 ﻿namespace CasCap.Models;
 
-public class RequestUris
+public static class RequestUris
 {
     public const string BaseAddress = "https://photoslibrary.googleapis.com/v1/";
 

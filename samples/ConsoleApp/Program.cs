@@ -35,7 +35,7 @@ var options = new GooglePhotosOptions
 };
 
 //3) (Optional) display local OAuth 2.0 JSON file(s);
-var path = options.FileDataStoreFullPathOverride is null ? options.FileDataStoreFullPathDefault : options.FileDataStoreFullPathOverride;
+var path = options.FileDataStoreFullPathOverride is null ? GooglePhotosOptions.FileDataStoreFullPathDefault : options.FileDataStoreFullPathOverride;
 Console.WriteLine($"{nameof(options.FileDataStoreFullPathOverride)}:\t{path}");
 var files = Directory.GetFiles(path);
 if (files.Length == 0)

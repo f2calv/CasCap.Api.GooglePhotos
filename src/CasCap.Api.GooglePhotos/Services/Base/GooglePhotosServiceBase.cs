@@ -13,22 +13,22 @@ namespace CasCap.Services;
 
 public abstract class GooglePhotosServiceBase : HttpClientBase
 {
-    const int maxSizeImageBytes = 1024 * 1024 * 200;
-    const long maxSizeVideoBytes = 1024 * 1024 * 1024 * 10L;
+    private const int maxSizeImageBytes = 1024 * 1024 * 200;
+    private const long maxSizeVideoBytes = 1024 * 1024 * 1024 * 10L;
 
-    const int minPageSizeAlbums = 1;
-    const int defaultPageSizeAlbums = 50;
-    const int maxPageSizeAlbums = 50;
+    private const int minPageSizeAlbums = 1;
+    private const int defaultPageSizeAlbums = 50;
+    private const int maxPageSizeAlbums = 50;
 
-    const int minPageSizeMediaItems = 1;
-    const int defaultPageSizeMediaItems = 100;
-    const int maxPageSizeMediaItems = 100;
+    private const int minPageSizeMediaItems = 1;
+    private const int defaultPageSizeMediaItems = 100;
+    private const int maxPageSizeMediaItems = 100;
 
-    const int defaultBatchSizeMediaItems = 50;
+    private const int defaultBatchSizeMediaItems = 50;
 
-    GooglePhotosOptions _options;
+    private GooglePhotosOptions _options;
 
-    public GooglePhotosServiceBase(ILogger<GooglePhotosService> logger,
+    protected GooglePhotosServiceBase(ILogger<GooglePhotosServiceBase> logger,
         IOptions<GooglePhotosOptions> options,
         HttpClient client
         )
@@ -55,10 +55,10 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
         return false;
     }
 
-    static bool IsImage(string extension) => AcceptedMimeTypesImage.Contains(MimeTypeMap.GetMimeType(extension));
+    private static bool IsImage(string extension) => AcceptedMimeTypesImage.Contains(MimeTypeMap.GetMimeType(extension));
 
     //https://developers.google.com/photos/library/guides/upload-media#file-types-sizes
-    static readonly HashSet<string> AcceptedMimeTypesImage = new(StringComparer.OrdinalIgnoreCase)
+    private static readonly HashSet<string> AcceptedMimeTypesImage = new(StringComparer.OrdinalIgnoreCase)
     {
         { "image/avif" },
         { "image/bmp" },
@@ -74,10 +74,10 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
         { "image/x-panasonic-rw2" },
     };
 
-    static bool IsVideo(string extension) => AcceptedMimeTypesVideo.Contains(MimeTypeMap.GetMimeType(extension));
+    private static bool IsVideo(string extension) => AcceptedMimeTypesVideo.Contains(MimeTypeMap.GetMimeType(extension));
 
     //todo: do we need to handle the mime types in a more forgiving way?
-    static readonly HashSet<string> AcceptedMimeTypesVideo = new(StringComparer.OrdinalIgnoreCase)
+    private static readonly HashSet<string> AcceptedMimeTypesVideo = new(StringComparer.OrdinalIgnoreCase)
     {
         { "video/3gpp" },
         { "video/3gpp2" },
@@ -96,7 +96,7 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
         { "video/x-ms-wmv" },
     };
 
-    static readonly Dictionary<GooglePhotosScope, string> dScopes = new()
+    private static readonly Dictionary<GooglePhotosScope, string> dScopes = new()
     {
         { GooglePhotosScope.ReadOnly, "https://www.googleapis.com/auth/photoslibrary.readonly" },
         { GooglePhotosScope.AppendOnly, "https://www.googleapis.com/auth/photoslibrary.appendonly" },
@@ -215,7 +215,7 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
         => _GetAlbumsAsync(RequestUris.GET_sharedAlbums, pageSize, excludeNonAppCreatedData, cancellationToken);
 
     //todo: add IPagable interface and merge with similar
-    async Task<List<Album>> _GetAlbumsAsync(string requestUri, int pageSize, bool excludeNonAppCreatedData, CancellationToken cancellationToken)/* where T : IPagingToken where V : IEnumerable<V>, new()*/
+    private async Task<List<Album>> _GetAlbumsAsync(string requestUri, int pageSize, bool excludeNonAppCreatedData, CancellationToken cancellationToken)/* where T : IPagingToken where V : IEnumerable<V>, new()*/
     {
         if (pageSize < minPageSizeAlbums || pageSize > maxPageSizeAlbums)
             throw new ArgumentOutOfRangeException($"{nameof(pageSize)} must be between {minPageSizeAlbums} and {maxPageSizeAlbums}!");
@@ -245,7 +245,7 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
         return l;
     }
 
-    string GetUrl(string uri, int? pageSize = defaultPageSizeAlbums, bool excludeNonAppCreatedData = false, string? pageToken = null)
+    private string GetUrl(string uri, int? pageSize = defaultPageSizeAlbums, bool excludeNonAppCreatedData = false, string? pageToken = null)
     {
         var queryParams = new Dictionary<string, string?>(3);
         if (pageSize.HasValue && pageSize != defaultPageSizeAlbums) queryParams.Add(nameof(pageSize), pageSize.Value.ToString());
@@ -334,7 +334,7 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
     #region https://photoslibrary.googleapis.com/v1/mediaItems
     //todo: find a neater way to merge _GetMediaItemsAsync & _GetMediaItemsViaPOSTAsync - practically the same - pass an Action?
     //todo: add IPagable interface and merge with similar
-    async IAsyncEnumerable<MediaItem> _GetMediaItemsAsync(int pageSize, int maxPageCount, bool excludeNonAppCreatedData, string requestUri, [EnumeratorCancellation] CancellationToken cancellationToken)
+    private async IAsyncEnumerable<MediaItem> _GetMediaItemsAsync(int pageSize, int maxPageCount, bool excludeNonAppCreatedData, string requestUri, [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         if (pageSize < minPageSizeMediaItems || pageSize > maxPageSizeMediaItems)
             throw new ArgumentOutOfRangeException($"{nameof(pageSize)} must be between {minPageSizeMediaItems} and {maxPageSizeMediaItems}!");
@@ -376,7 +376,7 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
     }
 
     //todo: add IPagable interface and merge with similar
-    async IAsyncEnumerable<MediaItem> _GetMediaItemsViaPOSTAsync(string? albumId, int pageSize, int maxPageCount, Filter? filters, bool excludeNonAppCreatedData, string requestUri, [EnumeratorCancellation] CancellationToken cancellationToken)
+    private async IAsyncEnumerable<MediaItem> _GetMediaItemsViaPOSTAsync(string? albumId, int pageSize, int maxPageCount, Filter? filters, bool excludeNonAppCreatedData, string requestUri, [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         if (pageSize < minPageSizeMediaItems || pageSize > maxPageSizeMediaItems)
             throw new ArgumentOutOfRangeException($"{nameof(pageSize)} must be between {minPageSizeMediaItems} and {maxPageSizeMediaItems}!");
@@ -489,7 +489,7 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
     public IAsyncEnumerable<MediaItem> GetMediaItemsByFilterAsync(Filter filter, int maxPageCount = int.MaxValue, CancellationToken cancellationToken = default)
         => _GetMediaItemsByFilterAsync(filter, maxPageCount, cancellationToken);
 
-    IAsyncEnumerable<MediaItem> _GetMediaItemsByFilterAsync(Filter filter, int maxPageCount, CancellationToken cancellationToken)
+    private IAsyncEnumerable<MediaItem> _GetMediaItemsByFilterAsync(Filter filter, int maxPageCount, CancellationToken cancellationToken)
     {
         //validate/tidy outgoing filter object
         var contentFilter = filter.contentFilter;
@@ -521,7 +521,7 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
     }
 
     //would need renaming if made public
-    Task<NewMediaItemResult?> AddMediaItemAsync(string uploadToken, string? fileName = null, string? description = null, string? albumId = null, AlbumPosition? albumPosition = null)
+    private Task<NewMediaItemResult?> AddMediaItemAsync(string uploadToken, string? fileName = null, string? description = null, string? albumId = null, AlbumPosition? albumPosition = null)
         => AddMediaItemAsync(new UploadItem(uploadToken, fileName, description), albumId, albumPosition);
 
     public Task<NewMediaItemResult?> AddMediaItemAsync(string uploadToken, string? fileName = null, string? description = null, string? albumId = null,
@@ -533,7 +533,7 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
         => AddMediaItemAsync(uploadItem, albumId, GetAlbumPosition(albumId, positionType, relativeMediaItemId, relativeEnrichmentItemId));
 
     //would need renaming if made public
-    async Task<NewMediaItemResult?> AddMediaItemAsync(UploadItem uploadItem, string? albumId, AlbumPosition? albumPosition)
+    private async Task<NewMediaItemResult?> AddMediaItemAsync(UploadItem uploadItem, string? albumId, AlbumPosition? albumPosition)
     {
         var newMediaItems = new List<UploadItem> { uploadItem };
         var res = await AddMediaItemsAsync(newMediaItems, albumId, albumPosition);
@@ -560,7 +560,7 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
         => AddMediaItemsAsync(uploadItems, albumId, GetAlbumPosition(albumId, positionType, relativeMediaItemId, relativeEnrichmentItemId));
 
     //would need renaming if made public
-    async Task<mediaItemsCreateResponse?> AddMediaItemsAsync(List<UploadItem> uploadItems, string? albumId, AlbumPosition? albumPosition)
+    private async Task<mediaItemsCreateResponse?> AddMediaItemsAsync(List<UploadItem> uploadItems, string? albumId, AlbumPosition? albumPosition)
     {
         if (uploadItems.IsNullOrEmpty())
             throw new ArgumentNullException(nameof(uploadItems), $"Invalid {nameof(uploadItems)} quantity, must be >= 1");
@@ -585,16 +585,16 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
     }
     #endregion
 
-    const string X_Goog_Upload_Content_Type = "X-Goog-Upload-Content-Type";
-    const string X_Goog_Upload_Protocol = "X-Goog-Upload-Protocol";
-    const string X_Goog_Upload_Command = "X-Goog-Upload-Command";
-    const string X_Goog_Upload_File_Name = "X-Goog-Upload-File-Name";
-    const string X_Goog_Upload_Raw_Size = "X-Goog-Upload-Raw-Size";
-    const string X_Goog_Upload_URL = "X-Goog-Upload-URL";
-    const string X_Goog_Upload_Offset = "X-Goog-Upload-Offset";
-    const string X_Goog_Upload_Status = "X-Goog-Upload-Status";
-    const string X_Goog_Upload_Chunk_Granularity = "X-Goog-Upload-Chunk-Granularity";
-    const string X_Goog_Upload_Size_Received = "X-Goog-Upload-Size-Received";
+    private const string X_Goog_Upload_Content_Type = "X-Goog-Upload-Content-Type";
+    private const string X_Goog_Upload_Protocol = "X-Goog-Upload-Protocol";
+    private const string X_Goog_Upload_Command = "X-Goog-Upload-Command";
+    private const string X_Goog_Upload_File_Name = "X-Goog-Upload-File-Name";
+    private const string X_Goog_Upload_Raw_Size = "X-Goog-Upload-Raw-Size";
+    private const string X_Goog_Upload_URL = "X-Goog-Upload-URL";
+    private const string X_Goog_Upload_Offset = "X-Goog-Upload-Offset";
+    private const string X_Goog_Upload_Status = "X-Goog-Upload-Status";
+    private const string X_Goog_Upload_Chunk_Granularity = "X-Goog-Upload-Chunk-Granularity";
+    private const string X_Goog_Upload_Size_Received = "X-Goog-Upload-Size-Received";
 
     //todo: refactor this method when time, it's a bit of a mess :/
     //https://developers.google.com/photos/library/guides/upload-media
@@ -750,7 +750,7 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
         }
     }
 
-    static AlbumPosition? GetAlbumPosition(string? albumId, GooglePhotosPositionType positionType, string? relativeMediaItemId, string? relativeEnrichmentItemId)
+    private static AlbumPosition? GetAlbumPosition(string? albumId, GooglePhotosPositionType positionType, string? relativeMediaItemId, string? relativeEnrichmentItemId)
     {
         AlbumPosition? albumPosition = null;
         if (string.IsNullOrWhiteSpace(albumId)
