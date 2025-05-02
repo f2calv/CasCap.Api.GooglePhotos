@@ -252,7 +252,7 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
         if (excludeNonAppCreatedData) queryParams.Add(nameof(excludeNonAppCreatedData), excludeNonAppCreatedData.ToString());
         if (!string.IsNullOrWhiteSpace(pageToken)) queryParams.Add(nameof(pageToken), pageToken!);//todo: nullability look further into this
         var url = QueryHelpers.AddQueryString(uri, queryParams);
-        _logger.LogDebug("{methodName}, {url}", nameof(GetUrl), url);
+        _logger.LogDebug("{ClassName} {MethodName}, {Url}", nameof(GooglePhotosServiceBase), nameof(GetUrl), url);
         return url;
     }
 
@@ -466,7 +466,8 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
                         }
                     }
                     else
-                        _logger.LogWarning("{methodName}, status={status}", nameof(GetMediaItemsByIdsAsync), result.status);//we highlight if any objects returned a non-null status object
+                        _logger.LogWarning("{ClassName} {MethodName}, status={Status}", nameof(GooglePhotosServiceBase),
+                            nameof(GetMediaItemsByIdsAsync), result.status);//we highlight if any objects returned a non-null status object
                 }
                 if (batch.Key + 1 != batches.Count)
                     RaisePagingEvent(new PagingEventArgs(tpl.result.mediaItemResults.Count, batch.Key + 1, hs.Count));
@@ -541,7 +542,8 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
             return res.newMediaItemResults[0];
         else
         {
-            _logger.LogError("{methodName}, upload failure '{fileName}'", nameof(AddMediaItemAsync), uploadItem.fileName);
+            _logger.LogError("{ClassName} {MethodName}, upload failure '{FileName}'", nameof(GooglePhotosServiceBase),
+                nameof(AddMediaItemAsync), uploadItem.fileName);
             return null;
         }
     }
@@ -714,7 +716,8 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
                         tpl = await PostBytes<string, Error>(Upload_URL, [], additionalHeaders: headers, cancellationToken: cancellationToken);
 
                         status = tpl.responseHeaders.TryGetValue(X_Goog_Upload_Status);
-                        _logger.LogTrace("{methodName}, status={status}", nameof(UploadMediaAsync), status);
+                        _logger.LogTrace("{ClassName} {MethodName}, status={Status}", nameof(GooglePhotosServiceBase),
+                            nameof(UploadMediaAsync), status);
                         var bytesReceived = tpl.responseHeaders.TryGetValue(X_Goog_Upload_Size_Received);
                         //Debug.WriteLine($"bytesReceived={bytesReceived}");
                         Debug.WriteLine($"attemptCount={attemptCount}\twill try upload again...");
