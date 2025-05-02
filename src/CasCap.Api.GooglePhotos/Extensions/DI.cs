@@ -14,7 +14,7 @@ public static class DI
     public static void AddGooglePhotos(this IServiceCollection services, Action<GooglePhotosOptions> configureOptions)
         => services.AddServices(configureOptions: configureOptions);
 
-    static void AddServices(this IServiceCollection services,
+    private static void AddServices(this IServiceCollection services,
         IConfiguration? configuration = null,
         string sectionKey = GooglePhotosOptions.SectionKey,
         GooglePhotosOptions? googlePhotosOptions = null,
