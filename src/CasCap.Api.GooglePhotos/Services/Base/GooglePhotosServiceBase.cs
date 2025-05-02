@@ -226,7 +226,7 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
         while (pageToken is not null && !cancellationToken.IsCancellationRequested)
         {
             var _requestUri = GetUrl(requestUri, pageSize, excludeNonAppCreatedData, pageToken);
-            var tpl = await Get<albumsGetResponse, Error>(_requestUri);
+            var tpl = await Get<albumsGetResponse, Error>(_requestUri, cancellationToken: cancellationToken);
             if (tpl.error is not null) throw new GooglePhotosException(tpl.error);
             else if (tpl.result is not null)//to hide nullability warning
             {
@@ -346,7 +346,7 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
         while (pageToken is not null && !cancellationToken.IsCancellationRequested && pageNumber <= maxPageCount)
         {
             var _requestUri = GetUrl(requestUri, pageSize, excludeNonAppCreatedData, pageToken);
-            var tpl = await Get<mediaItemsResponse, Error>(_requestUri);
+            var tpl = await Get<mediaItemsResponse, Error>(_requestUri, cancellationToken: cancellationToken);
             if (tpl.error is not null) throw new GooglePhotosException(tpl.error);
             else if (tpl.result is not null)
             {
@@ -390,7 +390,7 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
         while (pageToken is not null && !cancellationToken.IsCancellationRequested && pageNumber <= maxPageCount)
         {
             var req = new { albumId, pageSize, pageToken, filters };
-            var tpl = await PostJson<mediaItemsResponse, Error>(requestUri, req);
+            var tpl = await PostJson<mediaItemsResponse, Error>(requestUri, req, cancellationToken: cancellationToken);
             if (tpl.error is not null) throw new GooglePhotosException(tpl.error);
             else if (tpl.result is not null)
             {
@@ -450,7 +450,7 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
             foreach (var mediaItemId in batch.Value)
                 sb.Append($"&{nameof(mediaItemIds)}={mediaItemId}");
             var url = $"{RequestUris.GET_mediaItems_batchGet}?{sb.ToString()[1..]}";
-            var tpl = await Get<mediaItemsGetResponse, Error>(url);
+            var tpl = await Get<mediaItemsGetResponse, Error>(url, cancellationToken: cancellationToken);
             if (tpl.error is not null) throw new GooglePhotosException(tpl.error);
             else if (tpl.result is not null)
             {
@@ -600,7 +600,8 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
     //https://developers.google.com/photos/library/guides/upload-media
     //https://developers.google.com/photos/library/guides/upload-media#uploading-bytes
     //https://developers.google.com/photos/library/guides/resumable-uploads
-    public async Task<string?> UploadMediaAsync(string path, GooglePhotosUploadMethod uploadMethod = GooglePhotosUploadMethod.ResumableMultipart, Action<int>? callback = null)
+    public async Task<string?> UploadMediaAsync(string path, GooglePhotosUploadMethod uploadMethod = GooglePhotosUploadMethod.ResumableMultipart,
+        Action<int>? callback = null, CancellationToken cancellationToken = default)
     {
         if (!File.Exists(path)) throw new FileNotFoundException($"can't find '{path}'");
         var size = new FileInfo(path).Length;
@@ -629,14 +630,15 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
 
         if (uploadMethod == GooglePhotosUploadMethod.Simple)
         {
-            var bytes = await File.ReadAllBytesAsync(path);
-            var tpl = await PostBytes<string, Error>(RequestUris.uploads, uploadMethod == GooglePhotosUploadMethod.ResumableSingle ? [] : bytes, additionalHeaders: headers);
+            var bytes = await File.ReadAllBytesAsync(path, cancellationToken);
+            var tpl = await PostBytes<string, Error>(RequestUris.uploads, uploadMethod == GooglePhotosUploadMethod.ResumableSingle ? [] : bytes,
+                additionalHeaders: headers, cancellationToken: cancellationToken);
             if (tpl.error is not null) throw new GooglePhotosException(tpl.error);
             return tpl.result;
         }
         else
         {
-            var tpl = await PostBytes<string, Error>(RequestUris.uploads, [], additionalHeaders: headers);
+            var tpl = await PostBytes<string, Error>(RequestUris.uploads, [], additionalHeaders: headers, cancellationToken: cancellationToken);
             var status = tpl.responseHeaders.TryGetValue(X_Goog_Upload_Status);
 
             var Upload_URL = tpl.responseHeaders.TryGetValue(X_Goog_Upload_URL) ?? throw new GooglePhotosException($"{nameof(X_Goog_Upload_URL)}");
@@ -653,8 +655,8 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
                 headers.Add((X_Goog_Upload_Command, "upload, finalize"));
 
                 //todo: for testing override bytes with a smaller value than expected
-                var bytes = await File.ReadAllBytesAsync(path);
-                tpl = await PostBytes<string, Error>(Upload_URL, bytes, additionalHeaders: headers);
+                var bytes = await File.ReadAllBytesAsync(path, cancellationToken);
+                tpl = await PostBytes<string, Error>(Upload_URL, bytes, additionalHeaders: headers, cancellationToken: cancellationToken);
                 if (tpl.httpStatusCode != HttpStatusCode.OK)
                 {
                     //we were interrupted so query the status of the last upload
@@ -663,7 +665,7 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
                             (X_Goog_Upload_Command, "query")
                         ];
 
-                    tpl = await PostBytes<string, Error>(Upload_URL, bytes, additionalHeaders: headers);
+                    tpl = await PostBytes<string, Error>(Upload_URL, bytes, additionalHeaders: headers, cancellationToken: cancellationToken);
                     if (tpl.error is not null) throw new GooglePhotosException(tpl.error);
 
                     _ = tpl.responseHeaders.TryGetValue(X_Goog_Upload_Status);
@@ -699,7 +701,7 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
                     //todo: need to test resuming failed uploads
                     var bytes = reader.ReadBytes(Upload_Chunk_Granularity);
                     //var bytes = await File.ReadAllBytesAsync("c:/mnt/pi/test.webp");//hack/test - read from a smaller test file and see if we get failure?
-                    tpl = await PostBytes<string, Error>(Upload_URL, bytes, additionalHeaders: headers);
+                    tpl = await PostBytes<string, Error>(Upload_URL, bytes, additionalHeaders: headers, cancellationToken: cancellationToken);
                     //if (tpl.error is not null) throw new GooglePhotosAPIException(tpl.error);
                     if (tpl.httpStatusCode != HttpStatusCode.OK)
                     {
@@ -709,7 +711,7 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
                                 (X_Goog_Upload_Command, "query")
                             ];
                         _logger.LogDebug($"");
-                        tpl = await PostBytes<string, Error>(Upload_URL, [], additionalHeaders: headers);
+                        tpl = await PostBytes<string, Error>(Upload_URL, [], additionalHeaders: headers, cancellationToken: cancellationToken);
 
                         status = tpl.responseHeaders.TryGetValue(X_Goog_Upload_Status);
                         _logger.LogTrace("{methodName}, status={status}", nameof(UploadMediaAsync), status);
