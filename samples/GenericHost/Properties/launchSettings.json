@@ -3,7 +3,7 @@
     "GenericHost": {
       "commandName": "Project",
       "environmentVariables": {
-        "NETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development"
       }
     }
   }
