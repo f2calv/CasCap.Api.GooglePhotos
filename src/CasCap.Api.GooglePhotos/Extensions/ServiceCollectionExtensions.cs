@@ -3,7 +3,7 @@ using System.Net.Http.Headers;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
-public static class DI
+public static class ServiceCollectionExtensions
 {
     public static void AddGooglePhotos(this IServiceCollection services, IConfiguration configuration, string sectionKey = GooglePhotosOptions.SectionKey)
         => services.AddServices(configuration: configuration, sectionKey: sectionKey);
