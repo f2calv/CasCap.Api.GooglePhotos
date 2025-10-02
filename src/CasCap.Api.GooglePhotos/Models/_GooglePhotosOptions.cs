@@ -1,7 +1,7 @@
 ﻿namespace CasCap.Models;
 
 [Serializable]
-public class GooglePhotosOptions
+public record GooglePhotosOptions
 {
     /// <summary>
     /// Configuration sub-section locator key.
