@@ -544,7 +544,7 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
         else
         {
             _logger.LogError("{ClassName} {MethodName}, upload failure '{FileName}'", nameof(GooglePhotosServiceBase),
-                nameof(AddMediaItemAsync), uploadItem.fileName);
+                nameof(AddMediaItemAsync), uploadItem.FileName);
             return null;
         }
     }
@@ -572,11 +572,11 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
         {
             var newMediaItem = new NewMediaItem
             {
-                description = mediaItem.description,
+                description = mediaItem.Description,
                 simpleMediaItem = new SimpleMediaItem
                 {
-                    fileName = mediaItem.fileName,
-                    uploadToken = mediaItem.uploadToken,
+                    fileName = mediaItem.FileName,
+                    uploadToken = mediaItem.UploadToken,
                 }
             };
             newMediaItems.Add(newMediaItem);
