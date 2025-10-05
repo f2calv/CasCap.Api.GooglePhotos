@@ -8,7 +8,7 @@ public abstract class TestBase
 
     protected readonly string _testFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "testdata/");
 
-    public TestBase(ITestOutputHelper output)
+    protected TestBase(ITestOutputHelper output)
     {
         var configuration = new ConfigurationBuilder()
             .AddJsonFile($"appsettings.Test.json", optional: false, reloadOnChange: true)
