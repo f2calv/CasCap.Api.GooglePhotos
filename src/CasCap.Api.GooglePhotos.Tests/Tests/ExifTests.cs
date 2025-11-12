@@ -7,7 +7,7 @@
 //    /// <summary>
 //    /// Minimal exif tags added by Google.
 //    /// </summary>
-//    const int googleExifTagCount = 5;
+//    private const int googleExifTagCount = 5;
 
 //    [SkipIfCIBuildTheory, Trait("Type", nameof(GooglePhotosService))]
 //    [InlineData("test11.jpg", 55.041388888888889d, 8.4677777777777781d, 62)]
@@ -52,20 +52,20 @@
 //        Assert.True(googleExifTagCount < tplWithExif.exifTagCount);
 //    }
 
-//    static async Task<(double? latitude, double? longitude, int exifTagCount)> GetExifInfo(string path)
+//    private static async Task<(double? latitude, double? longitude, int exifTagCount)> GetExifInfo(string path)
 //    {
 //        using var image = await Image.LoadAsync(path);
 //        return GetLatLong(image);
 //    }
 
-//    static async Task<(double? latitude, double? longitude, int exifTagCount)> GetExifInfo(byte[] bytes)
+//    private static async Task<(double? latitude, double? longitude, int exifTagCount)> GetExifInfo(byte[] bytes)
 //    {
 //        var stream = new MemoryStream(bytes);
 //        using var image = await Image.LoadAsync(stream);
 //        return GetLatLong(image);
 //    }
 
-//    static (double? latitude, double? longitude, int exifTagCount) GetLatLong(Image image)
+//    private static (double? latitude, double? longitude, int exifTagCount) GetLatLong(Image image)
 //    {
 //        double? latitude = null, longitude = null;
 //        var exifTagCount = image.Metadata.ExifProfile?.Values.Count ?? 0;
@@ -89,7 +89,7 @@
 //        return (latitude, longitude, exifTagCount);
 //    }
 
-//    static double GetCoordinates(string gpsRef, Rational[] rationals)
+//    private static double GetCoordinates(string gpsRef, Rational[] rationals)
 //    {
 //        var degrees = rationals[0].Numerator / rationals[0].Denominator;
 //        var minutes = rationals[1].Numerator / rationals[1].Denominator;

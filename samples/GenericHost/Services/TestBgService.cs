@@ -2,11 +2,11 @@
 
 public class TestBgService : BackgroundService
 {
-    readonly ILogger _logger;
-    readonly IHostApplicationLifetime _appLifetime;
-    readonly GooglePhotosService _googlePhotosSvc;
+    private readonly ILogger _logger;
+    private readonly IHostApplicationLifetime _appLifetime;
+    private readonly GooglePhotosService _googlePhotosSvc;
 
-    const string _testFolder = "c:/temp/GooglePhotos/";//local folder of test media files
+    private const string _testFolder = "c:/temp/GooglePhotos/";//local folder of test media files
 
     public TestBgService(ILogger<TestBgService> logger, IHostApplicationLifetime appLifetime,
         GooglePhotosService googlePhotosSvc)

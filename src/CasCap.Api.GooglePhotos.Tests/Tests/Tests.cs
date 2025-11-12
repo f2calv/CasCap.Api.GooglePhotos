@@ -29,10 +29,10 @@ public class Tests(ITestOutputHelper output) : TestBase(output)
         }
     }
 
-    static bool IsCI() => Environment.GetEnvironmentVariable("TF_BUILD") is not null
+    private static bool IsCI() => Environment.GetEnvironmentVariable("TF_BUILD") is not null
         || Environment.GetEnvironmentVariable("GITHUB_ACTIONS") is not null;
 
-    static string GetRandomAlbumName() => $"{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}";
+    private static string GetRandomAlbumName() => $"{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}";
 
     [Theory, Trait("Type", nameof(GooglePhotosService))]
     [InlineData(GooglePhotosUploadMethod.Simple)]
