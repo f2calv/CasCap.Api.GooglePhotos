@@ -8,4 +8,3 @@ global using Microsoft.Extensions.Logging;
 global using SixLabors.ImageSharp;
 global using System.Diagnostics;
 global using Xunit;
-global using Xunit.Abstractions;

@@ -36,7 +36,7 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
     {
         _logger = logger;
         _options = options.Value;
-        _client = client ?? throw new ArgumentNullException(nameof(client), $"{nameof(HttpClient)} cannot be null!");
+        Client = client ?? throw new ArgumentNullException(nameof(client), $"{nameof(HttpClient)} cannot be null!");
     }
 
     protected virtual void RaisePagingEvent(PagingEventArgs args) => PagingEvent?.Invoke(this, args);
@@ -180,7 +180,7 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
     /// <param name="tokenType"></param>
     /// <param name="accessToken"></param>
     public void SetAuth(string tokenType, string accessToken)
-        => _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(tokenType, accessToken);
+        => Client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(tokenType, accessToken);
 
     #region https://photoslibrary.googleapis.com/v1/albums
 
