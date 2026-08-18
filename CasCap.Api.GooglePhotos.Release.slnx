@@ -1,0 +1,18 @@
+﻿<Solution>
+  <Configurations>
+    <BuildType Name="Release" />
+  </Configurations>
+  <Folder Name="/CasCap.Api.GooglePhotos/Solution Items/">
+    <File Path=".editorconfig" />
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+  </Folder>
+  <Folder Name="/CasCap.Api.GooglePhotos/Samples/">
+    <Project Path="samples/ConsoleApp/ConsoleApp.csproj" />
+    <Project Path="samples/GenericHost/GenericHost.csproj" />
+  </Folder>
+  <Folder Name="/CasCap.Api.GooglePhotos/">
+    <Project Path="src/CasCap.Api.GooglePhotos.Tests/CasCap.Api.GooglePhotos.Tests.csproj" />
+    <Project Path="src/CasCap.Api.GooglePhotos/CasCap.Api.GooglePhotos.csproj" />
+  </Folder>
+</Solution>

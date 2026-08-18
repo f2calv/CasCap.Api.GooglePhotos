@@ -8,42 +8,48 @@
 public class GooglePhotosService(ILogger<GooglePhotosService> logger, IOptions<GooglePhotosOptions> options, HttpClient client)
     : GooglePhotosServiceBase(logger, options, client)
 {
-    public async Task<Album?> GetOrCreateAlbumAsync(string title, StringComparison comparisonType = StringComparison.OrdinalIgnoreCase)
+    public async Task<Album?> GetOrCreateAlbumAsync(string title, StringComparison comparisonType = StringComparison.OrdinalIgnoreCase,
+        CancellationToken cancellationToken = default)
     {
-        var album = await GetAlbumByTitleAsync(title, comparisonType);
+        var album = await GetAlbumByTitleAsync(title, comparisonType, cancellationToken: cancellationToken);
         album ??= await CreateAlbumAsync(title);
         return album;
     }
 
-    public async Task<Album?> GetAlbumByTitleAsync(string title, StringComparison comparisonType = StringComparison.OrdinalIgnoreCase)
+    public async Task<Album?> GetAlbumByTitleAsync(string title, StringComparison comparisonType = StringComparison.OrdinalIgnoreCase,
+        CancellationToken cancellationToken = default)
     {
-        var albums = await GetAlbumsAsync();
+        var albums = await GetAlbumsAsync(cancellationToken: cancellationToken);
         return albums.FirstOrDefault(p => p.title.Equals(title, comparisonType));
     }
 
-    public async Task<NewMediaItemResult?> UploadSingle(string path, string? albumId = null, string? description = null, GooglePhotosUploadMethod uploadMethod = GooglePhotosUploadMethod.ResumableMultipart)
+    public async Task<NewMediaItemResult?> UploadSingle(string path, string? albumId = null, string? description = null,
+        GooglePhotosUploadMethod uploadMethod = GooglePhotosUploadMethod.ResumableMultipart, CancellationToken cancellationToken = default)
     {
-        var uploadToken = await UploadMediaAsync(path, uploadMethod);
+        var uploadToken = await UploadMediaAsync(path, uploadMethod, cancellationToken: cancellationToken);
         if (!string.IsNullOrWhiteSpace(uploadToken))
             return await AddMediaItemAsync(uploadToken!, path, description, albumId);
         return null;
     }
 
-    public Task<mediaItemsCreateResponse?> UploadMultiple(string[] filePaths, string? albumId = null, GooglePhotosUploadMethod uploadMethod = GooglePhotosUploadMethod.ResumableMultipart)
-        => _UploadMultiple(filePaths, albumId, uploadMethod);
+    public Task<mediaItemsCreateResponse?> UploadMultiple(string[] filePaths, string? albumId = null,
+        GooglePhotosUploadMethod uploadMethod = GooglePhotosUploadMethod.ResumableMultipart, CancellationToken cancellationToken = default)
+        => _UploadMultiple(filePaths, albumId, uploadMethod, cancellationToken: cancellationToken);
 
-    public Task<mediaItemsCreateResponse?> UploadMultiple(string folderPath, string? searchPattern = null, string? albumId = null, GooglePhotosUploadMethod uploadMethod = GooglePhotosUploadMethod.ResumableMultipart)
+    public Task<mediaItemsCreateResponse?> UploadMultiple(string folderPath, string? searchPattern = null, string? albumId = null,
+        GooglePhotosUploadMethod uploadMethod = GooglePhotosUploadMethod.ResumableMultipart, CancellationToken cancellationToken = default)
     {
         var filePaths = searchPattern is not null ? Directory.GetFiles(folderPath, searchPattern) : Directory.GetFiles(folderPath);
-        return _UploadMultiple(filePaths, albumId, uploadMethod);
+        return _UploadMultiple(filePaths, albumId, uploadMethod, cancellationToken: cancellationToken);
     }
 
-    async Task<mediaItemsCreateResponse?> _UploadMultiple(string[] filePaths, string? albumId = null, GooglePhotosUploadMethod uploadMethod = GooglePhotosUploadMethod.ResumableMultipart)
+    private async Task<mediaItemsCreateResponse?> _UploadMultiple(string[] filePaths, string? albumId = null,
+        GooglePhotosUploadMethod uploadMethod = GooglePhotosUploadMethod.ResumableMultipart, CancellationToken cancellationToken = default)
     {
         var uploadItems = new List<UploadItem>(filePaths.Length);
         foreach (var filePath in filePaths)
         {
-            var uploadToken = await UploadMediaAsync(filePath, uploadMethod);
+            var uploadToken = await UploadMediaAsync(filePath, uploadMethod, cancellationToken: cancellationToken);
             if (!string.IsNullOrWhiteSpace(uploadToken))
                 uploadItems.Add(new UploadItem(uploadToken!, filePath));
             //todo: raise photo uploaded event here
@@ -59,7 +65,7 @@ public class GooglePhotosService(ILogger<GooglePhotosService> logger, IOptions<G
 
     //https://developers.google.com/photos/library/guides/access-media-items#image-base-urls
     //https://developers.google.com/photos/library/guides/access-media-items#video-base-urls
-    async Task<byte[]?> DownloadBytes(string baseUrl, int? maxWidth = null, int? maxHeight = null, bool crop = false, bool includeExifMetadata = false, bool downloadVideoBytes = false)
+    private async Task<byte[]?> DownloadBytes(string baseUrl, int? maxWidth = null, int? maxHeight = null, bool crop = false, bool includeExifMetadata = false, bool downloadVideoBytes = false)
     {
         if (string.IsNullOrWhiteSpace(baseUrl)) throw new ArgumentNullException(nameof(baseUrl), $"baseUrl is expected!");
         var qs = new List<string>();

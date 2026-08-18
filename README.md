@@ -140,29 +140,28 @@ After calling AddGooglePhotos in the ConfigureServices method of Startup.cs you 
 using Microsoft.Extensions.Logging;
 using System;
 using System.Threading.Tasks;
-namespace CasCap.Services
+namespace CasCap.Services;
+
+public class MyPhotoService
 {
-    public class MyPhotoService
+    private readonly ILogger _logger;
+    private readonly GooglePhotosService _googlePhotosSvc;
+
+    public MyPhotoService(ILogger<MyPhotoService> logger, GooglePhotosService googlePhotosSvc)
     {
-        readonly ILogger _logger;
-        readonly GooglePhotosService _googlePhotosSvc;
+        _logger = logger;
+        _googlePhotosSvc = googlePhotosSvc;
+    }
 
-        public MyPhotoService(ILogger<MyPhotoService> logger, GooglePhotosService googlePhotosSvc)
+    public async Task Login_And_List_Albums()
+    {
+        if (!await _googlePhotosSvc.LoginAsync())
+            throw new Exception($"login failed");
+
+        var albums = await _googlePhotosSvc.GetAlbums();
+        foreach (var album in albums)
         {
-            _logger = logger;
-            _googlePhotosSvc = googlePhotosSvc;
-        }
-
-        public async Task Login_And_List_Albums()
-        {
-            if (!await _googlePhotosSvc.LoginAsync())
-                throw new Exception($"login failed");
-
-            var albums = await _googlePhotosSvc.GetAlbums();
-            foreach (var album in albums)
-            {
-                _logger.LogInfo($"{album.id}\t{album.title}");
-            }
+            _logger.LogInfo($"{album.id}\t{album.title}");
         }
     }
 }

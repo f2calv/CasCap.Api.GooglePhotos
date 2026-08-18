@@ -176,9 +176,9 @@ public class gDate
 
     public gDate(DateTime dt)
     {
-        this.year = dt.Year;
-        this.month = dt.Month;
-        this.day = dt.Day;
+        year = dt.Year;
+        month = dt.Month;
+        day = dt.Day;
     }
 
     public gDate(int year, int month, int day)
@@ -341,22 +341,22 @@ public class UploadItem//my custom class to upload multiple items
 {
     public UploadItem(string uploadToken, string? fileName, string? description)
     {
-        if (string.IsNullOrWhiteSpace(uploadToken)) throw new ArgumentException($"{nameof(uploadToken)} is null or whitespace??");
-        this.uploadToken = uploadToken;
-        this.fileName = Path.GetFileName(fileName);
-        this.description = description;
+        ArgumentException.ThrowIfNullOrWhiteSpace(uploadToken);
+        UploadToken = uploadToken;
+        FileName = Path.GetFileName(fileName);
+        Description = description;
     }
 
     public UploadItem(string uploadToken, string? fileName)
     {
         if (string.IsNullOrWhiteSpace(uploadToken)) throw new ArgumentException($"{nameof(uploadToken)} is null or whitespace??");
-        this.uploadToken = uploadToken;
-        this.fileName = Path.GetFileName(fileName);
+        UploadToken = uploadToken;
+        FileName = Path.GetFileName(fileName);
     }
 
-    public string uploadToken { get; }
-    public string? fileName { get; }
-    public string? description { get; }
+    public string UploadToken { get; }
+    public string? FileName { get; }
+    public string? Description { get; }
 }
 
 /// <summary>

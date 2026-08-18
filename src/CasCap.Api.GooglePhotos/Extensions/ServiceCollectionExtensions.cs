@@ -3,10 +3,10 @@ using System.Net.Http.Headers;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
-public static class DI
+public static class ServiceCollectionExtensions
 {
-    public static void AddGooglePhotos(this IServiceCollection services, IConfiguration configuration, string sectionKey = GooglePhotosOptions.SectionKey)
-        => services.AddServices(configuration: configuration, sectionKey: sectionKey);
+    public static void AddGooglePhotos(this IServiceCollection services, IConfiguration configuration, string sectionName = GooglePhotosOptions.ConfigurationSectionName)
+        => services.AddServices(configuration: configuration, sectionName: sectionName);
 
     public static void AddGooglePhotos(this IServiceCollection services, GooglePhotosOptions googlePhotosOptions)
         => services.AddServices(googlePhotosOptions: googlePhotosOptions);
@@ -14,16 +14,16 @@ public static class DI
     public static void AddGooglePhotos(this IServiceCollection services, Action<GooglePhotosOptions> configureOptions)
         => services.AddServices(configureOptions: configureOptions);
 
-    static void AddServices(this IServiceCollection services,
+    private static void AddServices(this IServiceCollection services,
         IConfiguration? configuration = null,
-        string sectionKey = GooglePhotosOptions.SectionKey,
+        string sectionName = GooglePhotosOptions.ConfigurationSectionName,
         GooglePhotosOptions? googlePhotosOptions = null,
         Action<GooglePhotosOptions>? configureOptions = null
         )
     {
         if (configuration is not null)
         {
-            var configSection = configuration.GetSection(sectionKey);
+            var configSection = configuration.GetSection(sectionName);
             googlePhotosOptions = configSection.Get<GooglePhotosOptions>();
             if (googlePhotosOptions is not null)
                 services.Configure<GooglePhotosOptions>(configSection);

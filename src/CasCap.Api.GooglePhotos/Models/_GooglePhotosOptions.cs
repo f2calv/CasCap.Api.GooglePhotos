@@ -1,52 +1,62 @@
-﻿namespace CasCap.Models;
+﻿using System.ComponentModel.DataAnnotations;
+using System.Diagnostics.CodeAnalysis;
 
-[Serializable]
-public class GooglePhotosOptions
+namespace CasCap.Models;
+
+public record GooglePhotosOptions
 {
     /// <summary>
     /// Configuration sub-section locator key.
     /// </summary>
-    public const string SectionKey = $"{nameof(CasCap)}:{nameof(GooglePhotosOptions)}";
+    public const string ConfigurationSectionName = $"{nameof(CasCap)}:{nameof(GooglePhotosOptions)}";
+
+    [SetsRequiredMembers]
+    public GooglePhotosOptions() { }
 
     /// <summary>
     /// The default endpoint for REST API requests, currently defaults to REST API v1.0
     /// </summary>
-    public string BaseAddress { get; set; } = RequestUris.BaseAddress;
+    [Required]
+    public required string BaseAddress { get; init; } = RequestUris.BaseAddress;
 
     /// <summary>
     /// The email address of the Google Account that holds the photos.
     /// e.g. your.email@mydomain.com
     /// </summary>
-    public string User { get; set; } = default!;
+    [Required]
+    public required string User { get; init; } = string.Empty;
 
     /// <summary>
     /// Security Scopes, i.e. access levels.
     /// Note: When changing scopes under the same User you must manually delete the local JSON file to clear the local cache,
     /// you can use the GooglePhotosOptions.FileDataStoreFullPathDefault property to locate the path to the JSON file(s).
     /// </summary>
-    public GooglePhotosScope[] Scopes { get; set; } = default!;
+    [Required]
+    public required GooglePhotosScope[] Scopes { get; init; } = [GooglePhotosScope.Access, GooglePhotosScope.Sharing];
 
     /// <summary>
     /// Google Client Id string, numerical/alphanumeric.
     /// e.g. 012345678901-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.apps.googleusercontent.com
     /// </summary>
-    public string ClientId { get; set; } = default!;
+    [Required]
+    public required string ClientId { get; init; } = string.Empty;
 
     /// <summary>
     /// Google Client Secret string, alphabetical.
     /// i.e. abcabcabcabcabcabcabcabc
     /// </summary>
-    public string ClientSecret { get; set; } = default!;
+    [Required]
+    public required string ClientSecret { get; init; } = string.Empty;
 
     /// <summary>
-    /// Folder path to locally cached OAuth 2.0 JSON file.
+    /// Folder path to locally cache OAuth 2.0 JSON file.
     /// If FileDataStoreFullPathOverride is left as null then Google Auth library will use the
     /// FileDataStoreFullPathDefault location to store a cached OAuth 2.0 JSON file per User.
     /// </summary>
-    public string? FileDataStoreFullPathOverride { get; set; }
+    public string? FileDataStoreFullPathOverride { get; init; }
 
     /// <summary>
     /// e.g. Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Google.Apis.Auth");
     /// </summary>
-    public string FileDataStoreFullPathDefault { get { return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Google.Apis.Auth"); } }
+    public static string FileDataStoreFullPathDefault => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Google.Apis.Auth");
 }

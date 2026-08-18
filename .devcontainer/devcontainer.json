@@ -3,10 +3,10 @@
 {
     "name": "C# (.NET)",
     // Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
-    "image": "mcr.microsoft.com/devcontainers/dotnet:1-8.0-bookworm",
+    "image": "mcr.microsoft.com/devcontainers/dotnet:latest",
     // Features to add to the dev container. More info: https://containers.dev/features.
     "features": {
-        "ghcr.io/devcontainers-contrib/features/pre-commit:2": {},
+        "ghcr.io/devcontainers-extra/features/pre-commit:2": {},
         "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {}
     },
     // Use 'forwardPorts' to make a list of ports inside the container available locally.
