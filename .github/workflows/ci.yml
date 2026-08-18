@@ -11,11 +11,11 @@ on:
         options:
           - Release
           - Debug
+      #The SemVer pre-release suffix (e.g. 1.2.3-my-feature.4) is what marks it preview to NuGet.
       push-preview:
-        type: string
-        description: Push preview branch?
-        required: true
-        default: "false"
+        type: boolean
+        description: Push a pre-release package?
+        default: false
   push:
     branches-ignore:
       - "preview/**"
@@ -74,7 +74,7 @@ jobs:
   release:
     needs: [versioning, build]
     if: needs.versioning.outputs.release-exists == 'false'
-      && (github.ref == format('refs/heads/{0}', github.event.repository.default_branch) || inputs.push-preview == 'true')
+      && (github.ref == format('refs/heads/{0}', github.event.repository.default_branch) || inputs.push-preview == true)
     uses: f2calv/gha-workflows/.github/workflows/gha-release-versioning.yml@v1
     permissions:
       contents: write
