@@ -278,7 +278,7 @@ All API functions are exposed by the GooglePhotosService class. There are severa
 
 ### Feedback/Issues
 
-Please post any issues or feedback [here](https://github.com/f2calv/CasCap.Api.GooglePhotos/issues).
+Please post any issues or feedback [in the issue tracker](https://github.com/f2calv/CasCap.Api.GooglePhotos/issues).
 
 ### License
 
