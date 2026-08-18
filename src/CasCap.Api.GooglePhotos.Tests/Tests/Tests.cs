@@ -314,7 +314,7 @@ public class Tests(ITestOutputHelper output) : TestBase(output)
         Assert.True(shareInfo.shareToken.Length > 0);
 
         //retrieve shared albums
-        var sharedAlbums = await _googlePhotosSvc.GetSharedAlbumsAsync();
+        var sharedAlbums = await _googlePhotosSvc.GetSharedAlbumsAsync(cancellationToken: TestContext.Current.CancellationToken);
         Assert.Single(sharedAlbums);
 
         var sharedAlb1a = await _googlePhotosSvc.GetAlbumAsync(album.id);
