@@ -24,7 +24,7 @@ public record GooglePhotosOptions
     /// e.g. your.email@mydomain.com
     /// </summary>
     [Required]
-    public required string User { get; init; }
+    public required string User { get; init; } = string.Empty;
 
     /// <summary>
     /// Security Scopes, i.e. access levels.
@@ -39,14 +39,14 @@ public record GooglePhotosOptions
     /// e.g. 012345678901-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.apps.googleusercontent.com
     /// </summary>
     [Required]
-    public required string ClientId { get; init; }
+    public required string ClientId { get; init; } = string.Empty;
 
     /// <summary>
     /// Google Client Secret string, alphabetical.
     /// i.e. abcabcabcabcabcabcabcabc
     /// </summary>
     [Required]
-    public required string ClientSecret { get; init; }
+    public required string ClientSecret { get; init; } = string.Empty;
 
     /// <summary>
     /// Folder path to locally cache OAuth 2.0 JSON file.

@@ -170,7 +170,7 @@ public class Tests(ITestOutputHelper output) : TestBase(output)
         var loginResult = await DoLogin(TestContext.Current.CancellationToken);
         Assert.True(loginResult);
 
-        contentFilter contentFilter = null;
+        contentFilter? contentFilter = null;
         if (false)
 #pragma warning disable CS0162 // Unreachable code detected
             contentFilter = new contentFilter
@@ -190,7 +190,7 @@ public class Tests(ITestOutputHelper output) : TestBase(output)
             //ranges = [new() { startDate = new() { year = 2016 }, endDate = new() { year = 2017 } }],
             ranges = [new() { startDate = new() { year = 1900 }, endDate = new() { year = DateTime.UtcNow.Year } }],
         };
-        mediaTypeFilter mediaTypeFilter = null;
+        mediaTypeFilter? mediaTypeFilter = null;
         if (false)
 #pragma warning disable CS0162 // Unreachable code detected
             mediaTypeFilter = new mediaTypeFilter
@@ -199,7 +199,7 @@ public class Tests(ITestOutputHelper output) : TestBase(output)
                 mediaTypes = [GooglePhotosMediaType.PHOTO]
                 //mediaTypes = [mediaType.VIDEO]
             };
-        featureFilter featureFilter = null;
+        featureFilter? featureFilter = null;
         if (false)
 #pragma warning disable CS0162 // Unreachable code detected
             featureFilter = new featureFilter
@@ -239,6 +239,8 @@ public class Tests(ITestOutputHelper output) : TestBase(output)
 
         //make a mediaItem (but no album)
         var mediaItem = await _googlePhotosSvc.AddMediaItemAsync(uploadToken, path, "my test description");
+        Assert.NotNull(mediaItem);
+        Assert.NotNull(mediaItem.mediaItem);
 
         //get or create new album
         var albumName = GetRandomAlbumName();

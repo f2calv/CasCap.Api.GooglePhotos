@@ -1,6 +1,6 @@
-﻿string _user = null;//e.g. "your.email@mydomain.com";
-string _clientId = null;//e.g. "012345678901-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.apps.googleusercontent.com";
-string _clientSecret = null;//e.g. "abcabcabcabcabcabcabcabc";
+﻿string? _user = null;//e.g. "your.email@mydomain.com";
+string? _clientId = null;//e.g. "012345678901-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.apps.googleusercontent.com";
+string? _clientSecret = null;//e.g. "abcabcabcabcabcabcabcabc";
 const string _testFolder = "c:/temp/GooglePhotos/";//local folder of test media files
 
 if (new[] { _user, _clientId, _clientSecret }.Any(string.IsNullOrWhiteSpace))
@@ -27,9 +27,9 @@ var logger = loggerFactory.CreateLogger<GooglePhotosService>();
 //2) create a configuration object
 var options = new GooglePhotosOptions
 {
-    User = _user,
-    ClientId = _clientId,
-    ClientSecret = _clientSecret,
+    User = _user!,
+    ClientId = _clientId!,
+    ClientSecret = _clientSecret!,
     //FileDataStoreFullPathOverride = _testFolder,
     Scopes = [GooglePhotosScope.Access, GooglePhotosScope.Sharing],//Access+Sharing == full access
 };
