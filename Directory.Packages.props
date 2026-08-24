@@ -5,7 +5,7 @@
   <ItemGroup>
     <PackageVersion Include="CasCap.Common.Net" Version="4.12.4" />
     <PackageVersion Include="CasCap.Common.Testing" Version="4.12.4" />
-    <PackageVersion Include="Google.Apis.Auth" Version="1.75.0" />
+    <PackageVersion Include="Google.Apis.Auth" Version="1.76.0" />
     <PackageVersion Include="Google.Apis.IAMCredentials.v1" Version="1.75.0.4198" />
     <PackageVersion Include="Microsoft.AspNetCore.WebUtilities" Version="10.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Configuration" Version="10.0.11" />
