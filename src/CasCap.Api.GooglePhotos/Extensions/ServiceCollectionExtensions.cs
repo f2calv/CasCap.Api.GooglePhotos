@@ -30,6 +30,16 @@ public static class ServiceCollectionExtensions
                 options.ClientId = googlePhotosOptions.ClientId;
                 options.ClientSecret = googlePhotosOptions.ClientSecret;
                 options.FileDataStoreFullPathOverride = googlePhotosOptions.FileDataStoreFullPathOverride;
+                options.WriteRateLimit = googlePhotosOptions.WriteRateLimit is null
+                    ? null!
+                    : new GooglePhotosWriteRateLimitOptions
+                    {
+                        Enabled = googlePhotosOptions.WriteRateLimit.Enabled,
+                        PermitLimit = googlePhotosOptions.WriteRateLimit.PermitLimit,
+                        QueueLimit = googlePhotosOptions.WriteRateLimit.QueueLimit,
+                        SegmentsPerWindow = googlePhotosOptions.WriteRateLimit.SegmentsPerWindow,
+                        WindowSeconds = googlePhotosOptions.WriteRateLimit.WindowSeconds
+                    };
             })
             .ValidateGooglePhotosOptions();
         services.AddServices();
@@ -47,6 +57,7 @@ public static class ServiceCollectionExtensions
 
     private static void AddServices(this IServiceCollection services)
     {
+        services.AddTransient<GooglePhotosWriteRateLimitingHandler>();
         services.AddHttpClient<GooglePhotosService>((serviceProvider, client) =>
         {
             var googlePhotosOptions = serviceProvider.GetRequiredService<IOptions<GooglePhotosOptions>>().Value;
@@ -62,6 +73,7 @@ public static class ServiceCollectionExtensions
         })
         //https://github.com/aspnet/AspNetCore/issues/6804
         .SetHandlerLifetime(Timeout.InfiniteTimeSpan)
+        .AddHttpMessageHandler<GooglePhotosWriteRateLimitingHandler>()
         .AddStandardResilienceHandler((options) =>
         {
             //RateLimiter
@@ -110,5 +122,9 @@ public static class ServiceCollectionExtensions
             .Validate(
                 options => options.Scopes.Length > 0 && options.Scopes.All(Enum.IsDefined),
                 "At least one valid Google Photos OAuth scope is required.")
+            .Validate(
+                options => options.WriteRateLimit is null
+                    || options.WriteRateLimit.SegmentsPerWindow <= options.WriteRateLimit.WindowSeconds,
+                "The write rate-limit segments must not exceed the window duration in seconds.")
             .ValidateOnStart();
 }

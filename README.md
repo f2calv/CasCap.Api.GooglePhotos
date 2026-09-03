@@ -62,6 +62,13 @@ Tracked settings must contain placeholders only. Store credentials with .NET Use
         "EditAppCreatedData",
         "PickerMediaItemsReadOnly"
       ],
+      "WriteRateLimit": {
+        "Enabled": false,
+        "PermitLimit": 8,
+        "QueueLimit": 100,
+        "SegmentsPerWindow": 6,
+        "WindowSeconds": 60
+      },
       "ClientId": null,
       "ClientSecret": null
     }
@@ -76,6 +83,8 @@ dotnet user-secrets set "CasCap:GooglePhotosOptions:ClientSecret" "your-client-s
 ```
 
 Environment variables use the standard double-underscore form, for example `CasCap__GooglePhotosOptions__ClientId`.
+
+`WriteRateLimit` optionally queues mutating Library API requests through an oldest-first sliding window. It is disabled by default because Google quota values can vary. Configure the limits for the quota assigned to your project. The limiter is local to one process and does not coordinate multiple application instances. Reads and Picker API requests bypass it.
 
 ## Dependency Injection
 
@@ -159,13 +168,14 @@ Integration tests require credentials and can create albums or upload media. Rev
 
 ## Dependencies
 
-| Package                                | Purpose                                          |
-| -------------------------------------- | ------------------------------------------------ |
-| `Google.Apis.Auth`                     | OAuth authentication and cached token grants     |
-| `Microsoft.Extensions.Http.Resilience` | HTTP timeouts, rate limiting, and safe retries   |
-| `Microsoft.AspNetCore.WebUtilities`    | Query-string construction                        |
-| `MimeTypeMapOfficial`                  | Upload MIME-type detection                       |
-| `CasCap.Common.Net`                    | Shared HTTP and serialization infrastructure     |
+| Package                                | Purpose                                           |
+| -------------------------------------- | ------------------------------------------------- |
+| `Google.Apis.Auth`                     | OAuth authentication and cached token grants      |
+| `Microsoft.Extensions.Http.Resilience` | HTTP timeouts, circuit breaking, and safe retries |
+| `Microsoft.AspNetCore.WebUtilities`    | Query-string construction                         |
+| `System.Threading.RateLimiting`        | Optional temporal Library API write limiting      |
+| `MimeTypeMapOfficial`                  | Upload MIME-type detection                        |
+| `CasCap.Common.Net`                    | Shared HTTP and serialization infrastructure      |
 
 ## Resources
 
