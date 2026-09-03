@@ -13,22 +13,24 @@ public static class ServiceCollectionExtensions
     /// <param name="services">The service collection to configure.</param>
     /// <param name="configuration">The configuration containing the Google Photos options section.</param>
     /// <param name="sectionName">The configuration section name to bind.</param>
+    /// <returns>The same service collection so that calls can be chained.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="configuration" /> is <see langword="null" />.</exception>
-    public static void AddGooglePhotos(this IServiceCollection services, IConfiguration configuration, string sectionName = GooglePhotosOptions.ConfigurationSectionName)
+    public static IServiceCollection AddGooglePhotos(this IServiceCollection services, IConfiguration configuration, string sectionName = GooglePhotosOptions.ConfigurationSectionName)
     {
         ArgumentNullException.ThrowIfNull(configuration);
 
         services.AddOptions<GooglePhotosOptions>()
             .Bind(configuration.GetSection(sectionName))
             .ValidateGooglePhotosOptions();
-        services.AddServices();
+        return services.AddServices();
     }
 
     /// <summary>Registers Google Photos services using a supplied options instance.</summary>
     /// <param name="services">The service collection to configure.</param>
     /// <param name="googlePhotosOptions">The options copied into the registered configuration.</param>
+    /// <returns>The same service collection so that calls can be chained.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="googlePhotosOptions" /> is <see langword="null" />.</exception>
-    public static void AddGooglePhotos(this IServiceCollection services, GooglePhotosOptions googlePhotosOptions)
+    public static IServiceCollection AddGooglePhotos(this IServiceCollection services, GooglePhotosOptions googlePhotosOptions)
     {
         ArgumentNullException.ThrowIfNull(googlePhotosOptions);
 
@@ -51,24 +53,25 @@ public static class ServiceCollectionExtensions
                     : googlePhotosOptions.WriteRateLimit with { };
             })
             .ValidateGooglePhotosOptions();
-        services.AddServices();
+        return services.AddServices();
     }
 
     /// <summary>Registers Google Photos services using an options configuration delegate.</summary>
     /// <param name="services">The service collection to configure.</param>
     /// <param name="configureOptions">The delegate used to configure Google Photos options.</param>
+    /// <returns>The same service collection so that calls can be chained.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="configureOptions" /> is <see langword="null" />.</exception>
-    public static void AddGooglePhotos(this IServiceCollection services, Action<GooglePhotosOptions> configureOptions)
+    public static IServiceCollection AddGooglePhotos(this IServiceCollection services, Action<GooglePhotosOptions> configureOptions)
     {
         ArgumentNullException.ThrowIfNull(configureOptions);
 
         services.AddOptions<GooglePhotosOptions>()
             .Configure(configureOptions)
             .ValidateGooglePhotosOptions();
-        services.AddServices();
+        return services.AddServices();
     }
 
-    private static void AddServices(this IServiceCollection services)
+    private static IServiceCollection AddServices(this IServiceCollection services)
     {
         services.TryAddSingleton<GooglePhotosCredentialProvider>();
         services.AddTransient<GooglePhotosAuthorizationHandler>();
@@ -85,6 +88,8 @@ public static class ServiceCollectionExtensions
         })
         //https://github.com/aspnet/AspNetCore/issues/6804
         .SetHandlerLifetime(Timeout.InfiniteTimeSpan)
+        //Registered outside the resilience handler, so a retried write does not re-acquire a permit.
+        //Harmless while retries are disabled for unsafe methods, which are the only methods the limiter gates.
         .AddHttpMessageHandler<GooglePhotosWriteRateLimitingHandler>();
         libraryBuilder.AddStandardResilienceHandler()
             .Configure((options, serviceProvider) => ConfigureResilience(
@@ -109,6 +114,8 @@ public static class ServiceCollectionExtensions
                 serviceProvider.GetRequiredService<IOptions<GooglePhotosOptions>>().Value,
                 uploadAware: false));
         pickerBuilder.AddHttpMessageHandler<GooglePhotosAuthorizationHandler>();
+
+        return services;
     }
 
     private static void ConfigureCommonHeaders(HttpClient client)

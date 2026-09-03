@@ -133,9 +133,9 @@ public sealed class GooglePhotosPickerService : HttpClientBase
         CancellationToken cancellationToken = default)
     {
         if (maxWidth is < 1 or > 16383)
-            throw new ArgumentOutOfRangeException(nameof(maxWidth));
+            throw new ArgumentOutOfRangeException(nameof(maxWidth), maxWidth, "Picker photo width must be between 1 and 16383.");
         if (maxHeight is < 1 or > 16383)
-            throw new ArgumentOutOfRangeException(nameof(maxHeight));
+            throw new ArgumentOutOfRangeException(nameof(maxHeight), maxHeight, "Picker photo height must be between 1 and 16383.");
 
         var parameters = $"w{maxWidth}-h{maxHeight}{(includeExifMetadata ? "-d" : string.Empty)}";
         return DownloadMediaAsync(mediaItem, destination, parameters, cancellationToken);

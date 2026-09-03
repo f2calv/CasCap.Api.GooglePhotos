@@ -645,6 +645,98 @@ public sealed class GooglePhotosServiceTests
         }
     }
 
+    [Fact]
+    public async Task AddEnrichmentToAlbumReturnsCreatedItem()
+    {
+        string? requestJson = null;
+        using var client = CreateClient(async (request, cancellationToken) =>
+        {
+            Assert.Equal("/v1/albums/album-id:addEnrichment", request.RequestUri?.AbsolutePath);
+            requestJson = await request.Content!.ReadAsStringAsync(cancellationToken);
+            return CreateJsonResponse("""{"enrichmentItem":{"id":"enrichment-id"}}""");
+        });
+        var service = CreateService(client);
+
+        var enrichmentItem = await service.AddEnrichmentToAlbumAsync(
+            "album-id",
+            new NewEnrichmentItem("some text"),
+            new AlbumPosition { Position = GooglePhotosPositionType.FirstInAlbum },
+            TestContext.Current.CancellationToken);
+
+        Assert.Equal("enrichment-id", enrichmentItem?.Id);
+        Assert.NotNull(requestJson);
+        using var document = JsonDocument.Parse(requestJson);
+        Assert.Equal(
+            "some text",
+            document.RootElement.GetProperty("newEnrichmentItem").GetProperty("textEnrichment").GetProperty("text").GetString());
+        Assert.Equal("FIRST_IN_ALBUM", document.RootElement.GetProperty("albumPosition").GetProperty("position").GetString());
+    }
+
+    [Fact]
+    public async Task RemoveMediaItemsFromAlbumBatchesRequests()
+    {
+        var batchSizes = new List<int>();
+        using var client = CreateClient(async (request, cancellationToken) =>
+        {
+            Assert.Equal("/v1/albums/album-id:batchRemoveMediaItems", request.RequestUri?.AbsolutePath);
+            var json = await request.Content!.ReadAsStringAsync(cancellationToken);
+            using var document = JsonDocument.Parse(json);
+            batchSizes.Add(document.RootElement.GetProperty("mediaItemIds").GetArrayLength());
+            return CreateJsonResponse("{}");
+        });
+        var service = CreateService(client);
+        var mediaItemIds = Enumerable.Range(0, 51).Select(index => $"media-{index}").ToList();
+
+        var result = await service.RemoveMediaItemsFromAlbumAsync(
+            "album-id",
+            mediaItemIds,
+            TestContext.Current.CancellationToken);
+
+        Assert.True(result);
+        Assert.Equal([50, 1], batchSizes);
+    }
+
+    [Fact]
+    public async Task GetMediaItemsByIdsSkipsFailedResults()
+    {
+        var requests = new List<Uri>();
+        using var client = CreateClient((request, _) =>
+        {
+            requests.Add(request.RequestUri!);
+            return Task.FromResult(CreateJsonResponse(
+                """
+                {"mediaItemResults":[
+                  {"mediaItem":{"id":"good","mediaMetadata":{"creationTime":"2026-09-01T00:00:00Z"},"filename":"good.jpg"}},
+                  {"status":{"code":3,"message":"bad id","status":"INVALID_ARGUMENT"}},
+                  {"mediaItem":{"id":"good","mediaMetadata":{"creationTime":"2026-09-01T00:00:00Z"},"filename":"good.jpg"}}
+                ]}
+                """));
+        });
+        var service = CreateService(client);
+
+        var mediaItems = await service.GetMediaItemsByIdsAsync(
+            new[] { "good", "bad", "good" },
+            TestContext.Current.CancellationToken)
+            .ToListAsync(TestContext.Current.CancellationToken);
+
+        Assert.Equal(["good"], mediaItems.Select(item => item.Id));
+        Assert.Contains("mediaItemIds=good", Assert.Single(requests).Query);
+    }
+
+    [Fact]
+    public async Task GetMediaItemByIdWrapsApiError()
+    {
+        using var client = CreateClient((_, _) => Task.FromResult(CreateJsonResponse(
+            """{"error":{"code":404,"message":"not found","status":"NOT_FOUND"}}""",
+            HttpStatusCode.NotFound)));
+        var service = CreateService(client);
+
+        var exception = await Assert.ThrowsAsync<GooglePhotosException>(
+            () => service.GetMediaItemByIdAsync("media-id", TestContext.Current.CancellationToken));
+
+        Assert.Equal("not found", exception.Message);
+    }
+
     private static HttpClient CreateClient(
         Func<HttpRequestMessage, CancellationToken, Task<HttpResponseMessage>> responseFactory)
         => new(new StubHttpMessageHandler(responseFactory))

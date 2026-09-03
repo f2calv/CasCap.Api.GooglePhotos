@@ -7,6 +7,9 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Logging.Console" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\src\CasCap.Api.GooglePhotos\CasCap.Api.GooglePhotos.csproj" />
   </ItemGroup>
 

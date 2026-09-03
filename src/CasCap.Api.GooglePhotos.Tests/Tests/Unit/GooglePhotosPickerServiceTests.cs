@@ -45,6 +45,107 @@ public sealed class GooglePhotosPickerServiceTests
     }
 
     [Fact]
+    public async Task DeleteSessionEscapesSessionId()
+    {
+        HttpRequestMessage? observed = null;
+        using var client = CreateClient(request =>
+        {
+            observed = request;
+            return new HttpResponseMessage(HttpStatusCode.OK);
+        });
+        var service = CreateService(client);
+
+        await service.DeleteSessionAsync("sessions/../evil id", TestContext.Current.CancellationToken);
+
+        Assert.Equal(HttpMethod.Delete, observed?.Method);
+        Assert.Equal("/v1/sessions/sessions%2F..%2Fevil%20id", observed?.RequestUri?.AbsolutePath);
+    }
+
+    [Fact]
+    public async Task GetSessionReturnsSession()
+    {
+        Uri? requestUri = null;
+        using var client = CreateClient(request =>
+        {
+            requestUri = request.RequestUri;
+            return new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent(
+                    """{"id":"session-id","pickerUri":"https://photos.example.test/pick","mediaItemsSet":true}""",
+                    Encoding.UTF8,
+                    "application/json")
+            };
+        });
+        var service = CreateService(client);
+
+        var session = await service.GetSessionAsync("session-id", TestContext.Current.CancellationToken);
+
+        Assert.Equal("session-id", session.Id);
+        Assert.True(session.MediaItemsSet);
+        Assert.Equal("/v1/sessions/session-id", requestUri?.AbsolutePath);
+    }
+
+    [Fact]
+    public async Task DownloadVideoRequestsRawBytes()
+    {
+        Uri? requestUri = null;
+        using var client = CreateClient(request =>
+        {
+            requestUri = request.RequestUri;
+            return new HttpResponseMessage(HttpStatusCode.OK) { Content = new ByteArrayContent([7, 8, 9]) };
+        });
+        var service = CreateService(client);
+        var mediaItem = new PickedMediaItem
+        {
+            Id = "picked-id",
+            MediaFile = new PickerMediaFile { BaseUrl = "https://example.test/video" }
+        };
+        using var destination = new MemoryStream();
+
+        await service.DownloadVideoAsync(mediaItem, destination, TestContext.Current.CancellationToken);
+
+        Assert.Equal("https://example.test/video=dv", requestUri?.AbsoluteUri);
+        Assert.Equal([7, 8, 9], destination.ToArray());
+    }
+
+    [Theory]
+    [InlineData(0, 100)]
+    [InlineData(16384, 100)]
+    [InlineData(100, 0)]
+    [InlineData(100, 16384)]
+    public async Task DownloadPhotoRejectsInvalidDimensions(int maxWidth, int maxHeight)
+    {
+        using var client = CreateClient(_ => new HttpResponseMessage(HttpStatusCode.OK));
+        var service = CreateService(client);
+        var mediaItem = new PickedMediaItem
+        {
+            Id = "picked-id",
+            MediaFile = new PickerMediaFile { BaseUrl = "https://example.test/photo" }
+        };
+        using var destination = new MemoryStream();
+
+        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => service.DownloadPhotoAsync(
+            mediaItem,
+            destination,
+            maxWidth,
+            maxHeight,
+            cancellationToken: TestContext.Current.CancellationToken));
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(101)]
+    public async Task GetMediaItemsRejectsInvalidPageSize(int pageSize)
+    {
+        using var client = CreateClient(_ => new HttpResponseMessage(HttpStatusCode.OK));
+        var service = CreateService(client);
+
+        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(async () =>
+            await service.GetMediaItemsAsync("session-id", pageSize, TestContext.Current.CancellationToken)
+                .ToListAsync(TestContext.Current.CancellationToken));
+    }
+
+    [Fact]
     public async Task DownloadPhotoIncludesDimensionsAndExif()
     {
         Uri? requestUri = null;

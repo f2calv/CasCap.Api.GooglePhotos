@@ -1,5 +1,6 @@
 ﻿namespace CasCap.Services;
 
+/// <summary>Uploads one configured media file into a new album and reports the album contents.</summary>
 public sealed class GooglePhotosWorker(
     ILogger<GooglePhotosWorker> logger,
     IConfiguration configuration,

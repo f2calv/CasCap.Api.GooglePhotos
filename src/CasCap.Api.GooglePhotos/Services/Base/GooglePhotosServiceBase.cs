@@ -1,7 +1,8 @@
-﻿using CasCap.Common.Services;
+using CasCap.Common.Services;
 using Microsoft.AspNetCore.WebUtilities;
 using MimeTypes;
 using System.Buffers;
+using System.Collections.Frozen;
 using System.Globalization;
 using System.Net;
 using System.Net.Http.Headers;
@@ -68,55 +69,46 @@ public abstract partial class GooglePhotosServiceBase : HttpClientBase
     /// <summary>Determines whether an extension maps to an image or video MIME type supported by Google Photos.</summary>
     /// <param name="extension">The file extension to inspect.</param>
     /// <returns><see langword="true" /> when the extension is supported; otherwise, <see langword="false" />.</returns>
-    public static bool IsFileUploadableByExtension(string extension)
-    {
-        if (IsImage(extension))
-            return true;
-        if (IsVideo(extension))
-            return true;
-        return false;
-    }
+    public static bool IsFileUploadableByExtension(string extension) => IsImage(extension) || IsVideo(extension);
 
     private static bool IsImage(string extension) => AcceptedMimeTypesImage.Contains(MimeTypeMap.GetMimeType(extension));
 
     //https://developers.google.com/photos/library/guides/upload-media#file-types-sizes
-    private static readonly HashSet<string> AcceptedMimeTypesImage = new(StringComparer.OrdinalIgnoreCase)
+    private static readonly FrozenSet<string> AcceptedMimeTypesImage = new[]
     {
-        { "image/avif" },
-        { "image/bmp" },
-        { "image/gif" },
-        { "image/heic" },
-        { "image/vnd.microsoft.icon" },
-        { "image/jpg" },
-        { "image/jpeg" },
-        { "image/png" },
-        { "image/tiff" },
-        { "image/webp" },
-        { "image/x-panasonic-raw" },
-        { "image/x-panasonic-rw2" },
-    };
+        "image/avif",
+        "image/bmp",
+        "image/gif",
+        "image/heic",
+        "image/vnd.microsoft.icon",
+        "image/jpg",
+        "image/jpeg",
+        "image/png",
+        "image/tiff",
+        "image/webp",
+        "image/x-panasonic-raw",
+        "image/x-panasonic-rw2",
+    }.ToFrozenSet(StringComparer.OrdinalIgnoreCase);
 
     private static bool IsVideo(string extension) => AcceptedMimeTypesVideo.Contains(MimeTypeMap.GetMimeType(extension));
 
-    //todo: do we need to handle the mime types in a more forgiving way?
-    private static readonly HashSet<string> AcceptedMimeTypesVideo = new(StringComparer.OrdinalIgnoreCase)
+    private static readonly FrozenSet<string> AcceptedMimeTypesVideo = new[]
     {
-        { "video/3gpp" },
-        { "video/3gpp2" },
-        { "video/x-ms-asf" },
-        { "video/x-msvideo" },
-        { "video/divx" },
-        { "video/mpeg" },//https://en.wikipedia.org/wiki/MPEG_transport_stream
-        { "video/mp4" },
-        { "video/mp2t" },
-        { "video/x-m4v" },
-        { "video/x-matroska" },
-        { "video/mmv" },//?
-        { "video/mod" },//?
-        { "video/quicktime" },
-        { "video/mpeg" },//https://en.wikipedia.org/wiki/MPEG_transport_stream
-        { "video/x-ms-wmv" },
-    };
+        "video/3gpp",
+        "video/3gpp2",
+        "video/x-ms-asf",
+        "video/x-msvideo",
+        "video/divx",
+        "video/mpeg",//https://en.wikipedia.org/wiki/MPEG_transport_stream
+        "video/mp4",
+        "video/mp2t",
+        "video/x-m4v",
+        "video/x-matroska",
+        "video/mmv",
+        "video/mod",
+        "video/quicktime",
+        "video/x-ms-wmv",
+    }.ToFrozenSet(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>Authenticates with the configured options so that subsequent requests are authorized.</summary>
     /// <param name="cancellationToken">A token that can cancel authentication.</param>
@@ -724,11 +716,11 @@ public abstract partial class GooglePhotosServiceBase : HttpClientBase
             if (tpl.error is not null)
                 throw new GooglePhotosException(tpl.error);
 
-            var status = tpl.responseHeaders.TryGetValue(X_Goog_Upload_Status);
+            var status = tpl.Header(X_Goog_Upload_Status);
 
-            var Upload_URL = tpl.responseHeaders.TryGetValue(X_Goog_Upload_URL) ?? throw new GooglePhotosException($"{nameof(X_Goog_Upload_URL)}");
+            var Upload_URL = tpl.Header(X_Goog_Upload_URL) ?? throw new GooglePhotosException($"{nameof(X_Goog_Upload_URL)}");
             //Debug.WriteLine($"{Upload_URL}={Upload_URL}");
-            var sUpload_Chunk_Granularity = tpl.responseHeaders.TryGetValue(X_Goog_Upload_Chunk_Granularity);
+            var sUpload_Chunk_Granularity = tpl.Header(X_Goog_Upload_Chunk_Granularity);
             if (int.TryParse(sUpload_Chunk_Granularity, out var Upload_Chunk_Granularity) && Upload_Chunk_Granularity <= 0)
                 throw new GooglePhotosException($"invalid {X_Goog_Upload_Chunk_Granularity}!");
 
@@ -753,7 +745,7 @@ public abstract partial class GooglePhotosServiceBase : HttpClientBase
                     if (tpl.error is not null)
                         throw new GooglePhotosException(tpl.error);
 
-                    status = tpl.responseHeaders.TryGetValue(X_Goog_Upload_Status);
+                    status = tpl.Header(X_Goog_Upload_Status);
                     if (!string.Equals(status, "active", StringComparison.OrdinalIgnoreCase))
                     {
                         if (!string.IsNullOrWhiteSpace(tpl.result))
@@ -782,7 +774,7 @@ public abstract partial class GooglePhotosServiceBase : HttpClientBase
             {
                 var offset = 0L;
                 var attemptCount = 0;
-                var retryLimit = 10;//todo: move this into settings
+                const int retryLimit = 10;
                 var batchIndex = 0;
                 if (Upload_Chunk_Granularity <= 0)
                     throw new GooglePhotosException($"missing or invalid {X_Goog_Upload_Chunk_Granularity}!");
@@ -796,7 +788,8 @@ public abstract partial class GooglePhotosServiceBase : HttpClientBase
                         cancellationToken.ThrowIfCancellationRequested();
                         attemptCount++;
                         if (attemptCount > retryLimit)
-                            return null;
+                            throw new GooglePhotosException(
+                                $"Resumable upload abandoned after {retryLimit} attempts at offset {offset} of {size} bytes.");
 
                         stream.Position = offset;
                         var bytesRead = await ReadChunkAsync(stream, buffer.AsMemory(0, Upload_Chunk_Granularity), cancellationToken).ConfigureAwait(false);
@@ -821,7 +814,7 @@ public abstract partial class GooglePhotosServiceBase : HttpClientBase
                             if (tpl.error is not null)
                                 throw new GooglePhotosException(tpl.error);
 
-                            status = tpl.responseHeaders.TryGetValue(X_Goog_Upload_Status);
+                            status = tpl.Header(X_Goog_Upload_Status);
                             if (!string.Equals(status, "active", StringComparison.OrdinalIgnoreCase))
                             {
                                 if (!string.IsNullOrWhiteSpace(tpl.result))
@@ -831,7 +824,7 @@ public abstract partial class GooglePhotosServiceBase : HttpClientBase
                                     $"Resumable upload session terminated with status '{status ?? "missing"}' before an upload token was recovered.");
                             }
 
-                            var sizeReceived = tpl.responseHeaders.TryGetValue(X_Goog_Upload_Size_Received);
+                            var sizeReceived = tpl.Header(X_Goog_Upload_Size_Received);
                             if (!long.TryParse(sizeReceived, out var receivedOffset)
                                 || receivedOffset < 0
                                 || receivedOffset > size)
@@ -888,14 +881,14 @@ public abstract partial class GooglePhotosServiceBase : HttpClientBase
         }
     }
 
-    private Task<(string? result, Error? error, HttpStatusCode httpStatusCode, HttpResponseHeaders responseHeaders)> PostUploadStreamAsync(
+    private Task<UploadResponse> PostUploadStreamAsync(
         string requestUri,
         Stream stream,
         List<(string name, string value)> headers,
         CancellationToken cancellationToken)
         => PostUploadContentAsync(requestUri, new StreamContent(stream), headers, cancellationToken);
 
-    private Task<(string? result, Error? error, HttpStatusCode httpStatusCode, HttpResponseHeaders responseHeaders)> PostUploadBufferAsync(
+    private Task<UploadResponse> PostUploadBufferAsync(
         string requestUri,
         byte[] buffer,
         int count,
@@ -903,7 +896,7 @@ public abstract partial class GooglePhotosServiceBase : HttpClientBase
         CancellationToken cancellationToken)
         => PostUploadContentAsync(requestUri, new ByteArrayContent(buffer, 0, count), headers, cancellationToken);
 
-    private async Task<(string? result, Error? error, HttpStatusCode httpStatusCode, HttpResponseHeaders responseHeaders)> PostUploadContentAsync(
+    private async Task<UploadResponse> PostUploadContentAsync(
         string requestUri,
         HttpContent content,
         List<(string name, string value)> headers,
@@ -918,15 +911,21 @@ public abstract partial class GooglePhotosServiceBase : HttpClientBase
         request.Headers.AddOrOverwrite(headers);
 
         using var response = await Client.SendAsync(request, HttpCompletionOption.ResponseContentRead, cancellationToken).ConfigureAwait(false);
+        //The response is disposed on the way out, so the protocol headers are copied rather than referenced.
+        var responseHeaders = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var header in response.Headers)
+            if (header.Key.StartsWith(UploadHeaders.Prefix, StringComparison.OrdinalIgnoreCase))
+                responseHeaders[header.Key] = string.Join(',', header.Value);
+
         var responseBody = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
         if (response.IsSuccessStatusCode)
-            return (responseBody, null, response.StatusCode, response.Headers);
+            return new UploadResponse(responseBody, null, response.StatusCode, responseHeaders);
 
         LogUploadFailed(_logger, nameof(GooglePhotosServiceBase), response.StatusCode);
         if (responseBody.TryFromJson<Error>(out var error) && error?.ErrorStatus is not null)
-            return (null, error, response.StatusCode, response.Headers);
+            return new UploadResponse(null, error, response.StatusCode, responseHeaders);
 
-        return (null, new Error
+        return new UploadResponse(null, new Error
         {
             ErrorStatus = new Status
             {
@@ -934,7 +933,16 @@ public abstract partial class GooglePhotosServiceBase : HttpClientBase
                 Message = $"Upload failed with HTTP {(int)response.StatusCode}.",
                 StatusName = response.StatusCode.ToString()
             }
-        }, response.StatusCode, response.Headers);
+        }, response.StatusCode, responseHeaders);
+    }
+
+    private readonly record struct UploadResponse(
+        string? result,
+        Error? error,
+        HttpStatusCode httpStatusCode,
+        IReadOnlyDictionary<string, string> responseHeaders)
+    {
+        internal string? Header(string name) => responseHeaders.TryGetValue(name, out var value) ? value : null;
     }
 
     private static FileStream OpenReadStream(string path)

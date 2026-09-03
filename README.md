@@ -111,6 +111,7 @@ Tracked settings must contain placeholders only. Store credentials with .NET Use
         "EditAppCreatedData",
         "PickerMediaItemsReadOnly"
       ],
+      "FileDataStoreFullPathOverride": null,
       "WriteRateLimit": {
         "Enabled": false,
         "PermitLimit": 8,
