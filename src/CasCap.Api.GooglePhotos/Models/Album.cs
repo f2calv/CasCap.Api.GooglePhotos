@@ -46,15 +46,6 @@ public sealed class Album
     [JsonPropertyName("mediaItemsCount")]
     public long? MediaItemsCount { get; set; }
 
-    /// <summary>
-    /// [Output only] Information related to shared albums.This field is only populated if the album is a shared album, the developer created the album and the user has granted the photoslibrary.sharing scope.
-    /// </summary>
-    [JsonPropertyName("shareInfo")]
-    public ShareInfo? ShareInfo { get; set; }
-
     /// <inheritdoc/>
-    public override string ToString()
-    {
-        return $"{Title}, {MediaItemsCount} media items";
-    }
+    public override string ToString() => $"{Title}, {MediaItemsCount} media items";
 }

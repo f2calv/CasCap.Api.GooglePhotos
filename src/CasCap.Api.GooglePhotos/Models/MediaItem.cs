@@ -44,13 +44,6 @@ public sealed class MediaItem
     [JsonPropertyName("filename")]
     public string Filename { get; set; } = default!;
 
-    /// <summary>Gets or sets contributor information for a media item in an eligible shared album.</summary>
-    [JsonPropertyName("contributorInfo")]
-    public ContributorInfo? ContributorInfo { get; set; }
-
     /// <inheritdoc />
-    public override string ToString()
-    {
-        return $"{Filename} {MediaMetadata.CreationTime:yyyy-MM-dd HH:mm:ss}";
-    }
+    public override string ToString() => $"{Filename} {MediaMetadata.CreationTime:yyyy-MM-dd HH:mm:ss}";
 }

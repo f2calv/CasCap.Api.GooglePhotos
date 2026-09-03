@@ -26,7 +26,7 @@ Version 4 is a breaking release:
 
 * The library targets .NET 10 only.
 * Public DTO properties and enum members use PascalCase while preserving Google's JSON wire names.
-* Removed Google sharing APIs and scopes are no longer exposed.
+* Removed Google sharing APIs and scopes are no longer exposed. `ShareInfo`, `SharedAlbumOptions` and `ContributorInfo`, along with `Album.ShareInfo` and `MediaItem.ContributorInfo`, are gone because no remaining scope can populate them.
 * Library API operations now apply only to content created by the configured OAuth client.
 * OAuth cache entries are isolated by local user, OAuth client ID, and requested scopes.
 
