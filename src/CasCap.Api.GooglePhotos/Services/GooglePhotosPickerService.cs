@@ -162,7 +162,15 @@ public sealed class GooglePhotosPickerService : HttpClientBase
             $"{mediaItem.MediaFile.BaseUrl}={parameters}",
             HttpCompletionOption.ResponseHeadersRead,
             cancellationToken).ConfigureAwait(false);
-        response.EnsureSuccessStatusCode();
+        if (!response.IsSuccessStatusCode)
+        {
+            var responseBody = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+            if (responseBody.TryFromJson<Error>(out var error) && error is not null)
+                throw new GooglePhotosException(error);
+
+            throw new GooglePhotosException($"Picker media download failed with HTTP {(int)response.StatusCode}.");
+        }
+
         await response.Content.CopyToAsync(destination, cancellationToken).ConfigureAwait(false);
     }
 }

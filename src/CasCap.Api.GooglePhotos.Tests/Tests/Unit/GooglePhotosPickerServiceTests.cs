@@ -77,6 +77,31 @@ public sealed class GooglePhotosPickerServiceTests
     }
 
     [Fact]
+    public async Task DownloadPhotoWrapsMalformedError()
+    {
+        using var client = CreateClient(_ => new HttpResponseMessage(HttpStatusCode.Gone)
+        {
+            Content = new StringContent("expired", Encoding.UTF8, "text/plain")
+        });
+        var service = CreateService(client);
+        var mediaItem = new PickedMediaItem
+        {
+            Type = PickedMediaItemType.Photo,
+            MediaFile = new PickerMediaFile { BaseUrl = "https://example.test/media" }
+        };
+        await using var destination = new MemoryStream();
+
+        var exception = await Assert.ThrowsAsync<GooglePhotosException>(() => service.DownloadPhotoAsync(
+            mediaItem,
+            destination,
+            maxWidth: 100,
+            maxHeight: 200,
+            cancellationToken: TestContext.Current.CancellationToken));
+
+        Assert.Contains("HTTP 410", exception.Message);
+    }
+
+    [Fact]
     public async Task GetMediaItemsFollowsPageToken()
     {
         var requests = new List<Uri>();
@@ -99,6 +124,23 @@ public sealed class GooglePhotosPickerServiceTests
         Assert.Equal(["one", "two"], mediaItems.Select(item => item.Id));
         Assert.Equal(2, requests.Count);
         Assert.Contains("pageToken=next", requests[1].Query);
+    }
+
+    [Fact]
+    public void RegistrationRejectsEmptyScopes()
+    {
+        var services = new ServiceCollection();
+        services.AddGooglePhotos(new GooglePhotosOptions
+        {
+            User = "user@example.com",
+            ClientId = "client-id",
+            ClientSecret = "client-secret",
+            Scopes = []
+        });
+        using var serviceProvider = services.BuildServiceProvider();
+
+        Assert.Throws<OptionsValidationException>(
+            () => serviceProvider.GetRequiredService<IOptions<GooglePhotosOptions>>().Value);
     }
 
     private static HttpClient CreateClient(Func<HttpRequestMessage, HttpResponseMessage> responseFactory)

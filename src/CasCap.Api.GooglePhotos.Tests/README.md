@@ -23,8 +23,10 @@ This project exercises the Google Photos client against a dedicated test account
 | `CreateSessionRejectsNonVersionFourRequestId`   | 1            | 1               | Picker      |
 | `DeleteSessionWrapsMalformedError`              | 1            | 1               | Picker      |
 | `DownloadPhotoIncludesDimensionsAndExif`        | 1            | 1               | Picker      |
+| `DownloadPhotoWrapsMalformedError`              | 1            | 1               | Picker      |
 | `GetMediaItemsFollowsPageToken`                 | 1            | 1               | Picker      |
-| Total                                           | 13           | 25              |             |
+| `RegistrationRejectsEmptyScopes`                | 1            | 1               | Picker      |
+| Total                                           | 15           | 27              |             |
 
 ## Trait Categories
 

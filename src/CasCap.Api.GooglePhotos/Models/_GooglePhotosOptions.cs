@@ -36,7 +36,7 @@ public record GooglePhotosOptions
     /// Note: When changing scopes under the same User you must manually delete the local JSON file to clear the local cache,
     /// you can use the GooglePhotosOptions.FileDataStoreFullPathDefault property to locate the path to the JSON file(s).
     /// </summary>
-    [Required]
+    [Required, MinLength(1)]
     public required GooglePhotosScope[] Scopes { get; set; } =
     [
         GooglePhotosScope.AppendOnly,

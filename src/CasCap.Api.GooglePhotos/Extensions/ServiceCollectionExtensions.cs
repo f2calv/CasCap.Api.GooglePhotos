@@ -12,8 +12,7 @@ public static class ServiceCollectionExtensions
 
         services.AddOptions<GooglePhotosOptions>()
             .Bind(configuration.GetSection(sectionName))
-            .ValidateDataAnnotations()
-            .ValidateOnStart();
+            .ValidateGooglePhotosOptions();
         services.AddServices();
     }
 
@@ -32,8 +31,7 @@ public static class ServiceCollectionExtensions
                 options.ClientSecret = googlePhotosOptions.ClientSecret;
                 options.FileDataStoreFullPathOverride = googlePhotosOptions.FileDataStoreFullPathOverride;
             })
-            .ValidateDataAnnotations()
-            .ValidateOnStart();
+            .ValidateGooglePhotosOptions();
         services.AddServices();
     }
 
@@ -43,8 +41,7 @@ public static class ServiceCollectionExtensions
 
         services.AddOptions<GooglePhotosOptions>()
             .Configure(configureOptions)
-            .ValidateDataAnnotations()
-            .ValidateOnStart();
+            .ValidateGooglePhotosOptions();
         services.AddServices();
     }
 
@@ -105,4 +102,13 @@ public static class ServiceCollectionExtensions
         })
         .AddStandardResilienceHandler(options => options.Retry.DisableForUnsafeHttpMethods());
     }
+
+    private static OptionsBuilder<GooglePhotosOptions> ValidateGooglePhotosOptions(
+        this OptionsBuilder<GooglePhotosOptions> optionsBuilder)
+        => optionsBuilder
+            .ValidateDataAnnotations()
+            .Validate(
+                options => options.Scopes.Length > 0 && options.Scopes.All(Enum.IsDefined),
+                "At least one valid Google Photos OAuth scope is required.")
+            .ValidateOnStart();
 }
