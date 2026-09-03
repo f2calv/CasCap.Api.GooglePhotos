@@ -1,5 +1,5 @@
 ---
-description: '.NET solution and build structure, central package management, solution format and SDK pinning.'
+description: '.NET solution and build structure, central package management, solution format and SDK selection.'
 applyTo: '**/*.csproj,**/*.slnx,**/Directory.Build.props,**/Directory.Packages.props,**/global.json'
 ---
 
@@ -24,6 +24,8 @@ applyTo: '**/*.csproj,**/*.slnx,**/Directory.Build.props,**/Directory.Packages.p
 - The Debug solution uses local `ProjectReference` items for CasCap.Common projects; the Release solution uses published `PackageReference` items.
 - Prefer the Debug solution for local builds.
 
-## SDK Pinning
+## SDK Selection
 
-- Pin the .NET SDK version and roll-forward policy in the root `global.json` for reproducible local and CI builds.
+- Stable .NET releases do not require an SDK version in `global.json`; allow the installed compatible stable SDK and CI setup to select the SDK by default.
+- Pin the SDK `version` and `rollForward` policy when using a preview SDK, isolating an SDK regression, or when a workflow explicitly requires bit-for-bit SDK reproducibility.
+- Keep `global.json` when it configures repository-wide .NET CLI behavior without pinning an SDK. This repository uses it to select `Microsoft.Testing.Platform` as the test runner.

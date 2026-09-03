@@ -39,6 +39,13 @@ Tests/
 - Prefer interpolation over concatenation or composite formatting.
 - Emit only values that explain a failure, and include decisive context in assertion messages.
 
+## Microsoft.Testing.Platform Follow-up
+
+- `global.json` selects `Microsoft.Testing.Platform` for `dotnet test`.
+- Before modernizing the tests, verify console-output visibility and `ITestOutputHelper` behavior with the repository's exact .NET SDK, xUnit v3, and Microsoft.Testing.Platform versions. Agents may otherwise misread quiet command output as no test execution.
+- Record the commands, verbosity settings, discovered-test counts, passed/failed/skipped totals, and output behavior during that investigation.
+- Do not remove `ITestOutputHelper` or change test runners solely because of an unverified limitation; base the decision on the repository-specific investigation.
+
 ## Theory Parameterization
 
 - Consolidate facts that differ only by input into one `[Theory]` with `[InlineData]`.
