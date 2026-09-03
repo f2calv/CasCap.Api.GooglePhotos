@@ -1,27 +1,40 @@
+# Shared pre-commit configuration. Linting is run manually and by CI.
+default_install_hook_types: [pre-push]
+
 exclude: |
   (?x)^(
-        .editorconfig|
-    .devcontainer/devcontainer.json|
+    \.editorconfig|
+    \.devcontainer/devcontainer\.json|
+    Directory\.Packages\.props
   )$
+
 repos:
 - repo: https://github.com/pre-commit/pre-commit-hooks
   rev: v6.0.0
   hooks:
+  # Structural validation
   - id: check-xml
   - id: check-yaml
     args: [--allow-multiple-documents]
-  #- id: check-json #Note: now we are using check-json5
+  - id: check-toml
+  - id: check-merge-conflict
+  - id: check-case-conflict
   - id: check-added-large-files
-    args: [--maxkb=50]
+    args: [--maxkb=150]
   - id: end-of-file-fixer
+    exclude: |
+      (?x)(
+        appsettings.*\.json$|
+        launchSettings\.json$|
+        ^\.vscode/.*\.json$
+      )
   - id: trailing-whitespace
-  - id: double-quote-string-fixer
 - repo: https://gitlab.com/bmares/check-json5
-  rev: v1.0.0
+  rev: v1.0.1
   hooks:
   - id: check-json5
 - repo: https://github.com/igorshubovych/markdownlint-cli
-  rev: v0.45.0
+  rev: v0.49.1
   hooks:
   - id: markdownlint
     args: ["--disable", "MD013", "--disable", "MD034", "--"]

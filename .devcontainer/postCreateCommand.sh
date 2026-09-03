@@ -1,15 +1,8 @@
-#!/bin/sh
+#!/usr/bin/env bash
+# Reports the installed tooling and restores the standalone Release solution.
 
-echo "postCreateCommand.sh"
-echo "--------------------"
+set -euo pipefail
 
-sudo apt-get update
-# sudo apt-get install -y python3 pip pre-commit
-
-# echo "Setup pre-commit"
-#pre-commit
-#pre-commit install --install-hooks
-#pre-commit run --all-files --verbose
-#pre-commit autoupdate
-
-sudo chmod +x .devcontainer/postStartCommand.sh
+dotnet --version
+pre-commit --version
+dotnet restore ./CasCap.Api.GooglePhotos.Release.slnx

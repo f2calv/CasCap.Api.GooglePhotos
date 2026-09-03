@@ -95,7 +95,6 @@ CasCap.Api.GooglePhotos.Tests/
 |   |   |-- GooglePhotosServiceTests.cs
 |   |   |-- GooglePhotosWriteRateLimitingHandlerTests.cs
 |   |   `-- ModelSerializationTests.cs
-|   `-- ExifTests.cs        # TODO: re-enable the EXIF metadata proof
 |-- testdata/
 |-- appsettings.Test.json
 |-- GlobalUsings.cs

@@ -1,61 +1,33 @@
-name: "Code Scanning - Action"
+name: codeql
 
 on:
   push:
     branches: [main]
   pull_request:
     branches: [main]
-  # schedule:
-  #   #        ┌───────────── minute (0 - 59)
-  #   #        │  ┌───────────── hour (0 - 23)
-  #   #        │  │ ┌───────────── day of the month (1 - 31)
-  #   #        │  │ │ ┌───────────── month (1 - 12 or JAN-DEC)
-  #   #        │  │ │ │ ┌───────────── day of the week (0 - 6 or SUN-SAT)
-  #   #        │  │ │ │ │
-  #   #        │  │ │ │ │
-  #   #        │  │ │ │ │
-  #   #        *  * * * *
-  #   - cron: '30 1 * * 0'
+
+permissions: {}
 
 jobs:
-  CodeQL-Build:
-    # CodeQL runs on ubuntu-latest, windows-latest, and macos-latest
+  analyze:
     runs-on: ubuntu-latest
 
     permissions:
-      # required for all workflows
+      contents: read
       security-events: write
 
-      # only required for workflows in private repositories
-      actions: read
-      contents: read
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v5
+      - uses: actions/checkout@v5
 
-      # Initializes the CodeQL tools for scanning.
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3
-        # Override language selection by uncommenting this and choosing your languages
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+
+      - uses: github/codeql-action/init@v4
         with:
           languages: csharp
 
-      # Autobuild attempts to build any compiled languages (C/C++, C#, Go, or Java).
-      # If this step fails, then you should remove it and run the build manually (see below).
-      - name: Autobuild
-        uses: github/codeql-action/autobuild@v3
+      - name: Build Release solution
+        run: dotnet build ./CasCap.Api.GooglePhotos.Release.slnx --configuration Release
 
-      # ℹ️ Command-line programs to run using the OS shell.
-      # 📚 See https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepsrun
-
-      # ✏️ If the Autobuild fails above, remove it and uncomment the following
-      #    three lines and modify them (or add more) to build your code if your
-      #    project uses a compiled language
-
-      #- run: |
-      #     make bootstrap
-      #     make release
-
-      - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v3
+      - uses: github/codeql-action/analyze@v4

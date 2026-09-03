@@ -7,7 +7,9 @@
             "type": "process",
             "args": [
                 "build",
-                "${workspaceFolder}/samples/ConsoleApp/ConsoleApp.csproj",
+                "${workspaceFolder}/CasCap.Api.GooglePhotos.Release.slnx",
+                "--configuration",
+                "Release",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],
