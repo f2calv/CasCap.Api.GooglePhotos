@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.WebUtilities;
 using MimeTypes;
 using System.Buffers;
-using System.Diagnostics;
+using System.Globalization;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Runtime.CompilerServices;
@@ -240,11 +240,14 @@ public abstract partial class GooglePhotosServiceBase : HttpClientBase
         return l;
     }
 
-    private string GetUrl(string uri, int? pageSize = defaultPageSizeAlbums, string? pageToken = null)
+    private string GetUrl(string uri, int pageSize, string? pageToken)
     {
-        var queryParams = new Dictionary<string, string?>(2);
-        if (pageSize.HasValue && pageSize != defaultPageSizeAlbums) queryParams.Add(nameof(pageSize), pageSize.Value.ToString());
-        if (!string.IsNullOrWhiteSpace(pageToken)) queryParams.Add(nameof(pageToken), pageToken!);//todo: nullability look further into this
+        var queryParams = new Dictionary<string, string?>(2)
+        {
+            [nameof(pageSize)] = pageSize.ToString(CultureInfo.InvariantCulture)
+        };
+        if (!string.IsNullOrWhiteSpace(pageToken))
+            queryParams[nameof(pageToken)] = pageToken;
         var url = QueryHelpers.AddQueryString(uri, queryParams);
         LogRequestUrl(_logger, nameof(GooglePhotosServiceBase), nameof(GetUrl), url);
         return url;
@@ -702,16 +705,16 @@ public abstract partial class GooglePhotosServiceBase : HttpClientBase
     }
     #endregion
 
-    private const string X_Goog_Upload_Content_Type = "X-Goog-Upload-Content-Type";
-    private const string X_Goog_Upload_Protocol = "X-Goog-Upload-Protocol";
-    private const string X_Goog_Upload_Command = "X-Goog-Upload-Command";
-    private const string X_Goog_Upload_File_Name = "X-Goog-Upload-File-Name";
-    private const string X_Goog_Upload_Raw_Size = "X-Goog-Upload-Raw-Size";
-    private const string X_Goog_Upload_URL = "X-Goog-Upload-URL";
-    private const string X_Goog_Upload_Offset = "X-Goog-Upload-Offset";
-    private const string X_Goog_Upload_Status = "X-Goog-Upload-Status";
-    private const string X_Goog_Upload_Chunk_Granularity = "X-Goog-Upload-Chunk-Granularity";
-    private const string X_Goog_Upload_Size_Received = "X-Goog-Upload-Size-Received";
+    private const string X_Goog_Upload_Content_Type = UploadHeaders.ContentType;
+    private const string X_Goog_Upload_Protocol = UploadHeaders.Protocol;
+    private const string X_Goog_Upload_Command = UploadHeaders.Command;
+    private const string X_Goog_Upload_File_Name = UploadHeaders.FileName;
+    private const string X_Goog_Upload_Raw_Size = UploadHeaders.RawSize;
+    private const string X_Goog_Upload_URL = UploadHeaders.Url;
+    private const string X_Goog_Upload_Offset = UploadHeaders.Offset;
+    private const string X_Goog_Upload_Status = UploadHeaders.Status;
+    private const string X_Goog_Upload_Chunk_Granularity = UploadHeaders.ChunkGranularity;
+    private const string X_Goog_Upload_Size_Received = UploadHeaders.SizeReceived;
 
     //todo: refactor this method when time, it's a bit of a mess :/
     //https://developers.google.com/photos/library/guides/upload-media

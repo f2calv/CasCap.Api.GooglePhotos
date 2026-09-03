@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Http.Resilience;
+using Polly;
 using System.Net;
 using System.Net.Http.Headers;
 
@@ -42,16 +43,11 @@ public static class ServiceCollectionExtensions
                 options.ClientId = googlePhotosOptions.ClientId;
                 options.ClientSecret = googlePhotosOptions.ClientSecret;
                 options.FileDataStoreFullPathOverride = googlePhotosOptions.FileDataStoreFullPathOverride;
+                options.RequestTimeoutSeconds = googlePhotosOptions.RequestTimeoutSeconds;
+                options.UploadTimeoutSeconds = googlePhotosOptions.UploadTimeoutSeconds;
                 options.WriteRateLimit = googlePhotosOptions.WriteRateLimit is null
                     ? null!
-                    : new GooglePhotosWriteRateLimitOptions
-                    {
-                        Enabled = googlePhotosOptions.WriteRateLimit.Enabled,
-                        PermitLimit = googlePhotosOptions.WriteRateLimit.PermitLimit,
-                        QueueLimit = googlePhotosOptions.WriteRateLimit.QueueLimit,
-                        SegmentsPerWindow = googlePhotosOptions.WriteRateLimit.SegmentsPerWindow,
-                        WindowSeconds = googlePhotosOptions.WriteRateLimit.WindowSeconds
-                    };
+                    : googlePhotosOptions.WriteRateLimit with { };
             })
             .ValidateGooglePhotosOptions();
         services.AddServices();
@@ -90,30 +86,11 @@ public static class ServiceCollectionExtensions
         //https://github.com/aspnet/AspNetCore/issues/6804
         .SetHandlerLifetime(Timeout.InfiniteTimeSpan)
         .AddHttpMessageHandler<GooglePhotosWriteRateLimitingHandler>()
-        .AddStandardResilienceHandler((options) =>
-        {
-            //RateLimiter
-            options.TotalRequestTimeout = new Http.Resilience.HttpTimeoutStrategyOptions
-            {
-                Timeout = TimeSpan.FromSeconds(90)
-            };
-            //Retry
-            options.Retry = new Http.Resilience.HttpRetryStrategyOptions
-            {
-                MaxRetryAttempts = 6
-            };
-            options.Retry.DisableForUnsafeHttpMethods();
-            //Circuit Breaker
-            options.CircuitBreaker = new Http.Resilience.HttpCircuitBreakerStrategyOptions
-            {
-                SamplingDuration = TimeSpan.FromSeconds(180)
-            };
-            //AttemptTimeout
-            options.AttemptTimeout = new Http.Resilience.HttpTimeoutStrategyOptions
-            {
-                Timeout = TimeSpan.FromSeconds(90)
-            };
-        });
+        .AddStandardResilienceHandler()
+        .Configure((options, serviceProvider) => ConfigureResilience(
+            options,
+            serviceProvider.GetRequiredService<IOptions<GooglePhotosOptions>>().Value,
+            uploadAware: true));
 
         services.AddHttpClient<GooglePhotosPickerService>((serviceProvider, client) =>
         {
@@ -128,7 +105,47 @@ public static class ServiceCollectionExtensions
         {
             AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
         })
-        .AddStandardResilienceHandler(options => options.Retry.DisableForUnsafeHttpMethods());
+        .AddStandardResilienceHandler()
+        .Configure((options, serviceProvider) => ConfigureResilience(
+            options,
+            serviceProvider.GetRequiredService<IOptions<GooglePhotosOptions>>().Value,
+            uploadAware: false));
+    }
+
+    private static void ConfigureResilience(
+        HttpStandardResilienceOptions options,
+        GooglePhotosOptions googlePhotosOptions,
+        bool uploadAware)
+    {
+        var requestTimeout = TimeSpan.FromSeconds(googlePhotosOptions.RequestTimeoutSeconds);
+        var uploadTimeout = TimeSpan.FromSeconds(googlePhotosOptions.UploadTimeoutSeconds);
+
+        options.Retry.MaxRetryAttempts = 6;
+        options.Retry.DisableForUnsafeHttpMethods();
+
+        options.AttemptTimeout.Timeout = requestTimeout;
+
+        //The previous total budget equalled a single attempt, so retries could never complete.
+        var totalTimeout = requestTimeout * (options.Retry.MaxRetryAttempts + 1);
+        options.TotalRequestTimeout.Timeout = totalTimeout;
+
+        //The standard handler rejects a sampling duration shorter than two attempts.
+        options.CircuitBreaker.SamplingDuration = requestTimeout * 2;
+
+        if (!uploadAware)
+            return;
+
+        //Uploads stream whole files or large chunks, so they need their own budget rather than the API request timeout.
+        options.AttemptTimeout.TimeoutGenerator = args => SelectTimeout(args.Context, requestTimeout, uploadTimeout);
+        options.TotalRequestTimeout.TimeoutGenerator = args => SelectTimeout(args.Context, totalTimeout, uploadTimeout);
+    }
+
+    private static ValueTask<TimeSpan> SelectTimeout(ResilienceContext context, TimeSpan requestTimeout, TimeSpan uploadTimeout)
+    {
+        var request = context.GetRequestMessage();
+        return ValueTask.FromResult(request is not null && UploadHeaders.IsUploadRequest(request)
+            ? uploadTimeout
+            : requestTimeout);
     }
 
     private static OptionsBuilder<GooglePhotosOptions> ValidateGooglePhotosOptions(

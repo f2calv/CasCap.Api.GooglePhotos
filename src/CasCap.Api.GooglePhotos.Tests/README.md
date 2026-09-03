@@ -39,6 +39,10 @@ This project exercises the Google Photos client against a dedicated test account
 | `FilterUsesGoogleWireNames`                     | 1            | 1               | Serialization |
 | `MediaItemMapsGoogleWireNames`                  | 1            | 1               | Serialization |
 | `ResponsesMapGoogleWireNames`                   | 1            | 1               | Serialization |
+| `RegistrationCopiesEveryOption`                 | 1            | 1               | Registration  |
+| `RegistrationRejectsInvalidRequestTimeout`      | 1            | 2               | Registration  |
+| `RegistrationRejectsInvalidUploadTimeout`       | 1            | 2               | Registration  |
+| `RegistrationResolvesTypedClients`              | 1            | 1               | Registration  |
 | `AddMediaItemsToAlbumDeduplicatesAndBatches`    | 1            | 1               | Library       |
 | `AddMediaItemsBatchesCreationRequests`          | 1            | 1               | Library       |
 | `AddMediaItemsToAlbumHonorsCancellation`        | 1            | 1               | Library       |
@@ -49,9 +53,11 @@ This project exercises the Google Photos client against a dedicated test account
 | `DownloadBytesWrapsApiError`                    | 1            | 1               | Library       |
 | `GetAlbumWrapsApiError`                         | 1            | 1               | Library       |
 | `GetAlbumsRejectsInvalidPageSize`               | 1            | 2               | Library       |
+| `GetAlbumsSendsRequestedPageSize`               | 1            | 3               | Library       |
 | `GetMediaItemsDeduplicatesAcrossPages`          | 1            | 1               | Library       |
 | `GetMediaItemsByFilterRemovesEmptyFilters`      | 1            | 1               | Library       |
 | `GetMediaItemsRejectsInvalidPageSize`           | 1            | 2               | Library       |
+| `GetMediaItemsSendsRequestedPageSize`           | 1            | 3               | Library       |
 | `GetOrCreateAlbumCreatesMissingAlbum`           | 1            | 1               | Library       |
 | `GetOrCreateAlbumReturnsExistingAlbum`          | 1            | 1               | Library       |
 | `IsFileUploadableByExtensionClassifiesTypes`    | 1            | 4               | Library       |
@@ -62,11 +68,12 @@ This project exercises the Google Photos client against a dedicated test account
 | `UploadMediaRecoversResumableSingle`            | 1            | 1               | Library       |
 | `UploadMediaWrapsMalformedError`                | 1            | 1               | Library       |
 | `UploadMediaWrapsMalformedSessionError`         | 1            | 1               | Library       |
-| Total                                           | 51           | 68              |               |
+| `UploadRequestDetectionMatchesProtocolHeaders`  | 1            | 4               | Library       |
+| Total                                           | 59           | 84              |               |
 
 ## Trait Categories
 
-Credentialed tests carry `Category=Integration`; unit tests carry `Category=Library`, `Category=Picker`, `Category=RateLimiting`, or `Category=Serialization`. API-specific integration coverage carries `Type=GooglePhotosService` or `Type=GooglePhotosPickerService`.
+Credentialed tests carry `Category=Integration`; unit tests carry `Category=Library`, `Category=Picker`, `Category=RateLimiting`, `Category=Registration`, or `Category=Serialization`. API-specific integration coverage carries `Type=GooglePhotosService` or `Type=GooglePhotosPickerService`.
 
 ## Skipped Tests
 
@@ -92,11 +99,12 @@ CasCap.Api.GooglePhotos.Tests/
 |   |-- Integration/
 |   |   |-- GooglePhotosIntegrationTests.cs
 |   |   `-- TestBase.cs
-|   |-- Unit/
-|   |   |-- GooglePhotosPickerServiceTests.cs
-|   |   |-- GooglePhotosServiceTests.cs
-|   |   |-- GooglePhotosWriteRateLimitingHandlerTests.cs
-|   |   `-- ModelSerializationTests.cs
+|   `-- Unit/
+|       |-- GooglePhotosPickerServiceTests.cs
+|       |-- GooglePhotosServiceTests.cs
+|       |-- GooglePhotosWriteRateLimitingHandlerTests.cs
+|       |-- ModelSerializationTests.cs
+|       `-- ServiceCollectionExtensionsTests.cs
 |-- testdata/
 |-- appsettings.Test.json
 |-- GlobalUsings.cs

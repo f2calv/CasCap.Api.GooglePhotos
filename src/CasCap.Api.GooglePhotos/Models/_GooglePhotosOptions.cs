@@ -61,6 +61,18 @@ public sealed record GooglePhotosOptions
     /// </summary>
     public string? FileDataStoreFullPathOverride { get; set; }
 
+    /// <summary>Gets or sets the timeout, in seconds, applied to a single non-upload API request.</summary>
+    [Range(1, int.MaxValue)]
+    public int RequestTimeoutSeconds { get; set; } = 90;
+
+    /// <summary>Gets or sets the timeout, in seconds, applied to a single media upload request.</summary>
+    /// <remarks>
+    /// Uploads send whole files or large chunks and can legitimately exceed <see cref="RequestTimeoutSeconds" />
+    /// by orders of magnitude, so they are given their own budget.
+    /// </remarks>
+    [Range(1, int.MaxValue)]
+    public int UploadTimeoutSeconds { get; set; } = 3600;
+
     /// <summary>Gets or sets the optional client-side limiter for mutating Library API requests.</summary>
     [Required, ValidateObjectMembers]
     public GooglePhotosWriteRateLimitOptions WriteRateLimit { get; set; } = new();

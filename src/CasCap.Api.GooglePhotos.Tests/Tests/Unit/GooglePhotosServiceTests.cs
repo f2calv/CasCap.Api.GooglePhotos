@@ -310,6 +310,60 @@ public sealed class GooglePhotosServiceTests
                 .ToListAsync(TestContext.Current.CancellationToken));
     }
 
+    [Theory]
+    [InlineData(1)]
+    [InlineData(50)]
+    [InlineData(100)]
+    public async Task GetMediaItemsSendsRequestedPageSize(int pageSize)
+    {
+        Uri? requestUri = null;
+        using var client = CreateClient((request, _) =>
+        {
+            requestUri = request.RequestUri;
+            return Task.FromResult(CreateJsonResponse("""{"mediaItems":[]}"""));
+        });
+        var service = CreateService(client);
+
+        _ = await service.GetMediaItemsAsync(pageSize, cancellationToken: TestContext.Current.CancellationToken)
+            .ToListAsync(TestContext.Current.CancellationToken);
+
+        Assert.Contains($"pageSize={pageSize}", requestUri!.Query);
+    }
+
+    [Theory]
+    [InlineData(1)]
+    [InlineData(25)]
+    [InlineData(50)]
+    public async Task GetAlbumsSendsRequestedPageSize(int pageSize)
+    {
+        Uri? requestUri = null;
+        using var client = CreateClient((request, _) =>
+        {
+            requestUri = request.RequestUri;
+            return Task.FromResult(CreateJsonResponse("""{"albums":[]}"""));
+        });
+        var service = CreateService(client);
+
+        _ = await service.GetAlbumsAsync(pageSize, TestContext.Current.CancellationToken);
+
+        Assert.Contains($"pageSize={pageSize}", requestUri!.Query);
+    }
+
+    [Theory]
+    [InlineData("X-Goog-Upload-Command", true)]
+    [InlineData("X-Goog-Upload-Protocol", true)]
+    [InlineData("X-Goog-Upload-Content-Type", true)]
+    [InlineData("X-Goog-Api-Client", false)]
+    public void UploadRequestDetectionMatchesProtocolHeaders(string headerName, bool expected)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Post, RequestUris.BaseAddress);
+        request.Headers.Add(headerName, "value");
+
+        var actual = UploadHeaders.IsUploadRequest(request);
+
+        Assert.Equal(expected, actual);
+    }
+
     [Fact]
     public async Task GetOrCreateAlbumCreatesMissingAlbum()
     {
