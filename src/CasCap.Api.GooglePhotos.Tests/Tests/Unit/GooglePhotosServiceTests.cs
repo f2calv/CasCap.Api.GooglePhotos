@@ -616,8 +616,11 @@ public sealed class GooglePhotosServiceTests
         }
     }
 
-    [Fact]
-    public async Task UploadMediaWrapsMalformedSessionError()
+    [Theory]
+    [InlineData(GooglePhotosUploadMethod.Simple)]
+    [InlineData(GooglePhotosUploadMethod.ResumableSingle)]
+    [InlineData(GooglePhotosUploadMethod.ResumableMultipart)]
+    public async Task UploadMediaWrapsMalformedError(GooglePhotosUploadMethod uploadMethod)
     {
         var path = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid():N}.jpg");
         await File.WriteAllBytesAsync(path, [1], TestContext.Current.CancellationToken);
@@ -631,33 +634,7 @@ public sealed class GooglePhotosServiceTests
 
             var exception = await Assert.ThrowsAsync<GooglePhotosException>(() => service.UploadMediaAsync(
                 path,
-                GooglePhotosUploadMethod.ResumableMultipart,
-                cancellationToken: TestContext.Current.CancellationToken));
-
-            Assert.Equal("Upload failed with HTTP 502.", exception.Message);
-        }
-        finally
-        {
-            File.Delete(path);
-        }
-    }
-
-    [Fact]
-    public async Task UploadMediaWrapsMalformedError()
-    {
-        var path = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid():N}.jpg");
-        await File.WriteAllBytesAsync(path, [1], TestContext.Current.CancellationToken);
-        try
-        {
-            using var client = CreateClient((_, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.BadGateway)
-            {
-                Content = new StringContent("not-json", Encoding.UTF8, "text/plain")
-            }));
-            var service = CreateService(client);
-
-            var exception = await Assert.ThrowsAsync<GooglePhotosException>(() => service.UploadMediaAsync(
-                path,
-                GooglePhotosUploadMethod.Simple,
+                uploadMethod,
                 cancellationToken: TestContext.Current.CancellationToken));
 
             Assert.Equal("Upload failed with HTTP 502.", exception.Message);
@@ -701,14 +678,5 @@ public sealed class GooglePhotosServiceTests
             if (disposing)
                 cancellationTokenSource.Cancel();
         }
-    }
-
-    private sealed class StubHttpMessageHandler(
-        Func<HttpRequestMessage, CancellationToken, Task<HttpResponseMessage>> responseFactory) : HttpMessageHandler
-    {
-        protected override Task<HttpResponseMessage> SendAsync(
-            HttpRequestMessage request,
-            CancellationToken cancellationToken)
-            => responseFactory(request, cancellationToken);
     }
 }

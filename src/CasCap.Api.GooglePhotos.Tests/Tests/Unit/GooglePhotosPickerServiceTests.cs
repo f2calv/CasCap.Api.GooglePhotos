@@ -126,23 +126,6 @@ public sealed class GooglePhotosPickerServiceTests
         Assert.Contains("pageToken=next", requests[1].Query);
     }
 
-    [Fact]
-    public void RegistrationRejectsEmptyScopes()
-    {
-        var services = new ServiceCollection();
-        services.AddGooglePhotos(new GooglePhotosOptions
-        {
-            User = "user@example.com",
-            ClientId = "client-id",
-            ClientSecret = "client-secret",
-            Scopes = []
-        });
-        using var serviceProvider = services.BuildServiceProvider();
-
-        Assert.Throws<OptionsValidationException>(
-            () => serviceProvider.GetRequiredService<IOptions<GooglePhotosOptions>>().Value);
-    }
-
     private static HttpClient CreateClient(Func<HttpRequestMessage, HttpResponseMessage> responseFactory)
         => new(new StubHttpMessageHandler(responseFactory))
         {
@@ -156,10 +139,4 @@ public sealed class GooglePhotosPickerServiceTests
                 NullLogger<GooglePhotosCredentialProvider>.Instance,
                 Options.Create(new GooglePhotosOptions())),
             client);
-
-    private sealed class StubHttpMessageHandler(Func<HttpRequestMessage, HttpResponseMessage> responseFactory) : HttpMessageHandler
-    {
-        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
-            => Task.FromResult(responseFactory(request));
-    }
 }

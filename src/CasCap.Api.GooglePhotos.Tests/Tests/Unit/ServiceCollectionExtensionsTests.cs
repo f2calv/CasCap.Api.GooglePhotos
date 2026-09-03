@@ -97,6 +97,89 @@ public sealed class ServiceCollectionExtensionsTests
             () => serviceProvider.GetRequiredService<IOptions<GooglePhotosOptions>>().Value);
     }
 
+    [Fact]
+    public void RegistrationIsolatesScopes()
+    {
+        GooglePhotosScope[] scopes = [GooglePhotosScope.AppendOnly];
+        var options = CreateValidOptions();
+        options.Scopes = scopes;
+        var services = new ServiceCollection();
+        services.AddGooglePhotos(options);
+        using var serviceProvider = services.BuildServiceProvider();
+        var resolvedOptions = serviceProvider.GetRequiredService<IOptions<GooglePhotosOptions>>().Value;
+
+        scopes[0] = GooglePhotosScope.PickerMediaItemsReadOnly;
+
+        Assert.Equal(GooglePhotosScope.AppendOnly, Assert.Single(resolvedOptions.Scopes));
+    }
+
+    [Fact]
+    public void RegistrationIsolatesRateLimitOptions()
+    {
+        var writeRateLimit = new GooglePhotosWriteRateLimitOptions { Enabled = true, PermitLimit = 1 };
+        var options = CreateValidOptions();
+        options.WriteRateLimit = writeRateLimit;
+        var services = new ServiceCollection();
+        services.AddGooglePhotos(options);
+        using var serviceProvider = services.BuildServiceProvider();
+        var resolvedOptions = serviceProvider.GetRequiredService<IOptions<GooglePhotosOptions>>().Value;
+
+        writeRateLimit.PermitLimit = 2;
+
+        Assert.Equal(1, resolvedOptions.WriteRateLimit.PermitLimit);
+    }
+
+    [Fact]
+    public void RegistrationRejectsEmptyScopes()
+    {
+        var options = CreateValidOptions();
+        options.Scopes = [];
+
+        AssertOptionsRejected(options);
+    }
+
+    [Fact]
+    public void RegistrationRejectsNullScopes()
+    {
+        var options = CreateValidOptions();
+        options.Scopes = null!;
+
+        AssertOptionsRejected(options);
+    }
+
+    [Fact]
+    public void RegistrationRejectsNullRateLimit()
+    {
+        var options = CreateValidOptions();
+        options.WriteRateLimit = null!;
+
+        AssertOptionsRejected(options);
+    }
+
+    [Fact]
+    public void RegistrationRejectsInvalidRateLimit()
+    {
+        var options = CreateValidOptions();
+        options.WriteRateLimit = new GooglePhotosWriteRateLimitOptions
+        {
+            Enabled = true,
+            SegmentsPerWindow = 2,
+            WindowSeconds = 1
+        };
+
+        AssertOptionsRejected(options);
+    }
+
+    private static void AssertOptionsRejected(GooglePhotosOptions options)
+    {
+        var services = new ServiceCollection();
+        services.AddGooglePhotos(options);
+        using var serviceProvider = services.BuildServiceProvider();
+
+        Assert.Throws<OptionsValidationException>(
+            () => serviceProvider.GetRequiredService<IOptions<GooglePhotosOptions>>().Value);
+    }
+
     private static GooglePhotosOptions CreateValidOptions()
         => new()
         {

@@ -108,3 +108,81 @@ public enum GooglePhotosContentCategoryType
     [JsonStringEnumMemberName("WHITEBOARDS")]
     Whiteboards
 }
+
+/// <summary>Specifies a Google Photos feature used to filter media.</summary>
+[JsonConverter(typeof(JsonStringEnumConverter))]
+public enum GooglePhotosFeatureType
+{
+    /// <summary>Media marked as a favorite.</summary>
+    [JsonStringEnumMemberName("FAVORITES")]
+    Favorites
+}
+
+/// <summary>Specifies a Google Photos media type.</summary>
+[JsonConverter(typeof(JsonStringEnumConverter))]
+public enum GooglePhotosMediaType
+{
+    /// <summary>A photo.</summary>
+    [JsonStringEnumMemberName("PHOTO")]
+    Photo,
+
+    /// <summary>A video.</summary>
+    [JsonStringEnumMemberName("VIDEO")]
+    Video
+}
+
+/// <summary>Specifies the position of a media or enrichment item within an album.</summary>
+[JsonConverter(typeof(JsonStringEnumConverter))]
+public enum GooglePhotosPositionType
+{
+    /// <summary>Default value if this enum isn't set.</summary>
+    [JsonStringEnumMemberName("POSITION_TYPE_UNSPECIFIED")]
+    Unspecified,
+
+    /// <summary>At the beginning of the album.</summary>
+    [JsonStringEnumMemberName("FIRST_IN_ALBUM")]
+    FirstInAlbum,
+
+    /// <summary>At the end of the album.</summary>
+    [JsonStringEnumMemberName("LAST_IN_ALBUM")]
+    LastInAlbum,
+
+    /// <summary>After a media item.</summary>
+    [JsonStringEnumMemberName("AFTER_MEDIA_ITEM")]
+    AfterMediaItem,
+
+    /// <summary>After an enrichment item.</summary>
+    [JsonStringEnumMemberName("AFTER_ENRICHMENT_ITEM")]
+    AfterEnrichmentItem
+}
+
+/// <summary>Specifies an OAuth scope used by the Google Photos APIs.</summary>
+[JsonConverter(typeof(JsonStringEnumConverter))]
+public enum GooglePhotosScope
+{
+    /// <summary>Creates media items, albums, and enrichments owned by the application.</summary>
+    AppendOnly,
+
+    /// <summary>Reads media items and albums created by the application.</summary>
+    ReadOnlyAppCreatedData,
+
+    /// <summary>Edits media items and albums created by the application.</summary>
+    EditAppCreatedData,
+
+    /// <summary>Creates Picker sessions and reads media items explicitly selected by the user.</summary>
+    PickerMediaItemsReadOnly
+}
+
+/// <summary>Specifies the upload protocol used for media bytes.</summary>
+[JsonConverter(typeof(JsonStringEnumConverter))]
+public enum GooglePhotosUploadMethod
+{
+    /// <summary>Uploads all media bytes in one request.</summary>
+    Simple,
+
+    /// <summary>Uploads media bytes in one resumable request.</summary>
+    ResumableSingle,
+
+    /// <summary>Uploads media bytes in multiple resumable requests.</summary>
+    ResumableMultipart
+}

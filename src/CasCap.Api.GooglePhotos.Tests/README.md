@@ -25,13 +25,7 @@ This project exercises the Google Photos client against a dedicated test account
 | `DownloadPhotoIncludesDimensionsAndExif`        | 1            | 1               | Picker        |
 | `DownloadPhotoWrapsMalformedError`              | 1            | 1               | Picker        |
 | `GetMediaItemsFollowsPageToken`                 | 1            | 1               | Picker        |
-| `RegistrationRejectsEmptyScopes`                | 1            | 1               | Picker        |
 | `DisabledLimiterBypassesUnsafeRequests`         | 1            | 1               | RateLimiting  |
-| `RegistrationCopiesRateLimitOptions`            | 1            | 1               | RateLimiting  |
-| `RegistrationCopiesScopes`                      | 1            | 1               | RateLimiting  |
-| `RegistrationRejectsInvalidRateLimit`           | 1            | 1               | RateLimiting  |
-| `RegistrationRejectsNullRateLimit`              | 1            | 1               | RateLimiting  |
-| `RegistrationRejectsNullScopes`                 | 1            | 1               | RateLimiting  |
 | `QueuedWriteHonorsCancellation`                 | 1            | 1               | RateLimiting  |
 | `ReadOnlySearchBypassesLimiter`                 | 1            | 1               | RateLimiting  |
 | `SafeMethodBypassesLimiter`                     | 1            | 4               | RateLimiting  |
@@ -40,8 +34,14 @@ This project exercises the Google Photos client against a dedicated test account
 | `MediaItemMapsGoogleWireNames`                  | 1            | 1               | Serialization |
 | `ResponsesMapGoogleWireNames`                   | 1            | 1               | Serialization |
 | `RegistrationCopiesEveryOption`                 | 1            | 1               | Registration  |
+| `RegistrationIsolatesRateLimitOptions`          | 1            | 1               | Registration  |
+| `RegistrationIsolatesScopes`                    | 1            | 1               | Registration  |
+| `RegistrationRejectsEmptyScopes`                | 1            | 1               | Registration  |
+| `RegistrationRejectsInvalidRateLimit`           | 1            | 1               | Registration  |
 | `RegistrationRejectsInvalidRequestTimeout`      | 1            | 2               | Registration  |
 | `RegistrationRejectsInvalidUploadTimeout`       | 1            | 2               | Registration  |
+| `RegistrationRejectsNullRateLimit`              | 1            | 1               | Registration  |
+| `RegistrationRejectsNullScopes`                 | 1            | 1               | Registration  |
 | `RegistrationResolvesTypedClients`              | 1            | 1               | Registration  |
 | `AuthorizationIsSharedByEveryResolvedClient`    | 1            | 1               | Authorization |
 | `HandlerAppliesSuppliedAuthorization`           | 1            | 1               | Authorization |
@@ -70,10 +70,9 @@ This project exercises the Google Photos client against a dedicated test account
 | `UploadMediaRecoversFromAcceptedChunk`          | 1            | 1               | Library       |
 | `UploadMediaRecoversFromAcceptedFinalChunk`     | 1            | 1               | Library       |
 | `UploadMediaRecoversResumableSingle`            | 1            | 1               | Library       |
-| `UploadMediaWrapsMalformedError`                | 1            | 1               | Library       |
-| `UploadMediaWrapsMalformedSessionError`         | 1            | 1               | Library       |
+| `UploadMediaWrapsMalformedError`                | 1            | 3               | Library       |
 | `UploadRequestDetectionMatchesProtocolHeaders`  | 1            | 4               | Library       |
-| Total                                           | 63           | 88              |               |
+| Total                                           | 61           | 89              |               |
 
 ## Trait Categories
 
@@ -109,13 +108,14 @@ CasCap.Api.GooglePhotos.Tests/
 |   |-- Integration/
 |   |   |-- GooglePhotosIntegrationTests.cs
 |   |   `-- TestBase.cs
-|   `-- Unit/
-|       |-- GooglePhotosAuthorizationTests.cs
-|       |-- GooglePhotosPickerServiceTests.cs
-|       |-- GooglePhotosServiceTests.cs
-|       |-- GooglePhotosWriteRateLimitingHandlerTests.cs
-|       |-- ModelSerializationTests.cs
-|       `-- ServiceCollectionExtensionsTests.cs
+|   |-- Unit/
+|   |   |-- GooglePhotosAuthorizationTests.cs
+|   |   |-- GooglePhotosPickerServiceTests.cs
+|   |   |-- GooglePhotosServiceTests.cs
+|   |   |-- GooglePhotosWriteRateLimitingHandlerTests.cs
+|   |   |-- ModelSerializationTests.cs
+|   |   `-- ServiceCollectionExtensionsTests.cs
+|   `-- StubHttpMessageHandler.cs
 |-- testdata/
 |-- appsettings.Test.json
 |-- GlobalUsings.cs
