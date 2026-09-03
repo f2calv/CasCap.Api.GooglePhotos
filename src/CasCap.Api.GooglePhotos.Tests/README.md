@@ -9,21 +9,26 @@ This project exercises the Google Photos client against a dedicated test account
 
 ## Tests
 
-| Test method              | Method count | Test case count | Category    |
-| ------------------------ | ------------ | --------------- | ----------- |
-| `DoLogin`                | 1            | 1               | Integration |
-| `PickerSessionLifecycle` | 1            | 1               | Integration |
-| `UploadMedia`            | 1            | 3               | Integration |
-| `UploadSingle`           | 1            | 2               | Integration |
-| `UploadMultiple`         | 1            | 1               | Integration |
-| `FilterMediaItems`       | 1            | 1               | Integration |
-| `AddEnrichments`         | 1            | 1               | Integration |
-| `DownloadBytes`          | 1            | 9               | Integration |
-| Total                    | 8            | 19              |             |
+| Test method                                     | Method count | Test case count | Category    |
+| ----------------------------------------------- | ------------ | --------------- | ----------- |
+| `DoLogin`                                       | 1            | 1               | Integration |
+| `PickerSessionLifecycle`                        | 1            | 1               | Integration |
+| `UploadMedia`                                   | 1            | 3               | Integration |
+| `UploadSingle`                                  | 1            | 2               | Integration |
+| `UploadMultiple`                                | 1            | 1               | Integration |
+| `FilterMediaItems`                              | 1            | 1               | Integration |
+| `AddEnrichments`                                | 1            | 1               | Integration |
+| `DownloadBytes`                                 | 1            | 9               | Integration |
+| `CreateSessionRejectsInvalidItemCount`          | 1            | 2               | Picker      |
+| `CreateSessionRejectsNonVersionFourRequestId`   | 1            | 1               | Picker      |
+| `DeleteSessionWrapsMalformedError`              | 1            | 1               | Picker      |
+| `DownloadPhotoIncludesDimensionsAndExif`        | 1            | 1               | Picker      |
+| `GetMediaItemsFollowsPageToken`                 | 1            | 1               | Picker      |
+| Total                                           | 13           | 25              |             |
 
 ## Trait Categories
 
-All tests carry `Category=Integration`. API-specific coverage carries `Type=GooglePhotosService` or `Type=GooglePhotosPickerService`.
+Credentialed tests carry `Category=Integration`; Picker unit tests carry `Category=Picker`. API-specific integration coverage carries `Type=GooglePhotosService` or `Type=GooglePhotosPickerService`.
 
 ## Skipped Tests
 
@@ -49,6 +54,8 @@ CasCap.Api.GooglePhotos.Tests/
 |   |-- Integration/
 |   |   |-- GooglePhotosIntegrationTests.cs
 |   |   `-- TestBase.cs
+|   |-- Unit/
+|   |   `-- GooglePhotosPickerServiceTests.cs
 |   `-- ExifTests.cs        # TODO: re-enable the EXIF metadata proof
 |-- testdata/
 |-- appsettings.Test.json
