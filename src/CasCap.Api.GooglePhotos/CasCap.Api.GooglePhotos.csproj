@@ -7,11 +7,12 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <Description>Fully featured .NET library/wrapper for the Google Photos REST API.</Description>
+    <Description>.NET client library for the Google Photos Library and Picker APIs.</Description>
     <PackageDescription>
       $(Description)
 
-      This *unofficial* library enables programmatic access to the media items and albums of a Google Photos account.
+      This unofficial library manages application-created media and albums through the Library API and accesses
+      user-selected existing media through the Picker API.
 
       The library leverages the authentication in the official Google.Apis.Auth library and builds on that
       by encapsulating all REST API calls in an efficient wrapper returning strongly-typed objects.

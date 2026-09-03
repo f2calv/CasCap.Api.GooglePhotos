@@ -3,5 +3,5 @@
 builder.Services.AddGooglePhotos(builder.Configuration);
 builder.Services.AddHostedService<TestBgService>();
 
-IHost host = builder.Build();
-host.Run();
+using var host = builder.Build();
+await host.RunAsync();
