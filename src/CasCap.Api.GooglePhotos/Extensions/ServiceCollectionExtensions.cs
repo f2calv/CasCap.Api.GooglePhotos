@@ -77,6 +77,7 @@ public static class ServiceCollectionExtensions
             {
                 MaxRetryAttempts = 6
             };
+            options.Retry.DisableForUnsafeHttpMethods();
             //Circuit Breaker
             options.CircuitBreaker = new Http.Resilience.HttpCircuitBreakerStrategyOptions
             {
