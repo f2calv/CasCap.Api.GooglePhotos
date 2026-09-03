@@ -192,20 +192,12 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
         return tpl.result;
     }
 
-    /// <summary>
-    ///
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="pageSize">Maximum number of albums to return in the response. Fewer albums might be returned than the specified number. The default pageSize is 20, the maximum is 50.</param>
-    /// <param name="excludeNonAppCreatedData">If set, the results exclude media items that were not created by this app. Defaults to false (all albums are returned). This field is ignored if the photoslibrary.readonly.appcreateddata scope is used.</param>
-    /// <returns></returns>
-    public Task<List<Album>> GetAlbumsAsync(int pageSize = defaultPageSizeAlbums, bool excludeNonAppCreatedData = false, CancellationToken cancellationToken = default)/* where T : IPagingToken where V : IEnumerable<V>, new()*/
-    {
-        return _GetAlbumsAsync(RequestUris.GET_albums, pageSize, excludeNonAppCreatedData, cancellationToken);
-    }
+    /// <summary>Lists albums created by this application.</summary>
+    public Task<List<Album>> GetAlbumsAsync(int pageSize = defaultPageSizeAlbums, CancellationToken cancellationToken = default)
+        => _GetAlbumsAsync(RequestUris.GET_albums, pageSize, cancellationToken);
 
     //todo: add IPagable interface and merge with similar
-    private async Task<List<Album>> _GetAlbumsAsync(string requestUri, int pageSize, bool excludeNonAppCreatedData, CancellationToken cancellationToken)/* where T : IPagingToken where V : IEnumerable<V>, new()*/
+    private async Task<List<Album>> _GetAlbumsAsync(string requestUri, int pageSize, CancellationToken cancellationToken)
     {
         if (pageSize < minPageSizeAlbums || pageSize > maxPageSizeAlbums)
             throw new ArgumentOutOfRangeException($"{nameof(pageSize)} must be between {minPageSizeAlbums} and {maxPageSizeAlbums}!");
@@ -216,7 +208,7 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
         while (pageToken is not null)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var _requestUri = GetUrl(requestUri, pageSize, excludeNonAppCreatedData, pageToken);
+            var _requestUri = GetUrl(requestUri, pageSize, pageToken);
             var tpl = await Get<albumsGetResponse, Error>(_requestUri, cancellationToken: cancellationToken);
             if (tpl.error is not null) throw new GooglePhotosException(tpl.error);
             else if (tpl.result is not null)//to hide nullability warning
@@ -235,11 +227,10 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
         return l;
     }
 
-    private string GetUrl(string uri, int? pageSize = defaultPageSizeAlbums, bool excludeNonAppCreatedData = false, string? pageToken = null)
+    private string GetUrl(string uri, int? pageSize = defaultPageSizeAlbums, string? pageToken = null)
     {
-        var queryParams = new Dictionary<string, string?>(3);
+        var queryParams = new Dictionary<string, string?>(2);
         if (pageSize.HasValue && pageSize != defaultPageSizeAlbums) queryParams.Add(nameof(pageSize), pageSize.Value.ToString());
-        if (excludeNonAppCreatedData) queryParams.Add(nameof(excludeNonAppCreatedData), excludeNonAppCreatedData.ToString());
         if (!string.IsNullOrWhiteSpace(pageToken)) queryParams.Add(nameof(pageToken), pageToken!);//todo: nullability look further into this
         var url = QueryHelpers.AddQueryString(uri, queryParams);
         _logger.LogDebug("{ClassName} {MethodName}, {Url}", nameof(GooglePhotosServiceBase), nameof(GetUrl), url);
@@ -298,7 +289,7 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
     #region https://photoslibrary.googleapis.com/v1/mediaItems
     //todo: find a neater way to merge _GetMediaItemsAsync & _GetMediaItemsViaPOSTAsync - practically the same - pass an Action?
     //todo: add IPagable interface and merge with similar
-    private async IAsyncEnumerable<MediaItem> _GetMediaItemsAsync(int pageSize, int maxPageCount, bool excludeNonAppCreatedData, string requestUri, [EnumeratorCancellation] CancellationToken cancellationToken)
+    private async IAsyncEnumerable<MediaItem> _GetMediaItemsAsync(int pageSize, int maxPageCount, string requestUri, [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         if (pageSize < minPageSizeMediaItems || pageSize > maxPageSizeMediaItems)
             throw new ArgumentOutOfRangeException($"{nameof(pageSize)} must be between {minPageSizeMediaItems} and {maxPageSizeMediaItems}!");
@@ -310,7 +301,7 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
         while (pageToken is not null && pageNumber <= maxPageCount)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var _requestUri = GetUrl(requestUri, pageSize, excludeNonAppCreatedData, pageToken);
+            var _requestUri = GetUrl(requestUri, pageSize, pageToken);
             var tpl = await Get<mediaItemsResponse, Error>(_requestUri, cancellationToken: cancellationToken);
             if (tpl.error is not null) throw new GooglePhotosException(tpl.error);
             else if (tpl.result is not null)
@@ -341,12 +332,10 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
     }
 
     //todo: add IPagable interface and merge with similar
-    private async IAsyncEnumerable<MediaItem> _GetMediaItemsViaPOSTAsync(string? albumId, int pageSize, int maxPageCount, Filter? filters, bool excludeNonAppCreatedData, string requestUri, [EnumeratorCancellation] CancellationToken cancellationToken)
+    private async IAsyncEnumerable<MediaItem> _GetMediaItemsViaPOSTAsync(string? albumId, int pageSize, int maxPageCount, Filter? filters, string requestUri, [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         if (pageSize < minPageSizeMediaItems || pageSize > maxPageSizeMediaItems)
             throw new ArgumentOutOfRangeException($"{nameof(pageSize)} must be between {minPageSizeMediaItems} and {maxPageSizeMediaItems}!");
-
-        if (filters is not null && excludeNonAppCreatedData) filters.excludeNonAppCreatedData = excludeNonAppCreatedData;
 
         //Note: mediaitem results are not garuanteed to be unique so we check returned ids in a volatile hashset
         var hs = new HashSet<string>();
@@ -382,11 +371,11 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
         }
     }
 
-    public IAsyncEnumerable<MediaItem> GetMediaItemsAsync(int pageSize = defaultPageSizeMediaItems, int maxPageCount = int.MaxValue, bool excludeNonAppCreatedData = false, CancellationToken cancellationToken = default)
-        => _GetMediaItemsAsync(pageSize, maxPageCount, excludeNonAppCreatedData, RequestUris.GET_mediaItems, cancellationToken);
+    public IAsyncEnumerable<MediaItem> GetMediaItemsAsync(int pageSize = defaultPageSizeMediaItems, int maxPageCount = int.MaxValue, CancellationToken cancellationToken = default)
+        => _GetMediaItemsAsync(pageSize, maxPageCount, RequestUris.GET_mediaItems, cancellationToken);
 
-    public IAsyncEnumerable<MediaItem> GetMediaItemsByAlbumAsync(string albumId, int pageSize = defaultPageSizeMediaItems, int maxPageCount = int.MaxValue, bool excludeNonAppCreatedData = false, CancellationToken cancellationToken = default)
-        => _GetMediaItemsViaPOSTAsync(albumId, pageSize, maxPageCount, null, excludeNonAppCreatedData, RequestUris.POST_mediaItems_search, cancellationToken);
+    public IAsyncEnumerable<MediaItem> GetMediaItemsByAlbumAsync(string albumId, int pageSize = defaultPageSizeMediaItems, int maxPageCount = int.MaxValue, CancellationToken cancellationToken = default)
+        => _GetMediaItemsViaPOSTAsync(albumId, pageSize, maxPageCount, null, RequestUris.POST_mediaItems_search, cancellationToken);
 
     //https://photoslibrary.googleapis.com/v1/mediaItems/media-item-id
     public async Task<MediaItem?> GetMediaItemByIdAsync(string mediaItemId, CancellationToken cancellationToken = default)
@@ -484,7 +473,7 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
         if (featureFilter is not null && featureFilter.includedFeatures.IsNullOrEmpty())
             _logger.LogDebug($"{nameof(featureFilter)} element empty so removed from outgoing request");
 
-        return _GetMediaItemsViaPOSTAsync(null, defaultPageSizeMediaItems, maxPageCount, filter, false, RequestUris.POST_mediaItems_search, cancellationToken);
+        return _GetMediaItemsViaPOSTAsync(null, defaultPageSizeMediaItems, maxPageCount, filter, RequestUris.POST_mediaItems_search, cancellationToken);
     }
 
     //would need renaming if made public
