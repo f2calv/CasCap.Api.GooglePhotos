@@ -1,4 +1,6 @@
-﻿//namespace CasCap.Tests;
+﻿// TODO: Re-enable these tests to prove that Google strips latitude/longitude EXIF tags while retaining, changing, or adding other EXIF metadata.
+
+//namespace CasCap.Tests;
 
 //public class ExifTests : TestBase
 //{
