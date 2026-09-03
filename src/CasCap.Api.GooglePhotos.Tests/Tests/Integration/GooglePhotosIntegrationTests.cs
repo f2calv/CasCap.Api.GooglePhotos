@@ -19,14 +19,12 @@ public sealed class GooglePhotosIntegrationTests(ITestOutputHelper output) : Tes
         {
             var accessToken = Environment.GetEnvironmentVariable("GOOGLE_PHOTOS_ACCESS_TOKEN");
             ArgumentException.ThrowIfNullOrWhiteSpace(accessToken);
-            _googlePhotosPickerSvc.SetAuth("Bearer", accessToken);
+            //Both clients share one credential provider, so a single call covers them.
             _googlePhotosSvc.SetAuth("Bearer", accessToken);
             return true;
         }
 
-        var libraryLoginResult = await _googlePhotosSvc.LoginAsync(cancellationToken);
-        var pickerLoginResult = await _googlePhotosPickerSvc.LoginAsync(cancellationToken);
-        return libraryLoginResult && pickerLoginResult;
+        return await _googlePhotosSvc.LoginAsync(cancellationToken);
     }
 
     private static bool IsCI() => Environment.GetEnvironmentVariable("TF_BUILD") is not null

@@ -5,8 +5,12 @@
 /// </summary>
 //https://developers.google.com/photos/library/guides/get-started
 //https://developers.google.com/photos/library/guides/authentication-authorization
-public sealed class GooglePhotosService(ILogger<GooglePhotosService> logger, IOptions<GooglePhotosOptions> options, HttpClient client)
-    : GooglePhotosServiceBase(logger, options, client)
+public sealed class GooglePhotosService(
+    ILogger<GooglePhotosService> logger,
+    IOptions<GooglePhotosOptions> options,
+    GooglePhotosCredentialProvider credentialProvider,
+    HttpClient client)
+    : GooglePhotosServiceBase(logger, options, credentialProvider, client)
 {
     /// <summary>Retrieves an album by title or creates it when no matching album exists.</summary>
     /// <param name="title">The album title to find or create.</param>

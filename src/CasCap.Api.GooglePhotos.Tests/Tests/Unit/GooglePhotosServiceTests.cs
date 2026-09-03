@@ -433,18 +433,16 @@ public sealed class GooglePhotosServiceTests
     public async Task LoginRejectsUndefinedScope()
     {
         using var client = CreateClient((_, _) => Task.FromResult(CreateJsonResponse("{}")));
-        var service = CreateService(client);
-        var options = new GooglePhotosOptions
+        var service = CreateService(client, new GooglePhotosOptions
         {
             User = "local-user",
             ClientId = "client-id",
             ClientSecret = "client-secret",
             Scopes = [(GooglePhotosScope)int.MaxValue]
-        };
+        });
 
-        var exception = await Assert.ThrowsAsync<GooglePhotosException>(() => service.LoginAsync(
-            options,
-            TestContext.Current.CancellationToken));
+        var exception = await Assert.ThrowsAsync<GooglePhotosException>(
+            () => service.LoginAsync(TestContext.Current.CancellationToken));
 
         Assert.Contains("Unsupported Google Photos OAuth scope", exception.Message);
     }
@@ -683,11 +681,15 @@ public sealed class GooglePhotosServiceTests
             Content = new StringContent(json, Encoding.UTF8, "application/json")
         };
 
-    private static GooglePhotosService CreateService(HttpClient client)
-        => new(
+    private static GooglePhotosService CreateService(HttpClient client, GooglePhotosOptions? options = null)
+    {
+        var configuredOptions = Options.Create(options ?? new GooglePhotosOptions());
+        return new GooglePhotosService(
             NullLogger<GooglePhotosService>.Instance,
-            Options.Create(new GooglePhotosOptions()),
+            configuredOptions,
+            new GooglePhotosCredentialProvider(NullLogger<GooglePhotosCredentialProvider>.Instance, configuredOptions),
             client);
+    }
 
     private sealed class CancellationOnDisposeContent(
         string content,

@@ -18,12 +18,17 @@ internal static partial class GooglePhotosAuthorization
         { GooglePhotosScope.PickerMediaItemsReadOnly, "https://www.googleapis.com/auth/photospicker.mediaitems.readonly" }
     }.ToFrozenDictionary();
 
-    /// <summary>Authorizes the configured user and returns an HTTP authorization header.</summary>
-    internal static async Task<AuthenticationHeaderValue?> AuthorizeAsync(
+    /// <summary>Authorizes the configured user and returns the resulting Google credential.</summary>
+    internal static async Task<UserCredential?> AuthorizeAsync(
         ILogger logger,
         GooglePhotosOptions options,
         CancellationToken cancellationToken)
     {
+        if (string.IsNullOrWhiteSpace(options.User)) throw new GooglePhotosException($"{nameof(GooglePhotosOptions)}.{nameof(options.User)} cannot be null!");
+        if (string.IsNullOrWhiteSpace(options.ClientId)) throw new GooglePhotosException($"{nameof(GooglePhotosOptions)}.{nameof(options.ClientId)} cannot be null!");
+        if (string.IsNullOrWhiteSpace(options.ClientSecret)) throw new GooglePhotosException($"{nameof(GooglePhotosOptions)}.{nameof(options.ClientSecret)} cannot be null!");
+        if (options.Scopes.IsNullOrEmpty()) throw new GooglePhotosException($"{nameof(GooglePhotosOptions)}.{nameof(options.Scopes)} cannot be null/empty!");
+
         var secrets = new ClientSecrets
         {
             ClientId = options.ClientId,
@@ -62,9 +67,7 @@ internal static partial class GooglePhotosAuthorization
                 throw new GooglePhotosException("The OAuth grant does not include all configured Google Photos scopes. Authenticate again and approve every requested scope.");
         }
 
-        ArgumentException.ThrowIfNullOrWhiteSpace(credential.Token.TokenType);
-        ArgumentException.ThrowIfNullOrWhiteSpace(credential.Token.AccessToken);
-        return new AuthenticationHeaderValue(credential.Token.TokenType, credential.Token.AccessToken);
+        return credential;
     }
 
     private static string[] GetScopes(IEnumerable<GooglePhotosScope> scopes)

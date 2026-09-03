@@ -29,6 +29,7 @@ Version 4 is a breaking release:
 * Removed Google sharing APIs and scopes are no longer exposed. `ShareInfo`, `SharedAlbumOptions` and `ContributorInfo`, along with `Album.ShareInfo` and `MediaItem.ContributorInfo`, are gone because no remaining scope can populate them.
 * Library API operations now apply only to content created by the configured OAuth client.
 * OAuth cache entries are isolated by local user, OAuth client ID, and requested scopes.
+* Authorization moved to the shared `GooglePhotosCredentialProvider` and is applied per request. The `LoginAsync` overloads that took OAuth settings or a `GooglePhotosOptions` instance are removed; configure options through `AddGooglePhotos` and call `LoginAsync(cancellationToken)`.
 
 Applications that need existing user media must use `GooglePhotosPickerService`. Recompile consumers and update renamed DTO members before upgrading.
 
@@ -81,6 +82,8 @@ dotnet user-secrets set "CasCap:GooglePhotosOptions:ClientSecret" "your-client-s
 `User` is a local token-cache key. It identifies the cached grant on this machine and does not need to be the Google account's email address.
 
 The first call to `LoginAsync` opens the system browser for consent. Cached grants are separated by user and requested scope set. If a user declines a required scope, revoke or remove that cached grant and authenticate again. For an external consent screen in testing, Google can expire refresh tokens after seven days, so repeated authentication during development is expected.
+
+`AddGooglePhotos` registers a singleton `GooglePhotosCredentialProvider`. Authorizing through either client stores the grant there, so one `LoginAsync` call covers the Library API client, the Picker API client, and every later resolution of them. A delegating handler reads the provider on each request, so an expiring access token is refreshed automatically rather than being captured once at login.
 
 ## OAuth Scopes
 

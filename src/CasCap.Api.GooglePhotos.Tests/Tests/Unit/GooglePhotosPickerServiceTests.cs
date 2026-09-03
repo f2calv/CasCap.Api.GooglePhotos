@@ -152,7 +152,9 @@ public sealed class GooglePhotosPickerServiceTests
     private static GooglePhotosPickerService CreateService(HttpClient client)
         => new(
             NullLogger<GooglePhotosPickerService>.Instance,
-            Options.Create(new GooglePhotosOptions()),
+            new GooglePhotosCredentialProvider(
+                NullLogger<GooglePhotosCredentialProvider>.Instance,
+                Options.Create(new GooglePhotosOptions())),
             client);
 
     private sealed class StubHttpMessageHandler(Func<HttpRequestMessage, HttpResponseMessage> responseFactory) : HttpMessageHandler

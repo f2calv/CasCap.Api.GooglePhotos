@@ -43,6 +43,10 @@ This project exercises the Google Photos client against a dedicated test account
 | `RegistrationRejectsInvalidRequestTimeout`      | 1            | 2               | Registration  |
 | `RegistrationRejectsInvalidUploadTimeout`       | 1            | 2               | Registration  |
 | `RegistrationResolvesTypedClients`              | 1            | 1               | Registration  |
+| `AuthorizationIsSharedByEveryResolvedClient`    | 1            | 1               | Authorization |
+| `HandlerAppliesSuppliedAuthorization`           | 1            | 1               | Authorization |
+| `HandlerKeepsCallerSuppliedAuthorization`       | 1            | 1               | Authorization |
+| `HandlerSendsNoAuthorizationBeforeLogin`        | 1            | 1               | Authorization |
 | `AddMediaItemsToAlbumDeduplicatesAndBatches`    | 1            | 1               | Library       |
 | `AddMediaItemsBatchesCreationRequests`          | 1            | 1               | Library       |
 | `AddMediaItemsToAlbumHonorsCancellation`        | 1            | 1               | Library       |
@@ -69,11 +73,11 @@ This project exercises the Google Photos client against a dedicated test account
 | `UploadMediaWrapsMalformedError`                | 1            | 1               | Library       |
 | `UploadMediaWrapsMalformedSessionError`         | 1            | 1               | Library       |
 | `UploadRequestDetectionMatchesProtocolHeaders`  | 1            | 4               | Library       |
-| Total                                           | 59           | 84              |               |
+| Total                                           | 63           | 88              |               |
 
 ## Trait Categories
 
-Credentialed tests carry `Category=Integration`; unit tests carry `Category=Library`, `Category=Picker`, `Category=RateLimiting`, `Category=Registration`, or `Category=Serialization`. API-specific integration coverage carries `Type=GooglePhotosService` or `Type=GooglePhotosPickerService`.
+Credentialed tests carry `Category=Integration`; unit tests carry `Category=Authorization`, `Category=Library`, `Category=Picker`, `Category=RateLimiting`, `Category=Registration`, or `Category=Serialization`. API-specific integration coverage carries `Type=GooglePhotosService` or `Type=GooglePhotosPickerService`.
 
 ## Skipped Tests
 
@@ -106,6 +110,7 @@ CasCap.Api.GooglePhotos.Tests/
 |   |   |-- GooglePhotosIntegrationTests.cs
 |   |   `-- TestBase.cs
 |   `-- Unit/
+|       |-- GooglePhotosAuthorizationTests.cs
 |       |-- GooglePhotosPickerServiceTests.cs
 |       |-- GooglePhotosServiceTests.cs
 |       |-- GooglePhotosWriteRateLimitingHandlerTests.cs

@@ -27,20 +27,22 @@ public abstract partial class GooglePhotosServiceBase : HttpClientBase
 
     private const int defaultBatchSizeMediaItems = 50;
 
-    private GooglePhotosOptions _options;
+    private readonly GooglePhotosCredentialProvider _credentialProvider;
 
     /// <summary>Initializes a new instance of the <see cref="GooglePhotosServiceBase" /> class.</summary>
     /// <param name="logger">The logger used for request diagnostics.</param>
     /// <param name="options">The configured Google Photos options.</param>
+    /// <param name="credentialProvider">The authorization shared by every Google Photos client.</param>
     /// <param name="client">The HTTP client used to send API requests.</param>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="client" /> is <see langword="null" />.</exception>
     protected GooglePhotosServiceBase(
         ILogger<GooglePhotosServiceBase> logger,
         IOptions<GooglePhotosOptions> options,
+        GooglePhotosCredentialProvider credentialProvider,
         HttpClient client)
     {
         _logger = logger;
-        _options = options.Value;
+        _credentialProvider = credentialProvider ?? throw new ArgumentNullException(nameof(credentialProvider));
         Client = client ?? throw new ArgumentNullException(nameof(client), $"{nameof(HttpClient)} cannot be null!");
     }
 
@@ -116,64 +118,16 @@ public abstract partial class GooglePhotosServiceBase : HttpClientBase
         { "video/x-ms-wmv" },
     };
 
-    /// <summary>Authenticates with explicit OAuth settings and applies the resulting authorization header.</summary>
-    /// <param name="user">The Google account identifier used to partition the local token cache.</param>
-    /// <param name="clientId">The OAuth client identifier.</param>
-    /// <param name="clientSecret">The OAuth client secret.</param>
-    /// <param name="scopes">The Google Photos OAuth scopes to request.</param>
-    /// <param name="fileDataStoreFullPathOverride">An optional directory for the OAuth token cache.</param>
+    /// <summary>Authenticates with the configured options so that subsequent requests are authorized.</summary>
     /// <param name="cancellationToken">A token that can cancel authentication.</param>
     /// <returns><see langword="true" /> when authorization succeeds; otherwise, <see langword="false" />.</returns>
     /// <exception cref="GooglePhotosException">Thrown when required settings are missing or a scope is unsupported.</exception>
-    public async Task<bool> LoginAsync(
-        string user,
-        string clientId,
-        string clientSecret,
-        GooglePhotosScope[] scopes,
-        string? fileDataStoreFullPathOverride = null,
-        CancellationToken cancellationToken = default)
-    {
-        _options = new GooglePhotosOptions
-        {
-            User = user,
-            ClientId = clientId,
-            ClientSecret = clientSecret,
-            Scopes = scopes,
-            FileDataStoreFullPathOverride = fileDataStoreFullPathOverride
-        };
-        return await LoginAsync(cancellationToken).ConfigureAwait(false);
-    }
-
-    /// <summary>Authenticates with the supplied options and applies the resulting authorization header.</summary>
-    /// <param name="options">The Google Photos authentication options.</param>
-    /// <param name="cancellationToken">A token that can cancel authentication.</param>
-    /// <returns><see langword="true" /> when authorization succeeds; otherwise, <see langword="false" />.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="options" /> is <see langword="null" />.</exception>
-    /// <exception cref="GooglePhotosException">Thrown when required settings are missing or a scope is unsupported.</exception>
-    public async Task<bool> LoginAsync(GooglePhotosOptions options, CancellationToken cancellationToken = default)
-    {
-        _options = options ?? throw new ArgumentNullException(nameof(options), $"{nameof(GooglePhotosOptions)} cannot be null!");
-        return await LoginAsync(cancellationToken).ConfigureAwait(false);
-    }
-
-    /// <summary>Authenticates with the current options and applies the resulting authorization header.</summary>
-    /// <param name="cancellationToken">A token that can cancel authentication.</param>
-    /// <returns><see langword="true" /> when authorization succeeds; otherwise, <see langword="false" />.</returns>
-    /// <exception cref="GooglePhotosException">Thrown when required settings are missing or a scope is unsupported.</exception>
-    public async Task<bool> LoginAsync(CancellationToken cancellationToken = default)
-    {
-        if (string.IsNullOrWhiteSpace(_options.User)) throw new GooglePhotosException($"{nameof(GooglePhotosOptions)}.{nameof(_options.User)} cannot be null!");
-        if (string.IsNullOrWhiteSpace(_options.ClientId)) throw new GooglePhotosException($"{nameof(GooglePhotosOptions)}.{nameof(_options.ClientId)} cannot be null!");
-        if (string.IsNullOrWhiteSpace(_options.ClientSecret)) throw new GooglePhotosException($"{nameof(GooglePhotosOptions)}.{nameof(_options.ClientSecret)} cannot be null!");
-        if (_options.Scopes.IsNullOrEmpty()) throw new GooglePhotosException($"{nameof(GooglePhotosOptions)}.{nameof(_options.Scopes)} cannot be null/empty!");
-
-        var authorization = await GooglePhotosAuthorization.AuthorizeAsync(_logger, _options, cancellationToken).ConfigureAwait(false);
-        if (authorization is null)
-            return false;
-
-        Client.DefaultRequestHeaders.Authorization = authorization;
-        return true;
-    }
+    /// <remarks>
+    /// The resulting grant is held by <see cref="GooglePhotosCredentialProvider" /> and applied per request, so it is
+    /// shared by every resolved client and its access token is refreshed automatically.
+    /// </remarks>
+    public Task<bool> LoginAsync(CancellationToken cancellationToken = default)
+        => _credentialProvider.LoginAsync(cancellationToken);
 
     /// <summary>
     /// Workaround to allow setting the auth header when running integration tests from CI.
@@ -181,7 +135,7 @@ public abstract partial class GooglePhotosServiceBase : HttpClientBase
     /// <param name="tokenType">The authorization scheme, such as <c>Bearer</c>.</param>
     /// <param name="accessToken">The access token value.</param>
     public void SetAuth(string tokenType, string accessToken)
-        => Client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(tokenType, accessToken);
+        => _credentialProvider.SetAuthorization(tokenType, accessToken);
 
     #region https://photoslibrary.googleapis.com/v1/albums
 

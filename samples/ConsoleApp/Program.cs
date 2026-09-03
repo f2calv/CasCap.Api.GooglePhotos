@@ -41,9 +41,15 @@ using var handler = new HttpClientHandler
 {
     AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
 };
-using var client = new HttpClient(handler) { BaseAddress = new Uri(options.BaseAddress) };
 
-var googlePhotosSvc = new GooglePhotosService(logger, Options.Create(options), client);
+//Without dependency injection the credential provider and its handler have to be wired up by hand.
+var credentialProvider = new GooglePhotosCredentialProvider(
+    loggerFactory.CreateLogger<GooglePhotosCredentialProvider>(),
+    Options.Create(options));
+using var authorizationHandler = credentialProvider.CreateAuthorizationHandler(handler);
+using var client = new HttpClient(authorizationHandler) { BaseAddress = new Uri(options.BaseAddress) };
+
+var googlePhotosSvc = new GooglePhotosService(logger, Options.Create(options), credentialProvider, client);
 var cancellationToken = cancellationTokenSource.Token;
 
 if (!await googlePhotosSvc.LoginAsync(cancellationToken))

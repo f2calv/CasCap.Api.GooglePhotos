@@ -20,8 +20,11 @@ dotnet package add CasCap.Api.GooglePhotos
 | --- | --- |
 | `GooglePhotosService` | Library API client: albums, enrichments, media item search, uploads and downloads for application-created content |
 | `GooglePhotosPickerService` | Picker API client: picking sessions, selected media listing and authenticated media streaming |
+| `GooglePhotosCredentialProvider` | Singleton holding the OAuth grant shared by both clients; applied and refreshed per request |
 | `GooglePhotosOptions` | Endpoints, OAuth credentials, scopes, timeouts and write rate-limit configuration |
 | `GooglePhotosException` | Wraps errors returned by either API |
+
+Call `LoginAsync` once on either client. The grant is stored in `GooglePhotosCredentialProvider`, so it applies to every resolved client and its access token is refreshed automatically.
 
 ## Extensions
 
@@ -108,15 +111,17 @@ Complete configuration:
 graph TD
     A[AddGooglePhotos] --> B[GooglePhotosService]
     A --> C[GooglePhotosPickerService]
+    A --> P[GooglePhotosCredentialProvider]
     B --> D[GooglePhotosServiceBase]
     D --> E[HttpClientBase]
     C --> E
     B --> F[GooglePhotosWriteRateLimitingHandler]
     F --> G[Standard resilience handler]
     C --> G
-    D --> H[GooglePhotosAuthorization]
-    C --> H
-    H --> I[Google.Apis.Auth]
+    G --> H[GooglePhotosAuthorizationHandler]
+    H --> P
+    P --> I[GooglePhotosAuthorization]
+    I --> J[Google.Apis.Auth]
 ```
 
 ## Dependencies

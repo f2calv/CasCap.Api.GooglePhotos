@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Http.Resilience;
+﻿using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Http.Resilience;
 using Polly;
 using System.Net;
 using System.Net.Http.Headers;
@@ -69,47 +70,55 @@ public static class ServiceCollectionExtensions
 
     private static void AddServices(this IServiceCollection services)
     {
+        services.TryAddSingleton<GooglePhotosCredentialProvider>();
+        services.AddTransient<GooglePhotosAuthorizationHandler>();
         services.AddTransient<GooglePhotosWriteRateLimitingHandler>();
-        services.AddHttpClient<GooglePhotosService>((serviceProvider, client) =>
+
+        var libraryBuilder = services.AddHttpClient<GooglePhotosService>((serviceProvider, client) =>
         {
             var googlePhotosOptions = serviceProvider.GetRequiredService<IOptions<GooglePhotosOptions>>().Value;
             client.BaseAddress = new Uri(googlePhotosOptions.BaseAddress);
-            client.DefaultRequestHeaders.Add("User-Agent", $"{nameof(CasCap)}.{AppDomain.CurrentDomain.FriendlyName}.{Environment.MachineName}");
-            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            client.DefaultRequestHeaders.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));
-            client.DefaultRequestHeaders.AcceptEncoding.Add(new StringWithQualityHeaderValue("deflate"));
-            client.Timeout = Timeout.InfiniteTimeSpan;
+            ConfigureCommonHeaders(client);
         }).ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
         {
             AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
         })
         //https://github.com/aspnet/AspNetCore/issues/6804
         .SetHandlerLifetime(Timeout.InfiniteTimeSpan)
-        .AddHttpMessageHandler<GooglePhotosWriteRateLimitingHandler>()
-        .AddStandardResilienceHandler()
-        .Configure((options, serviceProvider) => ConfigureResilience(
-            options,
-            serviceProvider.GetRequiredService<IOptions<GooglePhotosOptions>>().Value,
-            uploadAware: true));
+        .AddHttpMessageHandler<GooglePhotosWriteRateLimitingHandler>();
+        libraryBuilder.AddStandardResilienceHandler()
+            .Configure((options, serviceProvider) => ConfigureResilience(
+                options,
+                serviceProvider.GetRequiredService<IOptions<GooglePhotosOptions>>().Value,
+                uploadAware: true));
+        //Registered last so that it runs innermost and every retried attempt picks up a freshly refreshed token.
+        libraryBuilder.AddHttpMessageHandler<GooglePhotosAuthorizationHandler>();
 
-        services.AddHttpClient<GooglePhotosPickerService>((serviceProvider, client) =>
+        var pickerBuilder = services.AddHttpClient<GooglePhotosPickerService>((serviceProvider, client) =>
         {
             var googlePhotosOptions = serviceProvider.GetRequiredService<IOptions<GooglePhotosOptions>>().Value;
             client.BaseAddress = new Uri(googlePhotosOptions.PickerBaseAddress);
-            client.DefaultRequestHeaders.Add("User-Agent", $"{nameof(CasCap)}.{AppDomain.CurrentDomain.FriendlyName}.{Environment.MachineName}");
-            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            client.DefaultRequestHeaders.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));
-            client.DefaultRequestHeaders.AcceptEncoding.Add(new StringWithQualityHeaderValue("deflate"));
-            client.Timeout = Timeout.InfiniteTimeSpan;
+            ConfigureCommonHeaders(client);
         }).ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
         {
             AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
-        })
-        .AddStandardResilienceHandler()
-        .Configure((options, serviceProvider) => ConfigureResilience(
-            options,
-            serviceProvider.GetRequiredService<IOptions<GooglePhotosOptions>>().Value,
-            uploadAware: false));
+        });
+        pickerBuilder.AddStandardResilienceHandler()
+            .Configure((options, serviceProvider) => ConfigureResilience(
+                options,
+                serviceProvider.GetRequiredService<IOptions<GooglePhotosOptions>>().Value,
+                uploadAware: false));
+        pickerBuilder.AddHttpMessageHandler<GooglePhotosAuthorizationHandler>();
+    }
+
+    private static void ConfigureCommonHeaders(HttpClient client)
+    {
+        client.DefaultRequestHeaders.Add("User-Agent", $"{nameof(CasCap)}.{AppDomain.CurrentDomain.FriendlyName}.{Environment.MachineName}");
+        client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+        client.DefaultRequestHeaders.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));
+        client.DefaultRequestHeaders.AcceptEncoding.Add(new StringWithQualityHeaderValue("deflate"));
+        //Request timeouts are owned by the resilience pipeline, which distinguishes uploads from ordinary requests.
+        client.Timeout = Timeout.InfiniteTimeSpan;
     }
 
     private static void ConfigureResilience(
