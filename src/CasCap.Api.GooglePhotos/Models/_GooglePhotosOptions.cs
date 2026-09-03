@@ -32,7 +32,13 @@ public record GooglePhotosOptions
     /// you can use the GooglePhotosOptions.FileDataStoreFullPathDefault property to locate the path to the JSON file(s).
     /// </summary>
     [Required]
-    public required GooglePhotosScope[] Scopes { get; set; } = [GooglePhotosScope.Access, GooglePhotosScope.Sharing];
+    public required GooglePhotosScope[] Scopes { get; set; } =
+    [
+        GooglePhotosScope.AppendOnly,
+        GooglePhotosScope.ReadOnlyAppCreatedData,
+        GooglePhotosScope.EditAppCreatedData,
+        GooglePhotosScope.PickerMediaItemsReadOnly
+    ];
 
     /// <summary>
     /// Google Client Id string, numerical/alphanumeric.

@@ -3,42 +3,17 @@
 [JsonConverter(typeof(JsonStringEnumConverter))]
 public enum GooglePhotosScope
 {
-    /// <summary>
-    /// Read access only.
-    ///
-    /// List items from the library and all albums, access all media items and list albums owned by the user, including those which have been shared with them.
-    ///
-    /// For albums shared by the user, share properties are only returned if the.sharing scope has also been granted.
-    ///
-    /// The ShareInfo property for albums and the contributorInfo for mediaItems is only available if the.sharing scope has also been granted.
-    /// </summary>
-    ReadOnly,
-
-    /// <summary>
-    /// Write access only.
-    ///
-    /// Access to upload bytes, create media items, create albums, and add enrichments.Only allows new media to be created in the user's library and in albums created by the app.
-    /// </summary>
+    /// <summary>Creates media items, albums, and enrichments owned by the application.</summary>
     AppendOnly,
 
-    /// <summary>
-    /// Read access to media items and albums created by the developer. For more information, see Access media items and List library contents, albums, and media items.
-    ///
-    /// Intended to be requested together with the AppendOnly scope.
-    /// </summary>
-    AppCreatedData,
+    /// <summary>Reads media items and albums created by the application.</summary>
+    ReadOnlyAppCreatedData,
 
-    /// <summary>
-    /// Access to both the AppendOnly and ReadOnly scopes. Doesn't include Sharing scope.
-    /// </summary>
-    Access,
+    /// <summary>Edits media items and albums created by the application.</summary>
+    EditAppCreatedData,
 
-    /// <summary>
-    /// Access to sharing calls.
-    ///
-    /// Access to create an album, share it, upload media items to it, and join a shared album.
-    /// </summary>
-    Sharing
+    /// <summary>Creates Picker sessions and reads media items explicitly selected by the user.</summary>
+    PickerMediaItemsReadOnly
 }
 
 [JsonConverter(typeof(JsonStringEnumConverter))]

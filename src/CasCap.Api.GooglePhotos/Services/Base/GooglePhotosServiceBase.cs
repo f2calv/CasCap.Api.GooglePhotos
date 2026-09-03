@@ -100,11 +100,10 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
 
     private static readonly Dictionary<GooglePhotosScope, string> dScopes = new()
     {
-        { GooglePhotosScope.ReadOnly, "https://www.googleapis.com/auth/photoslibrary.readonly" },
         { GooglePhotosScope.AppendOnly, "https://www.googleapis.com/auth/photoslibrary.appendonly" },
-        { GooglePhotosScope.AppCreatedData, "https://www.googleapis.com/auth/photoslibrary.readonly.appcreateddata" },
-        { GooglePhotosScope.Access, "https://www.googleapis.com/auth/photoslibrary" },
-        { GooglePhotosScope.Sharing, "https://www.googleapis.com/auth/photoslibrary.sharing" }
+        { GooglePhotosScope.ReadOnlyAppCreatedData, "https://www.googleapis.com/auth/photoslibrary.readonly.appcreateddata" },
+        { GooglePhotosScope.EditAppCreatedData, "https://www.googleapis.com/auth/photoslibrary.edit.appcreateddata" },
+        { GooglePhotosScope.PickerMediaItemsReadOnly, "https://www.googleapis.com/auth/photospicker.mediaitems.readonly" }
     };
 
     public async Task<bool> LoginAsync(string User, string ClientId, string ClientSecret, GooglePhotosScope[] Scopes, string? FileDataStoreFullPathOverride = null, CancellationToken cancellationToken = default)

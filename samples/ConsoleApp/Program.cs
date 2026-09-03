@@ -31,7 +31,13 @@ var options = new GooglePhotosOptions
     ClientId = _clientId!,
     ClientSecret = _clientSecret!,
     //FileDataStoreFullPathOverride = _testFolder,
-    Scopes = [GooglePhotosScope.Access, GooglePhotosScope.Sharing],//Access+Sharing == full access
+    Scopes =
+    [
+        GooglePhotosScope.AppendOnly,
+        GooglePhotosScope.ReadOnlyAppCreatedData,
+        GooglePhotosScope.EditAppCreatedData,
+        GooglePhotosScope.PickerMediaItemsReadOnly
+    ],
 };
 
 //3) (Optional) display local OAuth 2.0 JSON file(s);
