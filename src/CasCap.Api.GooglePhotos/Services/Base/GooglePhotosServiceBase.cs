@@ -1,6 +1,4 @@
 ﻿using CasCap.Common.Services;
-using Google.Apis.Auth.OAuth2;
-using Google.Apis.Util.Store;
 using Microsoft.AspNetCore.WebUtilities;
 using MimeTypes;
 using System.Buffers;
@@ -98,14 +96,6 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
         { "video/x-ms-wmv" },
     };
 
-    private static readonly Dictionary<GooglePhotosScope, string> dScopes = new()
-    {
-        { GooglePhotosScope.AppendOnly, "https://www.googleapis.com/auth/photoslibrary.appendonly" },
-        { GooglePhotosScope.ReadOnlyAppCreatedData, "https://www.googleapis.com/auth/photoslibrary.readonly.appcreateddata" },
-        { GooglePhotosScope.EditAppCreatedData, "https://www.googleapis.com/auth/photoslibrary.edit.appcreateddata" },
-        { GooglePhotosScope.PickerMediaItemsReadOnly, "https://www.googleapis.com/auth/photospicker.mediaitems.readonly" }
-    };
-
     public async Task<bool> LoginAsync(string User, string ClientId, string ClientSecret, GooglePhotosScope[] Scopes, string? FileDataStoreFullPathOverride = null, CancellationToken cancellationToken = default)
     {
         _options = new GooglePhotosOptions
@@ -132,46 +122,12 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
         if (string.IsNullOrWhiteSpace(_options.ClientSecret)) throw new GooglePhotosException($"{nameof(GooglePhotosOptions)}.{nameof(_options.ClientSecret)} cannot be null!");
         if (_options.Scopes.IsNullOrEmpty()) throw new GooglePhotosException($"{nameof(GooglePhotosOptions)}.{nameof(_options.Scopes)} cannot be null/empty!");
 
-        var secrets = new ClientSecrets { ClientId = _options.ClientId, ClientSecret = _options.ClientSecret };
+        var authorization = await GooglePhotosAuthorization.AuthorizeAsync(_logger, _options, cancellationToken).ConfigureAwait(false);
+        if (authorization is null)
+            return false;
 
-        FileDataStore? dataStore = null;
-        if (!string.IsNullOrWhiteSpace(_options.FileDataStoreFullPathOverride))
-            dataStore = new FileDataStore(_options.FileDataStoreFullPathOverride, true);
-
-        _logger.LogDebug($"Requesting authorization...");
-        var credential = await GoogleWebAuthorizationBroker.AuthorizeAsync(
-            secrets,
-            GetScopes(),
-            _options.User,
-            cancellationToken,
-            dataStore);
-
-        _logger.LogDebug("Authorization granted or not required (if the saved access token already available)");
-
-        if (credential.Token.IsStale)
-        {
-            _logger.LogWarning("The access token has expired, refreshing it");
-            if (await credential.RefreshTokenAsync(cancellationToken))
-                _logger.LogInformation("The access token is now refreshed");
-            else
-            {
-                _logger.LogError("The access token has expired but we can't refresh it :(");
-                return false;
-            }
-        }
-        else
-            _logger.LogDebug("The access token is OK, continue");
-        SetAuth(credential.Token.TokenType, credential.Token.AccessToken);
+        Client.DefaultRequestHeaders.Authorization = authorization;
         return true;
-
-        string[] GetScopes()//todo: make extension method to convert any enum to string[] and move to CasCap.Common.Extensions
-        {
-            var l = new List<string>(_options.Scopes.Length);
-            foreach (var scope in _options.Scopes)
-                if (dScopes.TryGetValue(scope, out var s))
-                    l.Add(s);
-            return l.ToArray();
-        }
     }
 
     /// <summary>
