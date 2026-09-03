@@ -1,85 +1,74 @@
-﻿string? _user = null;//e.g. "your.email@mydomain.com";
-string? _clientId = null;//e.g. "012345678901-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.apps.googleusercontent.com";
-string? _clientSecret = null;//e.g. "abcabcabcabcabcabcabcabc";
-const string _testFolder = "c:/temp/GooglePhotos/";//local folder of test media files
-
-if (new[] { _user, _clientId, _clientSecret }.Any(string.IsNullOrWhiteSpace))
+﻿if (args.Length != 1)
 {
-    Console.WriteLine("Please populate authentication details to continue...");
-    Debugger.Break();
-    return;
-}
-if (!Directory.Exists(_testFolder))
-{
-    Console.WriteLine($"Cannot find folder '{_testFolder}'");
-    Debugger.Break();
-    return;
+    Console.Error.WriteLine("Usage: dotnet run --project samples/ConsoleApp -- <media-file>");
+    return 1;
 }
 
-//1) new-up some basic logging (if using appsettings.json you could load logging configuration from there)
-//var configuration = new ConfigurationBuilder().Build();
-var loggerFactory = LoggerFactory.Create(builder =>
+var mediaPath = Path.GetFullPath(args[0]);
+if (!File.Exists(mediaPath))
 {
-    //builder.AddConfiguration(configuration.GetSection("Logging")).AddDebug().AddConsole();
-});
+    Console.Error.WriteLine($"Cannot find media file '{mediaPath}'.");
+    return 1;
+}
+
+using var cancellationTokenSource = new CancellationTokenSource();
+Console.CancelKeyPress += (_, eventArgs) =>
+{
+    if (!cancellationTokenSource.IsCancellationRequested)
+    {
+        eventArgs.Cancel = true;
+        cancellationTokenSource.Cancel();
+    }
+};
+
+using var loggerFactory = LoggerFactory.Create(builder => builder.AddSimpleConsole());
 var logger = loggerFactory.CreateLogger<GooglePhotosService>();
 
-//2) create a configuration object
 var options = new GooglePhotosOptions
 {
-    User = _user!,
-    ClientId = _clientId!,
-    ClientSecret = _clientSecret!,
-    //FileDataStoreFullPathOverride = _testFolder,
+    User = GetRequiredEnvironmentVariable("GOOGLE_PHOTOS_USER"),
+    ClientId = GetRequiredEnvironmentVariable("GOOGLE_PHOTOS_CLIENT_ID"),
+    ClientSecret = GetRequiredEnvironmentVariable("GOOGLE_PHOTOS_CLIENT_SECRET"),
     Scopes =
     [
         GooglePhotosScope.AppendOnly,
         GooglePhotosScope.ReadOnlyAppCreatedData,
-        GooglePhotosScope.EditAppCreatedData,
-        GooglePhotosScope.PickerMediaItemsReadOnly
-    ],
+        GooglePhotosScope.EditAppCreatedData
+    ]
 };
 
-//3) (Optional) display local OAuth 2.0 JSON file(s);
-var path = options.FileDataStoreFullPathOverride is null ? GooglePhotosOptions.FileDataStoreFullPathDefault : options.FileDataStoreFullPathOverride;
-Console.WriteLine($"{nameof(options.FileDataStoreFullPathOverride)}:\t{path}");
-var files = Directory.GetFiles(path);
-if (files.Length == 0)
-    Console.WriteLine($"\t- n/a this is probably the first time we have authenticated...");
-else
+using var handler = new HttpClientHandler
 {
-    Console.WriteLine($"Files;");
-    foreach (var file in files)
-        Console.WriteLine($"\t- {Path.GetFileName(file)}");
-}
+    AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
+};
+using var client = new HttpClient(handler) { BaseAddress = new Uri(options.BaseAddress) };
 
-//4) create a single HttpClient which will be pooled and re-used by GooglePhotosService
-var handler = new HttpClientHandler { AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate };
-var client = new HttpClient(handler) { BaseAddress = new Uri(options.BaseAddress) };
+var googlePhotosSvc = new GooglePhotosService(logger, Options.Create(options), client);
+var cancellationToken = cancellationTokenSource.Token;
 
-//5) new-up the GooglePhotosService passing in the previous references (in lieu of dependency injection)
-var _googlePhotosSvc = new GooglePhotosService(logger, Options.Create(options), client);
+if (!await googlePhotosSvc.LoginAsync(cancellationToken))
+    throw new GooglePhotosException("Google Photos login failed.");
 
-//6) log-in
-if (!await _googlePhotosSvc.LoginAsync())
-    throw new GooglePhotosException($"login failed!");
-
-//get existing/create new album
-var albumTitle = $"{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}-{Guid.NewGuid()}";//make-up a random title
-var album = await _googlePhotosSvc.GetOrCreateAlbumAsync(albumTitle) ?? throw new GooglePhotosException("album creation failed!");
+var albumTitle = $"sample-{DateTime.UtcNow:yyyyMMdd-HHmmss}";
+var album = await googlePhotosSvc.GetOrCreateAlbumAsync(albumTitle, cancellationToken: cancellationToken)
+    ?? throw new GooglePhotosException("Album creation failed.");
 
 Console.WriteLine($"{nameof(album)} '{album.Title}' id is '{album.Id}'");
 
-//upload single media item and assign to album
-var mediaItem = await _googlePhotosSvc.UploadSingle($"{_testFolder}test1.jpg", album.Id) ?? throw new GooglePhotosException("media item upload failed!");
+var mediaItem = await googlePhotosSvc.UploadSingle(mediaPath, album.Id, cancellationToken: cancellationToken)
+    ?? throw new GooglePhotosException("Media item upload failed.");
 
 Console.WriteLine($"{nameof(mediaItem)} '{mediaItem.MediaItem.Filename}' id is '{mediaItem.MediaItem.Id}'");
 
-//retrieve all media items in the album
-var i = 0;
-await foreach (var item in _googlePhotosSvc.GetMediaItemsByAlbumAsync(album.Id))
+var itemCount = 0;
+await foreach (var item in googlePhotosSvc.GetMediaItemsByAlbumAsync(album.Id, cancellationToken: cancellationToken))
 {
-    i++;
-    Console.WriteLine($"{i}\t{item.Filename}\t{item.MediaMetadata.Width}x{item.MediaMetadata.Height}");
+    itemCount++;
+    Console.WriteLine($"{itemCount}\t{item.Filename}\t{item.MediaMetadata.Width}x{item.MediaMetadata.Height}");
 }
-if (i == 0) throw new GooglePhotosException("retrieve media items by album id failed!");
+
+return itemCount > 0 ? 0 : 1;
+
+static string GetRequiredEnvironmentVariable(string name)
+    => Environment.GetEnvironmentVariable(name)
+        ?? throw new InvalidOperationException($"Set the {name} environment variable before running the sample.");
