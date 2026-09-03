@@ -25,12 +25,12 @@ public class TestBgService : BackgroundService
 
         //get existing/create new album
         var albumTitle = $"{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}-{Guid.NewGuid()}";//make-up a random title
-        var album = await _googlePhotosSvc.GetOrCreateAlbumAsync(albumTitle) ?? throw new GooglePhotosException("album creation failed!");
+        var album = await _googlePhotosSvc.GetOrCreateAlbumAsync(albumTitle, cancellationToken: stoppingToken) ?? throw new GooglePhotosException("album creation failed!");
         _logger.LogInformation("{ClassName} {Name} '{Title}' id is '{Id}'", nameof(TestBgService), nameof(album), album.title, album.id);
 
         //upload single media item and assign to album
         var path = $"{_testFolder}test1.jpg";
-        var mediaItem = await _googlePhotosSvc.UploadSingle(path, album.id) ?? throw new GooglePhotosException($"media item '{path}' upload failed!");
+        var mediaItem = await _googlePhotosSvc.UploadSingle(path, album.id, cancellationToken: stoppingToken) ?? throw new GooglePhotosException($"media item '{path}' upload failed!");
         _logger.LogInformation("{ClassName} {Name} '{FileName}' id is '{Id}'",
             nameof(TestBgService), nameof(mediaItem), mediaItem.mediaItem.filename, mediaItem.mediaItem.id);
 

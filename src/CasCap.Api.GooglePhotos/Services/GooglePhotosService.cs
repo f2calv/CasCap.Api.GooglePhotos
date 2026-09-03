@@ -12,7 +12,7 @@ public class GooglePhotosService(ILogger<GooglePhotosService> logger, IOptions<G
         CancellationToken cancellationToken = default)
     {
         var album = await GetAlbumByTitleAsync(title, comparisonType, cancellationToken: cancellationToken);
-        album ??= await CreateAlbumAsync(title);
+        album ??= await CreateAlbumAsync(title, cancellationToken);
         return album;
     }
 
@@ -28,7 +28,7 @@ public class GooglePhotosService(ILogger<GooglePhotosService> logger, IOptions<G
     {
         var uploadToken = await UploadMediaAsync(path, uploadMethod, cancellationToken: cancellationToken);
         if (!string.IsNullOrWhiteSpace(uploadToken))
-            return await AddMediaItemAsync(uploadToken!, path, description, albumId);
+            return await AddMediaItemAsync(uploadToken!, path, description, albumId, cancellationToken: cancellationToken);
         return null;
     }
 
@@ -54,18 +54,18 @@ public class GooglePhotosService(ILogger<GooglePhotosService> logger, IOptions<G
                 uploadItems.Add(new UploadItem(uploadToken!, filePath));
             //todo: raise photo uploaded event here
         }
-        return await AddMediaItemsAsync(uploadItems, albumId);
+        return await AddMediaItemsAsync(uploadItems, albumId, cancellationToken: cancellationToken);
     }
 
     /// <summary>
     /// Download photo bytes. If the media item is a video then a thumbnail graphic of the video will be downloaded, use downloadVideoBytes get the raw bytes of the video.
     /// </summary>
-    public Task<byte[]?> DownloadBytes(MediaItem mediaItem, int? maxWidth = null, int? maxHeight = null, bool crop = false, bool includeExifMetadata = false, bool downloadVideoBytes = false)
-        => DownloadBytes(mediaItem.baseUrl, maxWidth, maxHeight, crop, includeExifMetadata: mediaItem.isPhoto && includeExifMetadata, downloadVideoBytes: mediaItem.isVideo && downloadVideoBytes);
+    public Task<byte[]?> DownloadBytes(MediaItem mediaItem, int? maxWidth = null, int? maxHeight = null, bool crop = false, bool includeExifMetadata = false, bool downloadVideoBytes = false, CancellationToken cancellationToken = default)
+        => DownloadBytes(mediaItem.baseUrl, maxWidth, maxHeight, crop, includeExifMetadata: mediaItem.isPhoto && includeExifMetadata, downloadVideoBytes: mediaItem.isVideo && downloadVideoBytes, cancellationToken: cancellationToken);
 
     //https://developers.google.com/photos/library/guides/access-media-items#image-base-urls
     //https://developers.google.com/photos/library/guides/access-media-items#video-base-urls
-    private async Task<byte[]?> DownloadBytes(string baseUrl, int? maxWidth = null, int? maxHeight = null, bool crop = false, bool includeExifMetadata = false, bool downloadVideoBytes = false)
+    private async Task<byte[]?> DownloadBytes(string baseUrl, int? maxWidth = null, int? maxHeight = null, bool crop = false, bool includeExifMetadata = false, bool downloadVideoBytes = false, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(baseUrl)) throw new ArgumentNullException(nameof(baseUrl), $"baseUrl is expected!");
         var qs = new List<string>();
@@ -79,7 +79,7 @@ public class GooglePhotosService(ILogger<GooglePhotosService> logger, IOptions<G
         if (downloadVideoBytes) qs.Add("dv");
         if (qs.Count > 0)
             baseUrl += $"={string.Join("-", qs)}";
-        var tpl = await Get<byte[], Error>(baseUrl);
+        var tpl = await Get<byte[], Error>(baseUrl, cancellationToken: cancellationToken);
         if (tpl.error is not null)
             throw new GooglePhotosException(tpl.error);
         else

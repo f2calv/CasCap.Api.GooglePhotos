@@ -151,7 +151,7 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
         if (credential.Token.IsStale)
         {
             _logger.LogWarning("The access token has expired, refreshing it");
-            if (await credential.RefreshTokenAsync(CancellationToken.None))
+            if (await credential.RefreshTokenAsync(cancellationToken))
                 _logger.LogInformation("The access token is now refreshed");
             else
             {
@@ -185,16 +185,16 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
     #region https://photoslibrary.googleapis.com/v1/albums
 
     //https://photoslibrary.googleapis.com/v1/albums/{albumId}
-    public async Task<Album?> GetAlbumAsync(string albumId)
+    public async Task<Album?> GetAlbumAsync(string albumId, CancellationToken cancellationToken = default)
     {
-        var tpl = await Get<Album, Error>(string.Format(RequestUris.GET_album, albumId));
+        var tpl = await Get<Album, Error>(string.Format(RequestUris.GET_album, albumId), cancellationToken: cancellationToken);
 
         return tpl.result;
     }
 
-    public async Task<Album?> GetSharedAlbumAsync(string sharedToken)
+    public async Task<Album?> GetSharedAlbumAsync(string sharedToken, CancellationToken cancellationToken = default)
     {
-        var tpl = await Get<Album, Error>(string.Format(RequestUris.GET_sharedAlbum, sharedToken));
+        var tpl = await Get<Album, Error>(string.Format(RequestUris.GET_sharedAlbum, sharedToken), cancellationToken: cancellationToken);
         if (tpl.error is not null) throw new GooglePhotosException(tpl.error);
 
         return tpl.result;
@@ -224,8 +224,9 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
         var l = new List<Album>();
         var pageToken = string.Empty;
         var pageNumber = 1;
-        while (pageToken is not null && !cancellationToken.IsCancellationRequested)
+        while (pageToken is not null)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var _requestUri = GetUrl(requestUri, pageSize, excludeNonAppCreatedData, pageToken);
             var tpl = await Get<albumsGetResponse, Error>(_requestUri, cancellationToken: cancellationToken);
             if (tpl.error is not null) throw new GooglePhotosException(tpl.error);
@@ -257,76 +258,78 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
         return url;
     }
 
-    public async Task<Album?> CreateAlbumAsync(string title)
+    public async Task<Album?> CreateAlbumAsync(string title, CancellationToken cancellationToken = default)
     {
         var req = new { album = new Album { title = title } };
-        var tpl = await PostJson<Album, Error>(RequestUris.POST_albums, req);
+        var tpl = await PostJson<Album, Error>(RequestUris.POST_albums, req, cancellationToken: cancellationToken);
         if (tpl.error is not null) throw new GooglePhotosException(tpl.error);
         return tpl.result;
     }
 
-    public Task<bool> AddMediaItemsToAlbumAsync(string albumId, string[] mediaItemIds)
-        => AddMediaItemsToAlbumAsync(albumId, mediaItemIds.ToList());
+    public Task<bool> AddMediaItemsToAlbumAsync(string albumId, string[] mediaItemIds, CancellationToken cancellationToken = default)
+        => AddMediaItemsToAlbumAsync(albumId, mediaItemIds.ToList(), cancellationToken);
 
-    public async Task<bool> AddMediaItemsToAlbumAsync(string albumId, List<string> mediaItemIds)
+    public async Task<bool> AddMediaItemsToAlbumAsync(string albumId, List<string> mediaItemIds, CancellationToken cancellationToken = default)
     {
         var batches = mediaItemIds.Distinct().ToList().GetBatches(defaultBatchSizeMediaItems);
         foreach (var batch in batches)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var req = new { mediaItemIds = batch.Value };
-            var tpl = await PostJson<string, Error>(string.Format(RequestUris.POST_albums_batchAddMediaItems, albumId), req);
+            var tpl = await PostJson<string, Error>(string.Format(RequestUris.POST_albums_batchAddMediaItems, albumId), req, cancellationToken: cancellationToken);
             if (tpl.error is not null) throw new GooglePhotosException(tpl.error);
         }
         return true;
     }
 
-    public Task<bool> RemoveMediaItemsFromAlbumAsync(string albumId, string[] mediaItemIds)
-        => RemoveMediaItemsFromAlbumAsync(albumId, mediaItemIds.ToList());
+    public Task<bool> RemoveMediaItemsFromAlbumAsync(string albumId, string[] mediaItemIds, CancellationToken cancellationToken = default)
+        => RemoveMediaItemsFromAlbumAsync(albumId, mediaItemIds.ToList(), cancellationToken);
 
-    public async Task<bool> RemoveMediaItemsFromAlbumAsync(string albumId, List<string> mediaItemIds)
+    public async Task<bool> RemoveMediaItemsFromAlbumAsync(string albumId, List<string> mediaItemIds, CancellationToken cancellationToken = default)
     {
         var batches = mediaItemIds.GetBatches(defaultBatchSizeMediaItems);
         foreach (var batch in batches)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var req = new { mediaItemIds = batch.Value };
-            var tpl = await PostJson<string, Error>(string.Format(RequestUris.POST_albums_batchRemoveMediaItems, albumId), req);
+            var tpl = await PostJson<string, Error>(string.Format(RequestUris.POST_albums_batchRemoveMediaItems, albumId), req, cancellationToken: cancellationToken);
             if (tpl.error is not null) throw new GooglePhotosException(tpl.error);
         }
         return true;
     }
 
-    public async Task<enrichmentItem?> AddEnrichmentToAlbumAsync(string albumId, NewEnrichmentItem newEnrichmentItem, AlbumPosition albumPosition)
+    public async Task<enrichmentItem?> AddEnrichmentToAlbumAsync(string albumId, NewEnrichmentItem newEnrichmentItem, AlbumPosition albumPosition, CancellationToken cancellationToken = default)
     {
-        var tpl = await PostJson<AddEnrichmentResponse, Error>(string.Format(RequestUris.POST_albums_addEnrichment, albumId), new AddEnrichmentRequest(newEnrichmentItem, albumPosition));
+        var tpl = await PostJson<AddEnrichmentResponse, Error>(string.Format(RequestUris.POST_albums_addEnrichment, albumId), new AddEnrichmentRequest(newEnrichmentItem, albumPosition), cancellationToken: cancellationToken);
         if (tpl.error is not null) throw new GooglePhotosException(tpl.error);
         return tpl.result is not null && tpl.result.enrichmentItem is not null ? tpl.result.enrichmentItem : null;
     }
 
-    public async Task<ShareInfo?> ShareAlbumAsync(string albumId, bool isCollaborative = true, bool isCommentable = true)
+    public async Task<ShareInfo?> ShareAlbumAsync(string albumId, bool isCollaborative = true, bool isCommentable = true, CancellationToken cancellationToken = default)
     {
         var req = new { sharedAlbumOptions = new SharedAlbumOptions { isCollaborative = isCollaborative, isCommentable = isCommentable } };
-        var tpl = await PostJson<sharedAlbumResponse, Error>(string.Format(RequestUris.POST_share, albumId), req);
+        var tpl = await PostJson<sharedAlbumResponse, Error>(string.Format(RequestUris.POST_share, albumId), req, cancellationToken: cancellationToken);
         if (tpl.error is not null) throw new GooglePhotosException(tpl.error);
         return tpl.result is not null && tpl.result.shareInfo is not null ? tpl.result.shareInfo : null;
     }
 
-    public async Task<bool> UnShareAlbumAsync(string albumId)
+    public async Task<bool> UnShareAlbumAsync(string albumId, CancellationToken cancellationToken = default)
     {
-        var tpl = await PostJson<string, Error>(string.Format(RequestUris.POST_unshare, albumId), new { });
+        var tpl = await PostJson<string, Error>(string.Format(RequestUris.POST_unshare, albumId), new { }, cancellationToken: cancellationToken);
         if (tpl.error is not null) throw new GooglePhotosException(tpl.error);
         return true;
     }
 
-    public async Task<Album?> JoinSharedAlbumAsync(string shareToken)
+    public async Task<Album?> JoinSharedAlbumAsync(string shareToken, CancellationToken cancellationToken = default)
     {
-        var tpl = await PostJson<Album, Error>(RequestUris.POST_sharedAlbums_join, new { shareToken });
+        var tpl = await PostJson<Album, Error>(RequestUris.POST_sharedAlbums_join, new { shareToken }, cancellationToken: cancellationToken);
         if (tpl.error is not null) throw new GooglePhotosException(tpl.error);
         return tpl.result;
     }
 
-    public async Task<bool> LeaveSharedAlbumAsync(string shareToken)
+    public async Task<bool> LeaveSharedAlbumAsync(string shareToken, CancellationToken cancellationToken = default)
     {
-        var tpl = await PostJson<string, Error>(RequestUris.POST_sharedAlbums_leave, new { shareToken });
+        var tpl = await PostJson<string, Error>(RequestUris.POST_sharedAlbums_leave, new { shareToken }, cancellationToken: cancellationToken);
         if (tpl.error is not null) throw new GooglePhotosException(tpl.error);
         return true;
     }
@@ -344,8 +347,9 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
         var hs = new HashSet<string>();
         var pageToken = string.Empty;
         var pageNumber = 1;
-        while (pageToken is not null && !cancellationToken.IsCancellationRequested && pageNumber <= maxPageCount)
+        while (pageToken is not null && pageNumber <= maxPageCount)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var _requestUri = GetUrl(requestUri, pageSize, excludeNonAppCreatedData, pageToken);
             var tpl = await Get<mediaItemsResponse, Error>(_requestUri, cancellationToken: cancellationToken);
             if (tpl.error is not null) throw new GooglePhotosException(tpl.error);
@@ -388,8 +392,9 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
         var hs = new HashSet<string>();
         var pageToken = string.Empty;
         var pageNumber = 1;
-        while (pageToken is not null && !cancellationToken.IsCancellationRequested && pageNumber <= maxPageCount)
+        while (pageToken is not null && pageNumber <= maxPageCount)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var req = new { albumId, pageSize, pageToken, filters };
             var tpl = await PostJson<mediaItemsResponse, Error>(requestUri, req, cancellationToken: cancellationToken);
             if (tpl.error is not null) throw new GooglePhotosException(tpl.error);
@@ -424,9 +429,9 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
         => _GetMediaItemsViaPOSTAsync(albumId, pageSize, maxPageCount, null, excludeNonAppCreatedData, RequestUris.POST_mediaItems_search, cancellationToken);
 
     //https://photoslibrary.googleapis.com/v1/mediaItems/media-item-id
-    public async Task<MediaItem?> GetMediaItemByIdAsync(string mediaItemId)
+    public async Task<MediaItem?> GetMediaItemByIdAsync(string mediaItemId, CancellationToken cancellationToken = default)
     {
-        var tpl = await Get<MediaItem, Error>($"{RequestUris.GET_mediaItems}/{mediaItemId}");
+        var tpl = await Get<MediaItem, Error>($"{RequestUris.GET_mediaItems}/{mediaItemId}", cancellationToken: cancellationToken);
         if (tpl.error is not null) throw new GooglePhotosException(tpl.error);
         return tpl.result;
     }
@@ -441,7 +446,7 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
         var batches = mediaItemIds.GetBatches(defaultBatchSizeMediaItems);
         foreach (var batch in batches)
         {
-            if (cancellationToken.IsCancellationRequested) break;
+            cancellationToken.ThrowIfCancellationRequested();
             //see https://github.com/dotnet/aspnetcore/issues/7945 can't use QueryHelpers.AddQueryString
             //var queryParams = new Dictionary<string, string>(batch.Value.Length);
             //foreach (var mediaItemId in batch.Value)
@@ -523,22 +528,22 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
     }
 
     //would need renaming if made public
-    private Task<NewMediaItemResult?> AddMediaItemAsync(string uploadToken, string? fileName = null, string? description = null, string? albumId = null, AlbumPosition? albumPosition = null)
-        => AddMediaItemAsync(new UploadItem(uploadToken, fileName, description), albumId, albumPosition);
+    private Task<NewMediaItemResult?> AddMediaItemAsync(string uploadToken, string? fileName = null, string? description = null, string? albumId = null, AlbumPosition? albumPosition = null, CancellationToken cancellationToken = default)
+        => AddMediaItemAsync(new UploadItem(uploadToken, fileName, description), albumId, albumPosition, cancellationToken);
 
     public Task<NewMediaItemResult?> AddMediaItemAsync(string uploadToken, string? fileName = null, string? description = null, string? albumId = null,
-        GooglePhotosPositionType positionType = GooglePhotosPositionType.LAST_IN_ALBUM, string? relativeMediaItemId = null, string? relativeEnrichmentItemId = null)
-        => AddMediaItemAsync(new UploadItem(uploadToken, fileName, description), albumId, GetAlbumPosition(albumId, positionType, relativeMediaItemId, relativeEnrichmentItemId));
+        GooglePhotosPositionType positionType = GooglePhotosPositionType.LAST_IN_ALBUM, string? relativeMediaItemId = null, string? relativeEnrichmentItemId = null, CancellationToken cancellationToken = default)
+        => AddMediaItemAsync(new UploadItem(uploadToken, fileName, description), albumId, GetAlbumPosition(albumId, positionType, relativeMediaItemId, relativeEnrichmentItemId), cancellationToken);
 
     public Task<NewMediaItemResult?> AddMediaItemAsync(UploadItem uploadItem, string? albumId = null,
-        GooglePhotosPositionType positionType = GooglePhotosPositionType.LAST_IN_ALBUM, string? relativeMediaItemId = null, string? relativeEnrichmentItemId = null)
-        => AddMediaItemAsync(uploadItem, albumId, GetAlbumPosition(albumId, positionType, relativeMediaItemId, relativeEnrichmentItemId));
+        GooglePhotosPositionType positionType = GooglePhotosPositionType.LAST_IN_ALBUM, string? relativeMediaItemId = null, string? relativeEnrichmentItemId = null, CancellationToken cancellationToken = default)
+        => AddMediaItemAsync(uploadItem, albumId, GetAlbumPosition(albumId, positionType, relativeMediaItemId, relativeEnrichmentItemId), cancellationToken);
 
     //would need renaming if made public
-    private async Task<NewMediaItemResult?> AddMediaItemAsync(UploadItem uploadItem, string? albumId, AlbumPosition? albumPosition)
+    private async Task<NewMediaItemResult?> AddMediaItemAsync(UploadItem uploadItem, string? albumId, AlbumPosition? albumPosition, CancellationToken cancellationToken)
     {
         var newMediaItems = new List<UploadItem> { uploadItem };
-        var res = await AddMediaItemsAsync(newMediaItems, albumId, albumPosition);
+        var res = await AddMediaItemsAsync(newMediaItems, albumId, albumPosition, cancellationToken);
         if (res is not null && !res.newMediaItemResults.IsNullOrEmpty())
             return res.newMediaItemResults[0];
         else
@@ -550,20 +555,20 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
     }
 
     public Task<mediaItemsCreateResponse?> AddMediaItemsAsync(List<(string uploadToken, string FileName)> items, string? albumId = null,
-        GooglePhotosPositionType positionType = GooglePhotosPositionType.LAST_IN_ALBUM, string? relativeMediaItemId = null, string? relativeEnrichmentItemId = null)
+        GooglePhotosPositionType positionType = GooglePhotosPositionType.LAST_IN_ALBUM, string? relativeMediaItemId = null, string? relativeEnrichmentItemId = null, CancellationToken cancellationToken = default)
     {
         var uploadItems = new List<UploadItem>(items.Count);
         foreach (var item in items)
             uploadItems.Add(new UploadItem(item.uploadToken, item.FileName));
-        return AddMediaItemsAsync(uploadItems, albumId, GetAlbumPosition(albumId, positionType, relativeMediaItemId, relativeEnrichmentItemId));
+        return AddMediaItemsAsync(uploadItems, albumId, GetAlbumPosition(albumId, positionType, relativeMediaItemId, relativeEnrichmentItemId), cancellationToken);
     }
 
     public Task<mediaItemsCreateResponse?> AddMediaItemsAsync(List<UploadItem> uploadItems, string? albumId = null,
-        GooglePhotosPositionType positionType = GooglePhotosPositionType.LAST_IN_ALBUM, string? relativeMediaItemId = null, string? relativeEnrichmentItemId = null)
-        => AddMediaItemsAsync(uploadItems, albumId, GetAlbumPosition(albumId, positionType, relativeMediaItemId, relativeEnrichmentItemId));
+        GooglePhotosPositionType positionType = GooglePhotosPositionType.LAST_IN_ALBUM, string? relativeMediaItemId = null, string? relativeEnrichmentItemId = null, CancellationToken cancellationToken = default)
+        => AddMediaItemsAsync(uploadItems, albumId, GetAlbumPosition(albumId, positionType, relativeMediaItemId, relativeEnrichmentItemId), cancellationToken);
 
     //would need renaming if made public
-    private async Task<mediaItemsCreateResponse?> AddMediaItemsAsync(List<UploadItem> uploadItems, string? albumId, AlbumPosition? albumPosition)
+    private async Task<mediaItemsCreateResponse?> AddMediaItemsAsync(List<UploadItem> uploadItems, string? albumId, AlbumPosition? albumPosition, CancellationToken cancellationToken)
     {
         if (uploadItems.IsNullOrEmpty())
             throw new ArgumentNullException(nameof(uploadItems), $"Invalid {nameof(uploadItems)} quantity, must be >= 1");
@@ -582,7 +587,7 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
             newMediaItems.Add(newMediaItem);
         }
         var req = new { newMediaItems, albumId, albumPosition };
-        var tpl = await PostJson<mediaItemsCreateResponse, Error>(RequestUris.POST_mediaItems_batchCreate, req);
+        var tpl = await PostJson<mediaItemsCreateResponse, Error>(RequestUris.POST_mediaItems_batchCreate, req, cancellationToken: cancellationToken);
         if (tpl.error is not null) throw new GooglePhotosException(tpl.error);
         return tpl.result;
     }
@@ -688,6 +693,7 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
                 using var reader = new BinaryReader(fs);
                 while (true)
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
                     attemptCount++;
                     if (attemptCount > retryLimit)
                         return null;
