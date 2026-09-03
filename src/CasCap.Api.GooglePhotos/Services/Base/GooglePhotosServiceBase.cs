@@ -3,6 +3,7 @@ using Google.Apis.Auth.OAuth2;
 using Google.Apis.Util.Store;
 using Microsoft.AspNetCore.WebUtilities;
 using MimeTypes;
+using System.Buffers;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Http.Headers;
@@ -638,9 +639,8 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
 
         if (uploadMethod == GooglePhotosUploadMethod.Simple)
         {
-            var bytes = await File.ReadAllBytesAsync(path, cancellationToken);
-            var tpl = await PostBytes<string, Error>(RequestUris.uploads, uploadMethod == GooglePhotosUploadMethod.ResumableSingle ? [] : bytes,
-                additionalHeaders: headers, cancellationToken: cancellationToken);
+            await using var stream = OpenReadStream(path);
+            var tpl = await PostUploadStreamAsync(RequestUris.uploads, stream, headers, cancellationToken).ConfigureAwait(false);
             if (tpl.error is not null) throw new GooglePhotosException(tpl.error);
             return tpl.result;
         }
@@ -662,9 +662,8 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
                 headers.Add((X_Goog_Upload_Offset, "0"));
                 headers.Add((X_Goog_Upload_Command, "upload, finalize"));
 
-                //todo: for testing override bytes with a smaller value than expected
-                var bytes = await File.ReadAllBytesAsync(path, cancellationToken);
-                tpl = await PostBytes<string, Error>(Upload_URL, bytes, additionalHeaders: headers, cancellationToken: cancellationToken);
+                await using var stream = OpenReadStream(path);
+                tpl = await PostUploadStreamAsync(Upload_URL, stream, headers, cancellationToken).ConfigureAwait(false);
                 if (tpl.httpStatusCode != HttpStatusCode.OK)
                 {
                     //we were interrupted so query the status of the last upload
@@ -673,7 +672,7 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
                             (X_Goog_Upload_Command, "query")
                         ];
 
-                    tpl = await PostBytes<string, Error>(Upload_URL, bytes, additionalHeaders: headers, cancellationToken: cancellationToken);
+                    tpl = await PostBytes<string, Error>(Upload_URL, [], additionalHeaders: headers, cancellationToken: cancellationToken);
                     if (tpl.error is not null) throw new GooglePhotosException(tpl.error);
 
                     _ = tpl.responseHeaders.TryGetValue(X_Goog_Upload_Status);
@@ -687,61 +686,58 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
                 var offset = 0L;
                 var attemptCount = 0;
                 var retryLimit = 10;//todo: move this into settings
-                var batchCount = Math.Ceiling(size / (double)Upload_Chunk_Granularity);
                 var batchIndex = 0;
-                using var fs = File.OpenRead(path);
-                using var reader = new BinaryReader(fs);
-                while (true)
+                if (Upload_Chunk_Granularity <= 0)
+                    throw new GooglePhotosException($"missing or invalid {X_Goog_Upload_Chunk_Granularity}!");
+
+                var buffer = ArrayPool<byte>.Shared.Rent(Upload_Chunk_Granularity);
+                try
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
-                    attemptCount++;
-                    if (attemptCount > retryLimit)
-                        return null;
-
-                    //var lastChunk = offset + Upload_Chunk_Granularity >= size;
-                    var lastChunk = batchIndex + 1 == batchCount;
-
-                    headers =
-                        [
-                            (X_Goog_Upload_Command, $"upload{(lastChunk ? ", finalize" : string.Empty)}"),
-                            (X_Goog_Upload_Offset, offset.ToString())
-                        ];
-
-                    //todo: need to test resuming failed uploads
-                    var bytes = reader.ReadBytes(Upload_Chunk_Granularity);
-                    //var bytes = await File.ReadAllBytesAsync("c:/mnt/pi/test.webp");//hack/test - read from a smaller test file and see if we get failure?
-                    tpl = await PostBytes<string, Error>(Upload_URL, bytes, additionalHeaders: headers, cancellationToken: cancellationToken);
-                    //if (tpl.error is not null) throw new GooglePhotosAPIException(tpl.error);
-                    if (tpl.httpStatusCode != HttpStatusCode.OK)
+                    await using var stream = OpenReadStream(path);
+                    while (offset < size)
                     {
-                        //we were interrupted so query the status of the last upload
+                        cancellationToken.ThrowIfCancellationRequested();
+                        attemptCount++;
+                        if (attemptCount > retryLimit)
+                            return null;
+
+                        stream.Position = offset;
+                        var bytesRead = await ReadChunkAsync(stream, buffer.AsMemory(0, Upload_Chunk_Granularity), cancellationToken).ConfigureAwait(false);
+                        if (bytesRead == 0)
+                            throw new EndOfStreamException($"Unexpected end of media file at offset {offset}.");
+
+                        var lastChunk = offset + bytesRead == size;
                         headers =
                             [
-                                (X_Goog_Upload_Command, "query")
+                                (X_Goog_Upload_Command, $"upload{(lastChunk ? ", finalize" : string.Empty)}"),
+                                (X_Goog_Upload_Offset, offset.ToString())
                             ];
-                        _logger.LogDebug($"");
-                        tpl = await PostBytes<string, Error>(Upload_URL, [], additionalHeaders: headers, cancellationToken: cancellationToken);
 
-                        status = tpl.responseHeaders.TryGetValue(X_Goog_Upload_Status);
-                        _logger.LogTrace("{ClassName} {MethodName}, status={Status}", nameof(GooglePhotosServiceBase),
-                            nameof(UploadMediaAsync), status);
-                        var bytesReceived = tpl.responseHeaders.TryGetValue(X_Goog_Upload_Size_Received);
-                        //Debug.WriteLine($"bytesReceived={bytesReceived}");
-                        Debug.WriteLine($"attemptCount={attemptCount}\twill try upload again...");
+                        tpl = await PostUploadBufferAsync(Upload_URL, buffer, bytesRead, headers, cancellationToken).ConfigureAwait(false);
+                        if (tpl.httpStatusCode != HttpStatusCode.OK)
+                        {
+                            headers =
+                                [
+                                    (X_Goog_Upload_Command, "query")
+                                ];
+                            tpl = await PostBytes<string, Error>(Upload_URL, [], additionalHeaders: headers, cancellationToken: cancellationToken);
+
+                            status = tpl.responseHeaders.TryGetValue(X_Goog_Upload_Status);
+                            _logger.LogTrace("{ClassName} {MethodName}, Status={Status}", nameof(GooglePhotosServiceBase),
+                                nameof(UploadMediaAsync), status);
+                        }
+                        else
+                        {
+                            attemptCount = 0;
+                            offset += bytesRead;
+                            RaiseUploadProgressEvent(new UploadProgressEventArgs(Path.GetFileName(path), size, batchIndex, offset, bytesRead));
+                            batchIndex++;
+                        }
                     }
-                    else
-                    {
-                        attemptCount = 0;//reset retry count
-                        offset += bytes.Length;
-                        RaiseUploadProgressEvent(new UploadProgressEventArgs(Path.GetFileName(path), size, batchIndex, offset, bytes.Length));
-                        batchIndex++;
-                        //if (callback is not null)
-                        //    callback(bytes.Length);
-                        //if (bytes.Length < Upload_Chunk_Granularity)
-                        //    break;//this was the last one
-                        if (lastChunk)
-                            break;//this was the last one
-                    }
+                }
+                finally
+                {
+                    ArrayPool<byte>.Shared.Return(buffer);
                 }
                 return tpl.result;
             }
@@ -760,6 +756,67 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
             else
                 throw new NotSupportedException($"Cannot match file extension '{fileExtension}' from '{path}' to a known image or video mime type.");
         }
+    }
+
+    private Task<(string? result, Error? error, HttpStatusCode httpStatusCode, HttpResponseHeaders responseHeaders)> PostUploadStreamAsync(
+        string requestUri,
+        Stream stream,
+        List<(string name, string value)> headers,
+        CancellationToken cancellationToken)
+        => PostUploadContentAsync(requestUri, new StreamContent(stream), headers, cancellationToken);
+
+    private Task<(string? result, Error? error, HttpStatusCode httpStatusCode, HttpResponseHeaders responseHeaders)> PostUploadBufferAsync(
+        string requestUri,
+        byte[] buffer,
+        int count,
+        List<(string name, string value)> headers,
+        CancellationToken cancellationToken)
+        => PostUploadContentAsync(requestUri, new ByteArrayContent(buffer, 0, count), headers, cancellationToken);
+
+    private async Task<(string? result, Error? error, HttpStatusCode httpStatusCode, HttpResponseHeaders responseHeaders)> PostUploadContentAsync(
+        string requestUri,
+        HttpContent content,
+        List<(string name, string value)> headers,
+        CancellationToken cancellationToken)
+    {
+        var url = requestUri.StartsWith("http", StringComparison.OrdinalIgnoreCase) ? requestUri : $"{Client.BaseAddress}{requestUri}";
+        using var request = new HttpRequestMessage(HttpMethod.Post, url)
+        {
+            Content = content
+        };
+        request.Content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
+        request.Headers.AddOrOverwrite(headers);
+
+        using var response = await Client.SendAsync(request, HttpCompletionOption.ResponseContentRead, cancellationToken).ConfigureAwait(false);
+        var responseBody = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        if (response.IsSuccessStatusCode)
+            return (responseBody, null, response.StatusCode, response.Headers);
+
+        _logger.LogError("{ClassName} upload failed with StatusCode={StatusCode}", nameof(GooglePhotosServiceBase), response.StatusCode);
+        return (null, responseBody.FromJson<Error>(), response.StatusCode, response.Headers);
+    }
+
+    private static FileStream OpenReadStream(string path)
+        => new(path, new FileStreamOptions
+        {
+            Access = FileAccess.Read,
+            Mode = FileMode.Open,
+            Options = FileOptions.Asynchronous | FileOptions.SequentialScan,
+            Share = FileShare.Read
+        });
+
+    private static async Task<int> ReadChunkAsync(Stream stream, Memory<byte> buffer, CancellationToken cancellationToken)
+    {
+        var totalBytesRead = 0;
+        while (totalBytesRead < buffer.Length)
+        {
+            var bytesRead = await stream.ReadAsync(buffer[totalBytesRead..], cancellationToken).ConfigureAwait(false);
+            if (bytesRead == 0)
+                break;
+
+            totalBytesRead += bytesRead;
+        }
+        return totalBytesRead;
     }
 
     private static AlbumPosition? GetAlbumPosition(string? albumId, GooglePhotosPositionType positionType, string? relativeMediaItemId, string? relativeEnrichmentItemId)
