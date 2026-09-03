@@ -3,6 +3,7 @@
 /// <summary>Provides configuration, logging, and Google Photos services for integration tests.</summary>
 public abstract class TestBase : IDisposable
 {
+    protected readonly GooglePhotosPickerService _googlePhotosPickerSvc;
     protected readonly GooglePhotosService _googlePhotosSvc;
     protected readonly ILogger _logger;
     protected readonly ITestOutputHelper _output;
@@ -29,6 +30,7 @@ public abstract class TestBase : IDisposable
         {
             ValidateScopes = true
         });
+        _googlePhotosPickerSvc = _serviceProvider.GetRequiredService<GooglePhotosPickerService>();
         _googlePhotosSvc = _serviceProvider.GetRequiredService<GooglePhotosService>();
     }
 

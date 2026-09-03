@@ -19,17 +19,44 @@ public sealed class GooglePhotosIntegrationTests(ITestOutputHelper output) : Tes
         {
             var accessToken = Environment.GetEnvironmentVariable("GOOGLE_PHOTOS_ACCESS_TOKEN");
             ArgumentException.ThrowIfNullOrWhiteSpace(accessToken);
+            _googlePhotosPickerSvc.SetAuth("Bearer", accessToken);
             _googlePhotosSvc.SetAuth("Bearer", accessToken);
             return true;
         }
 
-        return await _googlePhotosSvc.LoginAsync(cancellationToken);
+        var libraryLoginResult = await _googlePhotosSvc.LoginAsync(cancellationToken);
+        var pickerLoginResult = await _googlePhotosPickerSvc.LoginAsync(cancellationToken);
+        return libraryLoginResult && pickerLoginResult;
     }
 
     private static bool IsCI() => Environment.GetEnvironmentVariable("TF_BUILD") is not null
         || Environment.GetEnvironmentVariable("GITHUB_ACTIONS") is not null;
 
     private static string GetRandomAlbumName() => $"integration-{DateTime.UtcNow:yyyyMMdd-HHmmss}-{Guid.NewGuid():N}";
+
+    [Fact, Trait("Type", nameof(GooglePhotosPickerService))]
+    public async Task PickerSessionLifecycle()
+    {
+        var loginResult = await LoginAsync(TestContext.Current.CancellationToken);
+        Assert.True(loginResult);
+
+        var session = await _googlePhotosPickerSvc.CreateSessionAsync(
+            maxItemCount: 1,
+            cancellationToken: TestContext.Current.CancellationToken);
+        try
+        {
+            Assert.False(string.IsNullOrWhiteSpace(session.Id));
+            Assert.True(Uri.TryCreate(session.PickerUri, UriKind.Absolute, out _));
+            Assert.True(session.ExpireTime > DateTimeOffset.UtcNow);
+
+            var retrievedSession = await _googlePhotosPickerSvc.GetSessionAsync(session.Id, TestContext.Current.CancellationToken);
+            Assert.Equal(session.Id, retrievedSession.Id);
+        }
+        finally
+        {
+            await _googlePhotosPickerSvc.DeleteSessionAsync(session.Id, TestContext.Current.CancellationToken);
+        }
+    }
 
     [Theory, Trait("Type", nameof(GooglePhotosService))]
     [InlineData(GooglePhotosUploadMethod.Simple)]

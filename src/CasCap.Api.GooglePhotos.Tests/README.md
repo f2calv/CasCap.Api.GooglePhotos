@@ -9,20 +9,21 @@ This project exercises the Google Photos client against a dedicated test account
 
 ## Tests
 
-| Test method        | Method count | Test case count | Category    |
-| ------------------ | ------------ | --------------- | ----------- |
-| `DoLogin`          | 1            | 1               | Integration |
-| `UploadMedia`      | 1            | 3               | Integration |
-| `UploadSingle`     | 1            | 2               | Integration |
-| `UploadMultiple`   | 1            | 1               | Integration |
-| `FilterMediaItems` | 1            | 1               | Integration |
-| `AddEnrichments`   | 1            | 1               | Integration |
-| `DownloadBytes`    | 1            | 9               | Integration |
-| Total              | 7            | 18              |             |
+| Test method              | Method count | Test case count | Category    |
+| ------------------------ | ------------ | --------------- | ----------- |
+| `DoLogin`                | 1            | 1               | Integration |
+| `PickerSessionLifecycle` | 1            | 1               | Integration |
+| `UploadMedia`            | 1            | 3               | Integration |
+| `UploadSingle`           | 1            | 2               | Integration |
+| `UploadMultiple`         | 1            | 1               | Integration |
+| `FilterMediaItems`       | 1            | 1               | Integration |
+| `AddEnrichments`         | 1            | 1               | Integration |
+| `DownloadBytes`          | 1            | 9               | Integration |
+| Total                    | 8            | 19              |             |
 
 ## Trait Categories
 
-All tests carry `Category=Integration`. Upload-method coverage also carries `Type=GooglePhotosService`.
+All tests carry `Category=Integration`. API-specific coverage carries `Type=GooglePhotosService` or `Type=GooglePhotosPickerService`.
 
 ## Skipped Tests
 

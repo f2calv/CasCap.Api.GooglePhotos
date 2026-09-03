@@ -1,6 +1,7 @@
 ﻿global using CasCap.Common.Extensions;
 global using CasCap.Common.Xunit;
 global using CasCap.Models;
+global using CasCap.Models.Picker;
 global using CasCap.Services;
 global using Microsoft.Extensions.Configuration;
 global using Microsoft.Extensions.DependencyInjection;
