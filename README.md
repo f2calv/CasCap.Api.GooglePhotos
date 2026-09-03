@@ -23,18 +23,52 @@ Applications that previously listed a user's complete library must migrate that 
 ## Installation
 
 ```powershell
-dotnet add package CasCap.Api.GooglePhotos
+dotnet package add CasCap.Api.GooglePhotos
+dotnet package add Microsoft.Extensions.Hosting
 ```
 
-## Google Cloud Setup
+## Quick Start
+
+### Configure Google Cloud
 
 1. Create or select a project in the [Google Cloud Console](https://console.cloud.google.com/).
-2. Enable the Google Photos Library API and Google Photos Picker API.
-3. Configure the OAuth consent screen.
-4. Create an OAuth client for the application type you are building.
-5. Store the client ID, client secret, and Google account identifier outside source control.
+2. Open **APIs & Services > Library**, search for "Photos", and enable **Google Photos Library API** if the application creates or manages app-created media and albums.
+3. Enable **Google Photos Picker API** if the application lets users select existing media. Do not enable **Google Picker API** by mistake; it is a different product.
+4. Open **Google Auth Platform**, configure the consent screen, select an audience, and declare the required Photos scopes under **Data Access**.
+5. If the app has an external audience and remains in testing, add each Google account that will run it as a test user.
+6. Open **APIs & Services > Credentials**, create an **OAuth client ID**, and choose **Desktop app**. This library uses Google's installed-application loopback flow.
+7. Record the client ID and client secret in a secret store. Never place them in source control or tracked configuration.
 
-The Google Photos APIs require user OAuth 2.0 authorization and do not support service accounts.
+The Google Photos APIs require an authenticated Google user and do not support service accounts. Public applications must also complete Google's OAuth verification process. Keep the OAuth client ID stable because Google associates API-created resources with the client that created them.
+
+### Configure the application
+
+Register the clients through standard .NET configuration and dependency injection:
+
+```csharp
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+
+var builder = Host.CreateApplicationBuilder(args);
+
+builder.Services.AddGooglePhotos(builder.Configuration);
+
+await builder.Build().RunAsync();
+```
+
+For local development, initialize User Secrets in the consuming application project and store credentials there:
+
+```powershell
+$env:DOTNET_ENVIRONMENT = "Development"
+dotnet user-secrets init
+dotnet user-secrets set "CasCap:GooglePhotosOptions:User" "local-user"
+dotnet user-secrets set "CasCap:GooglePhotosOptions:ClientId" "your-client-id"
+dotnet user-secrets set "CasCap:GooglePhotosOptions:ClientSecret" "your-client-secret"
+```
+
+`User` is a local token-cache key. It identifies the cached grant on this machine and does not need to be the Google account's email address.
+
+The first call to `LoginAsync` opens the system browser for consent. Cached grants are separated by user and requested scope set. If a user declines a required scope, revoke or remove that cached grant and authenticate again. For an external consent screen in testing, Google can expire refresh tokens after seven days, so repeated authentication during development is expected.
 
 ## OAuth Scopes
 
@@ -45,11 +79,11 @@ The Google Photos APIs require user OAuth 2.0 authorization and do not support s
 | `EditAppCreatedData`             | `photoslibrary.edit.appcreateddata`                | Edit and organize application-created content     |
 | `PickerMediaItemsReadOnly`       | `photospicker.mediaitems.readonly`                 | Create Picker sessions and read selected media    |
 
-Request only the scopes needed by the application. If scopes change for an existing cached user grant, delete the cached OAuth response and authenticate again.
+Request only the scopes needed by the application. The library creates a separate cached grant when the requested scope set changes.
 
 ## Configuration
 
-Tracked settings must contain placeholders only. Store credentials with .NET User Secrets locally and environment variables or secret-backed providers in deployed environments.
+Tracked settings must contain placeholders only. Store credentials with .NET User Secrets locally and environment variables or secret-backed providers in deployed environments. A complete configuration that enables both APIs is shown below; remove scopes your application does not use.
 
 ```json
 {
@@ -76,33 +110,19 @@ Tracked settings must contain placeholders only. Store credentials with .NET Use
 }
 ```
 
-```powershell
-dotnet user-secrets set "CasCap:GooglePhotosOptions:User" "user@example.com"
-dotnet user-secrets set "CasCap:GooglePhotosOptions:ClientId" "your-client-id"
-dotnet user-secrets set "CasCap:GooglePhotosOptions:ClientSecret" "your-client-secret"
-```
-
 Environment variables use the standard double-underscore form, for example `CasCap__GooglePhotosOptions__ClientId`.
 
 `WriteRateLimit` optionally queues mutating Library API requests through an oldest-first sliding window. It is disabled by default because Google quota values can vary. Configure the limits for the quota assigned to your project. The limiter is local to one process and does not coordinate multiple application instances. Reads and Picker API requests bypass it.
-
-## Dependency Injection
-
-`AddGooglePhotos` registers validated options plus typed clients for both APIs.
-
-```csharp
-var builder = Host.CreateApplicationBuilder(args);
-
-builder.Services.AddGooglePhotos(builder.Configuration);
-
-await builder.Build().RunAsync();
-```
 
 ## Library API
 
 `GooglePhotosService` uploads and manages content created by the application. List, get, and search operations do not expose unrelated existing content from the user's library.
 
+For uploads, enable the Library API and request `AppendOnly`. Add `ReadOnlyAppCreatedData` when retrieving app-created content, including the get-or-create example below, and `EditAppCreatedData` when organizing it. Google performs an upload in two steps: upload bytes to obtain a token, then create the media item. `UploadSingle` handles both steps.
+
 ```csharp
+using CasCap.Services;
+
 public sealed class PhotoImportService(GooglePhotosService googlePhotosSvc)
 {
     public async Task UploadAsync(string path, CancellationToken cancellationToken)
@@ -118,7 +138,7 @@ public sealed class PhotoImportService(GooglePhotosService googlePhotosSvc)
 
         await googlePhotosSvc.UploadSingle(
             path,
-          album.Id,
+            album.Id,
             cancellationToken: cancellationToken);
     }
 }
@@ -131,12 +151,17 @@ Uploads are streamed. Resumable multipart uploads use bounded pooled buffers rat
 `GooglePhotosPickerService` provides the user-mediated flow for existing photos and videos:
 
 1. Authenticate and create a picking session.
-2. Present `PickerUri` to the user outside an iframe.
+2. Present `PickerUri` to the user outside an iframe and in a browser signed into the Google Account that owns the session.
 3. Poll `GetSessionAsync` using Google's returned polling configuration.
 4. List selected media after `MediaItemsSet` becomes `true`.
 5. Stream selected media bytes and delete the session when finished.
 
+Enable the Google Photos Picker API and request only `PickerMediaItemsReadOnly` for a Picker-only application. Open `PickerUri` in a browser or native browser surface signed into the same Google Account, never in an iframe. Respect `PollingConfig.PollInterval` and `PollingConfig.TimeoutIn` when polling, and always delete the session after downloading the selected media.
+
 ```csharp
+using CasCap.Models.Picker;
+using CasCap.Services;
+
 public sealed class PhotoPickerService(GooglePhotosPickerService pickerSvc)
 {
     public async Task<PickingSession> StartAsync(CancellationToken cancellationToken)
@@ -153,6 +178,11 @@ public sealed class PhotoPickerService(GooglePhotosPickerService pickerSvc)
         string sessionId,
         CancellationToken cancellationToken)
         => pickerSvc.GetMediaItemsAsync(sessionId, cancellationToken: cancellationToken);
+
+    public Task DeleteSessionAsync(
+      string sessionId,
+      CancellationToken cancellationToken)
+      => pickerSvc.DeleteSessionAsync(sessionId, cancellationToken);
 }
 ```
 
