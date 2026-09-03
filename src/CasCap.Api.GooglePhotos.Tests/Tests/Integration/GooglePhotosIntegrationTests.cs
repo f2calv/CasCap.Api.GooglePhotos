@@ -40,10 +40,10 @@ public sealed class GooglePhotosIntegrationTests(ITestOutputHelper output) : Tes
             Path.Combine(_testFolder, fileName),
             cancellationToken: cancellationToken);
         Assert.NotNull(created);
-        Assert.NotNull(created.mediaItem);
-        Assert.False(string.IsNullOrWhiteSpace(created.mediaItem.id));
+        Assert.NotNull(created.MediaItem);
+        Assert.False(string.IsNullOrWhiteSpace(created.MediaItem.Id));
 
-        var mediaItem = await _googlePhotosSvc.GetMediaItemByIdAsync(created.mediaItem.id, cancellationToken);
+        var mediaItem = await _googlePhotosSvc.GetMediaItemByIdAsync(created.MediaItem.Id, cancellationToken);
         Assert.NotNull(mediaItem);
         return mediaItem;
     }
@@ -86,8 +86,8 @@ public sealed class GooglePhotosIntegrationTests(ITestOutputHelper output) : Tes
         Assert.False(string.IsNullOrWhiteSpace(uploadToken));
         var newMediaItemResult = await _googlePhotosSvc.AddMediaItemAsync(uploadToken, path, cancellationToken: TestContext.Current.CancellationToken);
         Assert.NotNull(newMediaItemResult);
-        Assert.NotNull(newMediaItemResult.mediaItem);
-        Assert.False(string.IsNullOrWhiteSpace(newMediaItemResult.mediaItem.id));
+        Assert.NotNull(newMediaItemResult.MediaItem);
+        Assert.False(string.IsNullOrWhiteSpace(newMediaItemResult.MediaItem.Id));
     }
 
     [Theory]
@@ -101,28 +101,28 @@ public sealed class GooglePhotosIntegrationTests(ITestOutputHelper output) : Tes
         //upload single media item
         var mediaItem1a = await _googlePhotosSvc.UploadSingle(Path.Combine(_testFolder, file1), cancellationToken: TestContext.Current.CancellationToken);
         Assert.NotNull(mediaItem1a);
-        Assert.NotNull(mediaItem1a.mediaItem);
-        Assert.False(string.IsNullOrWhiteSpace(mediaItem1a.mediaItem.id));
+        Assert.NotNull(mediaItem1a.MediaItem);
+        Assert.False(string.IsNullOrWhiteSpace(mediaItem1a.MediaItem.Id));
 
         //retrieve single media item by unique id
-        var mediaItem1b = await _googlePhotosSvc.GetMediaItemByIdAsync(mediaItem1a.mediaItem.id, TestContext.Current.CancellationToken);
+        var mediaItem1b = await _googlePhotosSvc.GetMediaItemByIdAsync(mediaItem1a.MediaItem.Id, TestContext.Current.CancellationToken);
         Assert.NotNull(mediaItem1b);
-        Assert.Equal(mediaItem1a.mediaItem.id, mediaItem1b.id);
+        Assert.Equal(mediaItem1a.MediaItem.Id, mediaItem1b.Id);
 
         //get or create new album
         var albumName = GetRandomAlbumName();
         var album = await _googlePhotosSvc.GetOrCreateAlbumAsync(albumName, cancellationToken: TestContext.Current.CancellationToken);
         Assert.NotNull(album);
-        Assert.NotNull(album.id);
+        Assert.NotNull(album.Id);
 
         //upload single media item, assign to above album
-        var mediaItem2a = await _googlePhotosSvc.UploadSingle(Path.Combine(_testFolder, file2), album.id, cancellationToken: TestContext.Current.CancellationToken);
+        var mediaItem2a = await _googlePhotosSvc.UploadSingle(Path.Combine(_testFolder, file2), album.Id, cancellationToken: TestContext.Current.CancellationToken);
         Assert.NotNull(mediaItem2a);
-        Assert.NotNull(mediaItem2a.mediaItem);
-        Assert.False(string.IsNullOrWhiteSpace(mediaItem2a.mediaItem.id));
+        Assert.NotNull(mediaItem2a.MediaItem);
+        Assert.False(string.IsNullOrWhiteSpace(mediaItem2a.MediaItem.Id));
 
         //retrieve all media items from album
-        var albumMediaItems = await _googlePhotosSvc.GetMediaItemsByAlbumAsync(album.id, cancellationToken: TestContext.Current.CancellationToken).ToListAsync(TestContext.Current.CancellationToken);
+        var albumMediaItems = await _googlePhotosSvc.GetMediaItemsByAlbumAsync(album.Id, cancellationToken: TestContext.Current.CancellationToken).ToListAsync(TestContext.Current.CancellationToken);
         Assert.NotNull(albumMediaItems);
         Assert.Single(albumMediaItems);
     }
@@ -137,39 +137,39 @@ public sealed class GooglePhotosIntegrationTests(ITestOutputHelper output) : Tes
         var filePaths1 = new[] { Path.Combine(_testFolder, "test3.jpg"), Path.Combine(_testFolder, "test4.jpg") };
         var response1 = await _googlePhotosSvc.UploadMultiple(filePaths1, cancellationToken: TestContext.Current.CancellationToken);
         Assert.NotNull(response1);
-        Assert.Equal(filePaths1.Length, response1.newMediaItemResults.Count);
+        Assert.Equal(filePaths1.Length, response1.NewMediaItemResults.Count);
 
         //get or create new album
         var albumName = GetRandomAlbumName();
         var album = await _googlePhotosSvc.GetOrCreateAlbumAsync(albumName, cancellationToken: TestContext.Current.CancellationToken);
         Assert.NotNull(album);
-        Assert.Equal(albumName, album.title);
+        Assert.Equal(albumName, album.Title);
 
         //upload multiple media items, assign to album
         var filePaths2 = new[] { Path.Combine(_testFolder, "test5.jpg"), Path.Combine(_testFolder, "test6.jpg") };
-        var response2 = await _googlePhotosSvc.UploadMultiple(filePaths2, album.id, cancellationToken: TestContext.Current.CancellationToken);
+        var response2 = await _googlePhotosSvc.UploadMultiple(filePaths2, album.Id, cancellationToken: TestContext.Current.CancellationToken);
         Assert.NotNull(response2);
-        Assert.Equal(filePaths2.Length, response2.newMediaItemResults.Count);
+        Assert.Equal(filePaths2.Length, response2.NewMediaItemResults.Count);
 
-        var removed = await _googlePhotosSvc.RemoveMediaItemsFromAlbumAsync(album.id, response2.newMediaItemResults.Select(p => p.mediaItem.id).ToArray(), TestContext.Current.CancellationToken);
+        var removed = await _googlePhotosSvc.RemoveMediaItemsFromAlbumAsync(album.Id, response2.NewMediaItemResults.Select(p => p.MediaItem.Id).ToArray(), TestContext.Current.CancellationToken);
         Assert.True(removed);
-        var added = await _googlePhotosSvc.AddMediaItemsToAlbumAsync(album.id, response2.newMediaItemResults.Select(p => p.mediaItem.id).ToArray(), TestContext.Current.CancellationToken);
+        var added = await _googlePhotosSvc.AddMediaItemsToAlbumAsync(album.Id, response2.NewMediaItemResults.Select(p => p.MediaItem.Id).ToArray(), TestContext.Current.CancellationToken);
         Assert.True(added);
 
         //retrieve all albums
         var albums = await _googlePhotosSvc.GetAlbumsAsync(cancellationToken: TestContext.Current.CancellationToken);
         Assert.NotNull(albums);
-        Assert.Contains(albums, p => p.title == albumName);
-        foreach (var alb in albums.Where(p => p.title == albumName))
+        Assert.Contains(albums, p => p.Title == albumName);
+        foreach (var alb in albums.Where(p => p.Title == albumName))
         {
-            _output.WriteLine($"Album {alb.id} contains {alb.mediaItemsCount} media items.");
+            _output.WriteLine($"Album {alb.Id} contains {alb.MediaItemsCount} media items.");
             //retrieve all media items in each album
-            var albumMediaItems = await _googlePhotosSvc.GetMediaItemsByAlbumAsync(alb.id, cancellationToken: TestContext.Current.CancellationToken).ToListAsync(TestContext.Current.CancellationToken);
-            Assert.Equal(alb.mediaItemsCount, albumMediaItems.Count);
+            var albumMediaItems = await _googlePhotosSvc.GetMediaItemsByAlbumAsync(alb.Id, cancellationToken: TestContext.Current.CancellationToken).ToListAsync(TestContext.Current.CancellationToken);
+            Assert.Equal(alb.MediaItemsCount, albumMediaItems.Count);
             var i = 1;
             foreach (var mediaItem in albumMediaItems)
             {
-                _output.WriteLine($"Media item {i}: {mediaItem.mediaMetadata.width}x{mediaItem.mediaMetadata.height}");
+                _output.WriteLine($"Media item {i}: {mediaItem.MediaMetadata.Width}x{mediaItem.MediaMetadata.Height}");
                 i++;
             }
         }
@@ -179,7 +179,7 @@ public sealed class GooglePhotosIntegrationTests(ITestOutputHelper output) : Tes
         Assert.True(mediaItems.Count >= filePaths1.Length + filePaths2.Length, "Uploaded media items were not returned by the API.");
 
         //retrieve multiple media items by unique ids
-        var ids = mediaItems.Select(p => p.id).ToList();
+        var ids = mediaItems.Select(p => p.Id).ToList();
         ids.Add("invalid-id");
         var mediaItems2 = await _googlePhotosSvc.GetMediaItemsByIdsAsync(ids.ToArray(), cancellationToken: TestContext.Current.CancellationToken).ToListAsync(TestContext.Current.CancellationToken);
         Assert.Equal(1, ids.Count - mediaItems2.Count);//should have 1 failed item
@@ -195,13 +195,13 @@ public sealed class GooglePhotosIntegrationTests(ITestOutputHelper output) : Tes
 
         var filter = new Filter
         {
-            mediaTypeFilter = new mediaTypeFilter
+            MediaTypeFilter = new MediaTypeFilter
             {
-                mediaTypes = [GooglePhotosMediaType.PHOTO]
+                MediaTypes = [GooglePhotosMediaType.Photo]
             }
         };
         var searchResults = await _googlePhotosSvc.GetMediaItemsByFilterAsync(filter, cancellationToken: TestContext.Current.CancellationToken).ToListAsync(TestContext.Current.CancellationToken);
-        Assert.Contains(searchResults, result => result.id == mediaItem.id);
+        Assert.Contains(searchResults, result => result.Id == mediaItem.Id);
         _output.WriteLine($"Filter returned {searchResults.Count} media items.");
     }
 
@@ -219,33 +219,33 @@ public sealed class GooglePhotosIntegrationTests(ITestOutputHelper output) : Tes
         //make a mediaItem (but no album)
         var mediaItem = await _googlePhotosSvc.AddMediaItemAsync(uploadToken, path, "my test description", cancellationToken: TestContext.Current.CancellationToken);
         Assert.NotNull(mediaItem);
-        Assert.NotNull(mediaItem.mediaItem);
+        Assert.NotNull(mediaItem.MediaItem);
 
         //get or create new album
         var albumName = GetRandomAlbumName();
         var album = await _googlePhotosSvc.GetOrCreateAlbumAsync(albumName, cancellationToken: TestContext.Current.CancellationToken);
         Assert.NotNull(album);
-        Assert.Equal(albumName, album.title);
+        Assert.Equal(albumName, album.Title);
 
         //add enrichment
-        var enrichmentId1 = await _googlePhotosSvc.AddEnrichmentToAlbumAsync(album.id,
+        var enrichmentId1 = await _googlePhotosSvc.AddEnrichmentToAlbumAsync(album.Id,
             new NewEnrichmentItem($"test enrichment {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}"),
-            new AlbumPosition { position = GooglePhotosPositionType.FIRST_IN_ALBUM },
+            new AlbumPosition { Position = GooglePhotosPositionType.FirstInAlbum },
             TestContext.Current.CancellationToken);
         Assert.NotNull(enrichmentId1);
-        Assert.False(string.IsNullOrWhiteSpace(enrichmentId1.id));
+        Assert.False(string.IsNullOrWhiteSpace(enrichmentId1.Id));
 
         //add to album
-        var result1 = await _googlePhotosSvc.AddMediaItemsToAlbumAsync(album.id, new[] { mediaItem.mediaItem.id }, TestContext.Current.CancellationToken);
+        var result1 = await _googlePhotosSvc.AddMediaItemsToAlbumAsync(album.Id, new[] { mediaItem.MediaItem.Id }, TestContext.Current.CancellationToken);
         Assert.True(result1);
 
         //add enrichment relative to media item
-        var enrichmentId2 = await _googlePhotosSvc.AddEnrichmentToAlbumAsync(album.id,
+        var enrichmentId2 = await _googlePhotosSvc.AddEnrichmentToAlbumAsync(album.Id,
             new NewEnrichmentItem("another text enrichment"),
-            new AlbumPosition { position = GooglePhotosPositionType.AFTER_MEDIA_ITEM, relativeMediaItemId = mediaItem.mediaItem.id },
+            new AlbumPosition { Position = GooglePhotosPositionType.AfterMediaItem, RelativeMediaItemId = mediaItem.MediaItem.Id },
             TestContext.Current.CancellationToken);
         Assert.NotNull(enrichmentId2);
-        Assert.False(string.IsNullOrWhiteSpace(enrichmentId2.id));
+        Assert.False(string.IsNullOrWhiteSpace(enrichmentId2.Id));
     }
 
     [Fact]
@@ -256,7 +256,7 @@ public sealed class GooglePhotosIntegrationTests(ITestOutputHelper output) : Tes
         var mediaItem = await CreateMediaItemAsync("test0.jpg", TestContext.Current.CancellationToken);
 
         var mediaItems = await _googlePhotosSvc.GetMediaItemsAsync(cancellationToken: TestContext.Current.CancellationToken).ToListAsync(TestContext.Current.CancellationToken);
-        Assert.Contains(mediaItems, item => item.id == mediaItem.id);
+        Assert.Contains(mediaItems, item => item.Id == mediaItem.Id);
 
         var bytes = await _googlePhotosSvc.DownloadBytes(mediaItem, cancellationToken: TestContext.Current.CancellationToken);
         Assert.NotNull(bytes);

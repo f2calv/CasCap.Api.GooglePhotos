@@ -182,8 +182,8 @@ public sealed class GooglePhotosWriteRateLimitingHandlerTests
         Assert.Equal(HttpStatusCode.TooManyRequests, secondResponse.StatusCode);
         Assert.NotNull(secondResponse.Headers.RetryAfter);
         var error = await secondResponse.Content.ReadFromJsonAsync<Error>(TestContext.Current.CancellationToken);
-        Assert.Equal(HttpStatusCode.TooManyRequests, (HttpStatusCode?)error?.error?.code);
-        Assert.Equal("RESOURCE_EXHAUSTED", error?.error?.status);
+        Assert.Equal(HttpStatusCode.TooManyRequests, (HttpStatusCode?)error?.ErrorStatus?.Code);
+        Assert.Equal("RESOURCE_EXHAUSTED", error?.ErrorStatus?.StatusName);
     }
 
     private static GooglePhotosWriteRateLimitOptions CreateEnabledOptions(int queueLimit = 0)

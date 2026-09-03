@@ -21,10 +21,10 @@ public sealed class TestBgService(
 
         //upload single media item and assign to album
         var path = $"{_testFolder}test1.jpg";
-        _ = await googlePhotosSvc.UploadSingle(path, album.id, cancellationToken: stoppingToken) ?? throw new GooglePhotosException("media item upload failed!");
+        _ = await googlePhotosSvc.UploadSingle(path, album.Id, cancellationToken: stoppingToken) ?? throw new GooglePhotosException("media item upload failed!");
 
         //retrieve all media items in the album
-        var albumMediaItems = await googlePhotosSvc.GetMediaItemsByAlbumAsync(album.id, cancellationToken: stoppingToken).ToListAsync(stoppingToken);
+        var albumMediaItems = await googlePhotosSvc.GetMediaItemsByAlbumAsync(album.Id, cancellationToken: stoppingToken).ToListAsync(stoppingToken);
         logger.LogInformation("{ClassName} retrieved {MediaItemCount} media items", nameof(TestBgService), albumMediaItems.Count);
 
         logger.LogDebug("{ClassName} exiting {MethodName}...", nameof(TestBgService), nameof(ExecuteAsync));

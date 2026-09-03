@@ -20,7 +20,7 @@ public class GooglePhotosService(ILogger<GooglePhotosService> logger, IOptions<G
         CancellationToken cancellationToken = default)
     {
         var albums = await GetAlbumsAsync(cancellationToken: cancellationToken);
-        return albums.FirstOrDefault(p => p.title.Equals(title, comparisonType));
+        return albums.FirstOrDefault(p => p.Title.Equals(title, comparisonType));
     }
 
     public async Task<NewMediaItemResult?> UploadSingle(string path, string? albumId = null, string? description = null,
@@ -32,18 +32,18 @@ public class GooglePhotosService(ILogger<GooglePhotosService> logger, IOptions<G
         return null;
     }
 
-    public Task<mediaItemsCreateResponse?> UploadMultiple(string[] filePaths, string? albumId = null,
+    public Task<MediaItemsCreateResponse?> UploadMultiple(string[] filePaths, string? albumId = null,
         GooglePhotosUploadMethod uploadMethod = GooglePhotosUploadMethod.ResumableMultipart, CancellationToken cancellationToken = default)
         => _UploadMultiple(filePaths, albumId, uploadMethod, cancellationToken: cancellationToken);
 
-    public Task<mediaItemsCreateResponse?> UploadMultiple(string folderPath, string? searchPattern = null, string? albumId = null,
+    public Task<MediaItemsCreateResponse?> UploadMultiple(string folderPath, string? searchPattern = null, string? albumId = null,
         GooglePhotosUploadMethod uploadMethod = GooglePhotosUploadMethod.ResumableMultipart, CancellationToken cancellationToken = default)
     {
         var filePaths = searchPattern is not null ? Directory.GetFiles(folderPath, searchPattern) : Directory.GetFiles(folderPath);
         return _UploadMultiple(filePaths, albumId, uploadMethod, cancellationToken: cancellationToken);
     }
 
-    private async Task<mediaItemsCreateResponse?> _UploadMultiple(string[] filePaths, string? albumId = null,
+    private async Task<MediaItemsCreateResponse?> _UploadMultiple(string[] filePaths, string? albumId = null,
         GooglePhotosUploadMethod uploadMethod = GooglePhotosUploadMethod.ResumableMultipart, CancellationToken cancellationToken = default)
     {
         var uploadItems = new List<UploadItem>(filePaths.Length);
@@ -61,7 +61,7 @@ public class GooglePhotosService(ILogger<GooglePhotosService> logger, IOptions<G
     /// Download photo bytes. If the media item is a video then a thumbnail graphic of the video will be downloaded, use downloadVideoBytes get the raw bytes of the video.
     /// </summary>
     public Task<byte[]?> DownloadBytes(MediaItem mediaItem, int? maxWidth = null, int? maxHeight = null, bool crop = false, bool includeExifMetadata = false, bool downloadVideoBytes = false, CancellationToken cancellationToken = default)
-        => DownloadBytes(mediaItem.baseUrl, maxWidth, maxHeight, crop, includeExifMetadata: mediaItem.isPhoto && includeExifMetadata, downloadVideoBytes: mediaItem.isVideo && downloadVideoBytes, cancellationToken: cancellationToken);
+        => DownloadBytes(mediaItem.BaseUrl, maxWidth, maxHeight, crop, includeExifMetadata: mediaItem.IsPhoto && includeExifMetadata, downloadVideoBytes: mediaItem.IsVideo && downloadVideoBytes, cancellationToken: cancellationToken);
 
     //https://developers.google.com/photos/library/guides/access-media-items#image-base-urls
     //https://developers.google.com/photos/library/guides/access-media-items#video-base-urls

@@ -165,16 +165,16 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
         {
             cancellationToken.ThrowIfCancellationRequested();
             var _requestUri = GetUrl(requestUri, pageSize, pageToken);
-            var tpl = await Get<albumsGetResponse, Error>(_requestUri, cancellationToken: cancellationToken);
+            var tpl = await Get<AlbumsGetResponse, Error>(_requestUri, cancellationToken: cancellationToken);
             if (tpl.error is not null) throw new GooglePhotosException(tpl.error);
             else if (tpl.result is not null)//to hide nullability warning
             {
                 var batch = new List<Album>(pageSize);
-                if (!tpl.result.albums.IsNullOrEmpty()) batch = tpl.result.albums ?? [];
+                if (!tpl.result.Albums.IsNullOrEmpty()) batch = tpl.result.Albums ?? [];
                 l.AddRange(batch);
-                if (!string.IsNullOrWhiteSpace(tpl.result.nextPageToken))
+                if (!string.IsNullOrWhiteSpace(tpl.result.NextPageToken))
                     RaisePagingEvent(new PagingEventArgs(batch.Count, pageNumber, l.Count));
-                pageToken = tpl.result.nextPageToken;
+                pageToken = tpl.result.NextPageToken;
                 pageNumber++;
             }
             else
@@ -195,7 +195,7 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
 
     public async Task<Album?> CreateAlbumAsync(string title, CancellationToken cancellationToken = default)
     {
-        var req = new { album = new Album { title = title } };
+        var req = new { album = new Album { Title = title } };
         var tpl = await PostJson<Album, Error>(RequestUris.POST_albums, req, cancellationToken: cancellationToken);
         if (tpl.error is not null) throw new GooglePhotosException(tpl.error);
         return tpl.result;
@@ -233,11 +233,11 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
         return true;
     }
 
-    public async Task<enrichmentItem?> AddEnrichmentToAlbumAsync(string albumId, NewEnrichmentItem newEnrichmentItem, AlbumPosition albumPosition, CancellationToken cancellationToken = default)
+    public async Task<EnrichmentItem?> AddEnrichmentToAlbumAsync(string albumId, NewEnrichmentItem newEnrichmentItem, AlbumPosition albumPosition, CancellationToken cancellationToken = default)
     {
         var tpl = await PostJson<AddEnrichmentResponse, Error>(string.Format(RequestUris.POST_albums_addEnrichment, albumId), new AddEnrichmentRequest(newEnrichmentItem, albumPosition), cancellationToken: cancellationToken);
         if (tpl.error is not null) throw new GooglePhotosException(tpl.error);
-        return tpl.result is not null && tpl.result.enrichmentItem is not null ? tpl.result.enrichmentItem : null;
+        return tpl.result?.EnrichmentItem;
     }
 
     #endregion
@@ -258,28 +258,28 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
         {
             cancellationToken.ThrowIfCancellationRequested();
             var _requestUri = GetUrl(requestUri, pageSize, pageToken);
-            var tpl = await Get<mediaItemsResponse, Error>(_requestUri, cancellationToken: cancellationToken);
+            var tpl = await Get<MediaItemsResponse, Error>(_requestUri, cancellationToken: cancellationToken);
             if (tpl.error is not null) throw new GooglePhotosException(tpl.error);
             else if (tpl.result is not null)
             {
                 var batch = new List<MediaItem>(pageSize);
-                if (!tpl.result.mediaItems.IsNullOrEmpty()) batch = tpl.result.mediaItems ?? [];
+                if (!tpl.result.MediaItems.IsNullOrEmpty()) batch = tpl.result.MediaItems ?? [];
                 foreach (var mi in batch)
-                    if (!hs.Contains(mi.id))
+                    if (!hs.Contains(mi.Id))
                     {
-                        hs.Add(mi.id);
+                        hs.Add(mi.Id);
                         yield return mi;
                     }
-                if (!string.IsNullOrWhiteSpace(tpl.result.nextPageToken) && batch.Count != 0)
+                if (!string.IsNullOrWhiteSpace(tpl.result.NextPageToken) && batch.Count != 0)
                 {
                     //Note: low page sizes can return 0 records but still return a continuation token, weirdness
                     RaisePagingEvent(new PagingEventArgs(batch.Count, pageNumber, hs.Count)
                     {
-                        minDate = batch.Min(p => p.mediaMetadata.creationTime),
-                        maxDate = batch.Max(p => p.mediaMetadata.creationTime),
+                        MinDate = batch.Min(p => p.MediaMetadata.CreationTime),
+                        MaxDate = batch.Max(p => p.MediaMetadata.CreationTime),
                     });
                 }
-                pageToken = tpl.result.nextPageToken;
+                pageToken = tpl.result.NextPageToken;
                 pageNumber++;
             }
             else
@@ -301,25 +301,25 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
         {
             cancellationToken.ThrowIfCancellationRequested();
             var req = new { albumId, pageSize, pageToken, filters };
-            var tpl = await PostJson<mediaItemsResponse, Error>(requestUri, req, cancellationToken: cancellationToken);
+            var tpl = await PostJson<MediaItemsResponse, Error>(requestUri, req, cancellationToken: cancellationToken);
             if (tpl.error is not null) throw new GooglePhotosException(tpl.error);
             else if (tpl.result is not null)
             {
                 var batch = new List<MediaItem>(pageSize);
-                if (!tpl.result.mediaItems.IsNullOrEmpty()) batch = tpl.result.mediaItems ?? [];
+                if (!tpl.result.MediaItems.IsNullOrEmpty()) batch = tpl.result.MediaItems ?? [];
                 foreach (var mi in batch)
-                    if (!hs.Contains(mi.id))
+                    if (!hs.Contains(mi.Id))
                     {
-                        hs.Add(mi.id);
+                        hs.Add(mi.Id);
                         yield return mi;
                     }
-                if (!string.IsNullOrWhiteSpace(tpl.result.nextPageToken) && batch.Count != 0)
+                if (!string.IsNullOrWhiteSpace(tpl.result.NextPageToken) && batch.Count != 0)
                     RaisePagingEvent(new PagingEventArgs(batch.Count, pageNumber, hs.Count)
                     {
-                        minDate = batch.Min(p => p.mediaMetadata.creationTime),
-                        maxDate = batch.Max(p => p.mediaMetadata.creationTime),
+                        MinDate = batch.Min(p => p.MediaMetadata.CreationTime),
+                        MaxDate = batch.Max(p => p.MediaMetadata.CreationTime),
                     });
-                pageToken = tpl.result.nextPageToken;
+                pageToken = tpl.result.NextPageToken;
                 pageNumber++;
             }
             else
@@ -361,27 +361,26 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
             foreach (var mediaItemId in batch.Value)
                 sb.Append($"&{nameof(mediaItemIds)}={mediaItemId}");
             var url = $"{RequestUris.GET_mediaItems_batchGet}?{sb.ToString()[1..]}";
-            var tpl = await Get<mediaItemsGetResponse, Error>(url, cancellationToken: cancellationToken);
+            var tpl = await Get<MediaItemsGetResponse, Error>(url, cancellationToken: cancellationToken);
             if (tpl.error is not null) throw new GooglePhotosException(tpl.error);
             else if (tpl.result is not null)
             {
-                //l.AddRange(res.obj.mediaItemResults);
-                foreach (var result in tpl.result.mediaItemResults)
+                foreach (var result in tpl.result.MediaItemResults)
                 {
-                    if (result.status is null)
+                    if (result.Status is null)
                     {
-                        if (!hs.Contains(result.mediaItem.id))
+                        if (!hs.Contains(result.MediaItem.Id))
                         {
-                            hs.Add(result.mediaItem.id);
-                            yield return result.mediaItem;
+                            hs.Add(result.MediaItem.Id);
+                            yield return result.MediaItem;
                         }
                     }
                     else
                         _logger.LogWarning("{ClassName} {MethodName}, status={Status}", nameof(GooglePhotosServiceBase),
-                            nameof(GetMediaItemsByIdsAsync), result.status);//we highlight if any objects returned a non-null status object
+                            nameof(GetMediaItemsByIdsAsync), result.Status);//we highlight if any objects returned a non-null status object
                 }
                 if (batch.Key + 1 != batches.Count)
-                    RaisePagingEvent(new PagingEventArgs(tpl.result.mediaItemResults.Count, batch.Key + 1, hs.Count));
+                    RaisePagingEvent(new PagingEventArgs(tpl.result.MediaItemResults.Count, batch.Key + 1, hs.Count));
             }
         }
     }
@@ -404,29 +403,29 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
     private IAsyncEnumerable<MediaItem> _GetMediaItemsByFilterAsync(Filter filter, int maxPageCount, CancellationToken cancellationToken)
     {
         //validate/tidy outgoing filter object
-        var contentFilter = filter.contentFilter;
+        var contentFilter = filter.ContentFilter;
         if (contentFilter is not null)
         {
-            if (contentFilter.includedContentCategories.IsNullOrEmpty()) contentFilter.includedContentCategories = null;
-            if (contentFilter.excludedContentCategories.IsNullOrEmpty()) contentFilter.excludedContentCategories = null;
-            if (contentFilter.includedContentCategories is null && contentFilter.excludedContentCategories is null)
+            if (contentFilter.IncludedContentCategories.IsNullOrEmpty()) contentFilter.IncludedContentCategories = null;
+            if (contentFilter.ExcludedContentCategories.IsNullOrEmpty()) contentFilter.ExcludedContentCategories = null;
+            if (contentFilter.IncludedContentCategories is null && contentFilter.ExcludedContentCategories is null)
                 _logger.LogDebug($"{nameof(contentFilter)} element empty so removed from outgoing request");
         }
-        var dateFilter = filter.dateFilter;
+        var dateFilter = filter.DateFilter;
         if (dateFilter is not null)
         {
-            if (dateFilter.dates.IsNullOrEmpty()) dateFilter.dates = null;
-            if (dateFilter.ranges.IsNullOrEmpty()) dateFilter.ranges = null;
-            if (dateFilter.dates is null && dateFilter.ranges is null)
+            if (dateFilter.Dates.IsNullOrEmpty()) dateFilter.Dates = null;
+            if (dateFilter.Ranges.IsNullOrEmpty()) dateFilter.Ranges = null;
+            if (dateFilter.Dates is null && dateFilter.Ranges is null)
                 _logger.LogDebug($"{nameof(dateFilter)} element empty so removed from outgoing request");
             //do we need to validate start/end date ranges, i.e. start before end...?
         }
-        var mediaTypeFilter = filter.mediaTypeFilter;
-        if (mediaTypeFilter is not null && mediaTypeFilter.mediaTypes.IsNullOrEmpty())
+        var mediaTypeFilter = filter.MediaTypeFilter;
+        if (mediaTypeFilter is not null && mediaTypeFilter.MediaTypes.IsNullOrEmpty())
             _logger.LogDebug($"{nameof(mediaTypeFilter)} element empty so removed from outgoing request");
 
-        var featureFilter = filter.featureFilter;
-        if (featureFilter is not null && featureFilter.includedFeatures.IsNullOrEmpty())
+        var featureFilter = filter.FeatureFilter;
+        if (featureFilter is not null && featureFilter.IncludedFeatures.IsNullOrEmpty())
             _logger.LogDebug($"{nameof(featureFilter)} element empty so removed from outgoing request");
 
         return _GetMediaItemsViaPOSTAsync(null, defaultPageSizeMediaItems, maxPageCount, filter, RequestUris.POST_mediaItems_search, cancellationToken);
@@ -437,11 +436,11 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
         => AddMediaItemAsync(new UploadItem(uploadToken, fileName, description), albumId, albumPosition, cancellationToken);
 
     public Task<NewMediaItemResult?> AddMediaItemAsync(string uploadToken, string? fileName = null, string? description = null, string? albumId = null,
-        GooglePhotosPositionType positionType = GooglePhotosPositionType.LAST_IN_ALBUM, string? relativeMediaItemId = null, string? relativeEnrichmentItemId = null, CancellationToken cancellationToken = default)
+        GooglePhotosPositionType positionType = GooglePhotosPositionType.LastInAlbum, string? relativeMediaItemId = null, string? relativeEnrichmentItemId = null, CancellationToken cancellationToken = default)
         => AddMediaItemAsync(new UploadItem(uploadToken, fileName, description), albumId, GetAlbumPosition(albumId, positionType, relativeMediaItemId, relativeEnrichmentItemId), cancellationToken);
 
     public Task<NewMediaItemResult?> AddMediaItemAsync(UploadItem uploadItem, string? albumId = null,
-        GooglePhotosPositionType positionType = GooglePhotosPositionType.LAST_IN_ALBUM, string? relativeMediaItemId = null, string? relativeEnrichmentItemId = null, CancellationToken cancellationToken = default)
+        GooglePhotosPositionType positionType = GooglePhotosPositionType.LastInAlbum, string? relativeMediaItemId = null, string? relativeEnrichmentItemId = null, CancellationToken cancellationToken = default)
         => AddMediaItemAsync(uploadItem, albumId, GetAlbumPosition(albumId, positionType, relativeMediaItemId, relativeEnrichmentItemId), cancellationToken);
 
     //would need renaming if made public
@@ -449,8 +448,8 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
     {
         var newMediaItems = new List<UploadItem> { uploadItem };
         var res = await AddMediaItemsAsync(newMediaItems, albumId, albumPosition, cancellationToken);
-        if (res is not null && !res.newMediaItemResults.IsNullOrEmpty())
-            return res.newMediaItemResults[0];
+        if (res is not null && !res.NewMediaItemResults.IsNullOrEmpty())
+            return res.NewMediaItemResults[0];
         else
         {
             _logger.LogError("{ClassName} {MethodName}, upload failure '{FileName}'", nameof(GooglePhotosServiceBase),
@@ -459,8 +458,8 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
         }
     }
 
-    public Task<mediaItemsCreateResponse?> AddMediaItemsAsync(List<(string uploadToken, string FileName)> items, string? albumId = null,
-        GooglePhotosPositionType positionType = GooglePhotosPositionType.LAST_IN_ALBUM, string? relativeMediaItemId = null, string? relativeEnrichmentItemId = null, CancellationToken cancellationToken = default)
+    public Task<MediaItemsCreateResponse?> AddMediaItemsAsync(List<(string uploadToken, string FileName)> items, string? albumId = null,
+        GooglePhotosPositionType positionType = GooglePhotosPositionType.LastInAlbum, string? relativeMediaItemId = null, string? relativeEnrichmentItemId = null, CancellationToken cancellationToken = default)
     {
         var uploadItems = new List<UploadItem>(items.Count);
         foreach (var item in items)
@@ -468,12 +467,12 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
         return AddMediaItemsAsync(uploadItems, albumId, GetAlbumPosition(albumId, positionType, relativeMediaItemId, relativeEnrichmentItemId), cancellationToken);
     }
 
-    public Task<mediaItemsCreateResponse?> AddMediaItemsAsync(List<UploadItem> uploadItems, string? albumId = null,
-        GooglePhotosPositionType positionType = GooglePhotosPositionType.LAST_IN_ALBUM, string? relativeMediaItemId = null, string? relativeEnrichmentItemId = null, CancellationToken cancellationToken = default)
+    public Task<MediaItemsCreateResponse?> AddMediaItemsAsync(List<UploadItem> uploadItems, string? albumId = null,
+        GooglePhotosPositionType positionType = GooglePhotosPositionType.LastInAlbum, string? relativeMediaItemId = null, string? relativeEnrichmentItemId = null, CancellationToken cancellationToken = default)
         => AddMediaItemsAsync(uploadItems, albumId, GetAlbumPosition(albumId, positionType, relativeMediaItemId, relativeEnrichmentItemId), cancellationToken);
 
     //would need renaming if made public
-    private async Task<mediaItemsCreateResponse?> AddMediaItemsAsync(List<UploadItem> uploadItems, string? albumId, AlbumPosition? albumPosition, CancellationToken cancellationToken)
+    private async Task<MediaItemsCreateResponse?> AddMediaItemsAsync(List<UploadItem> uploadItems, string? albumId, AlbumPosition? albumPosition, CancellationToken cancellationToken)
     {
         if (uploadItems.IsNullOrEmpty())
             throw new ArgumentNullException(nameof(uploadItems), $"Invalid {nameof(uploadItems)} quantity, must be >= 1");
@@ -482,17 +481,17 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
         {
             var newMediaItem = new NewMediaItem
             {
-                description = mediaItem.Description,
-                simpleMediaItem = new SimpleMediaItem
+                Description = mediaItem.Description,
+                SimpleMediaItem = new SimpleMediaItem
                 {
-                    fileName = mediaItem.FileName,
-                    uploadToken = mediaItem.UploadToken,
+                    FileName = mediaItem.FileName,
+                    UploadToken = mediaItem.UploadToken,
                 }
             };
             newMediaItems.Add(newMediaItem);
         }
         var req = new { newMediaItems, albumId, albumPosition };
-        var tpl = await PostJson<mediaItemsCreateResponse, Error>(RequestUris.POST_mediaItems_batchCreate, req, cancellationToken: cancellationToken);
+        var tpl = await PostJson<MediaItemsCreateResponse, Error>(RequestUris.POST_mediaItems_batchCreate, req, cancellationToken: cancellationToken);
         if (tpl.error is not null) throw new GooglePhotosException(tpl.error);
         return tpl.result;
     }
@@ -727,20 +726,20 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
     {
         AlbumPosition? albumPosition = null;
         if (string.IsNullOrWhiteSpace(albumId)
-            && (positionType != GooglePhotosPositionType.LAST_IN_ALBUM || !string.IsNullOrWhiteSpace(relativeMediaItemId) || !string.IsNullOrWhiteSpace(relativeEnrichmentItemId)))
+            && (positionType != GooglePhotosPositionType.LastInAlbum || !string.IsNullOrWhiteSpace(relativeMediaItemId) || !string.IsNullOrWhiteSpace(relativeEnrichmentItemId)))
             throw new NotSupportedException($"cannot specify position without including an {nameof(albumId)}!");
         if (!string.IsNullOrWhiteSpace(relativeMediaItemId) && !string.IsNullOrWhiteSpace(relativeEnrichmentItemId))
             throw new NotSupportedException($"cannot specify {nameof(relativeMediaItemId)} and {nameof(relativeEnrichmentItemId)} at the same time!");
-        if (positionType == GooglePhotosPositionType.LAST_IN_ALBUM || positionType == GooglePhotosPositionType.POSITION_TYPE_UNSPECIFIED)
+        if (positionType == GooglePhotosPositionType.LastInAlbum || positionType == GooglePhotosPositionType.Unspecified)
         {
             //the default so ignore
         }
-        else if (positionType == GooglePhotosPositionType.FIRST_IN_ALBUM)
-            albumPosition = new AlbumPosition { position = positionType };
+        else if (positionType == GooglePhotosPositionType.FirstInAlbum)
+            albumPosition = new AlbumPosition { Position = positionType };
         else if (!string.IsNullOrWhiteSpace(relativeMediaItemId))
-            albumPosition = new AlbumPosition { position = positionType, relativeMediaItemId = relativeMediaItemId };
+            albumPosition = new AlbumPosition { Position = positionType, RelativeMediaItemId = relativeMediaItemId };
         else if (!string.IsNullOrWhiteSpace(relativeEnrichmentItemId))
-            albumPosition = new AlbumPosition { position = positionType, relativeEnrichmentItemId = relativeEnrichmentItemId };
+            albumPosition = new AlbumPosition { Position = positionType, RelativeEnrichmentItemId = relativeEnrichmentItemId };
         else
             throw new NotSupportedException($"unexpected {nameof(positionType)} '{positionType}'?");
         return albumPosition;

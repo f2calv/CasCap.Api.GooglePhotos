@@ -31,14 +31,14 @@
 //        var newMediaItemResult = await _googlePhotosSvc.AddMediaItemAsync(uploadToken, path);
 //        Assert.NotNull(newMediaItemResult);
 //        //the upload returns a null baseUrl
-//        Assert.Null(newMediaItemResult.mediaItem.baseUrl);
+//        Assert.Null(newMediaItemResult.MediaItem.BaseUrl);
 
 //        //so now retrieve all media items
 //        var mediaItems = await _googlePhotosSvc.GetMediaItemsAsync().ToListAsync();
 
-//        var uploadedMediaItem = mediaItems.FirstOrDefault(p => p.filename.Equals(fileName));
+//        var uploadedMediaItem = mediaItems.FirstOrDefault(p => p.Filename.Equals(fileName));
 //        Assert.NotNull(uploadedMediaItem);
-//        Assert.True(uploadedMediaItem.isPhoto);
+//        Assert.True(uploadedMediaItem.IsPhoto);
 
 //        var bytesNoExif = await _googlePhotosSvc.DownloadBytes(uploadedMediaItem, includeExifMetadata: false);
 //        Assert.NotNull(bytesNoExif);

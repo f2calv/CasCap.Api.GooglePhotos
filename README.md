@@ -118,7 +118,7 @@ public sealed class PhotoImportService(GooglePhotosService googlePhotosSvc)
 
         await googlePhotosSvc.UploadSingle(
             path,
-            album.id,
+          album.Id,
             cancellationToken: cancellationToken);
     }
 }

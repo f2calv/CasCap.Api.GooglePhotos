@@ -9,36 +9,39 @@ This project exercises the Google Photos client against a dedicated test account
 
 ## Tests
 
-| Test method                                     | Method count | Test case count | Category     |
-| ----------------------------------------------- | ------------ | --------------- | ------------ |
-| `DoLogin`                                       | 1            | 1               | Integration  |
-| `PickerSessionLifecycle`                        | 1            | 1               | Integration  |
-| `UploadMedia`                                   | 1            | 3               | Integration  |
-| `UploadSingle`                                  | 1            | 2               | Integration  |
-| `UploadMultiple`                                | 1            | 1               | Integration  |
-| `FilterMediaItems`                              | 1            | 1               | Integration  |
-| `AddEnrichments`                                | 1            | 1               | Integration  |
-| `DownloadBytes`                                 | 1            | 1               | Integration  |
-| `CreateSessionRejectsInvalidItemCount`          | 1            | 2               | Picker       |
-| `CreateSessionRejectsNonVersionFourRequestId`   | 1            | 1               | Picker       |
-| `DeleteSessionWrapsMalformedError`              | 1            | 1               | Picker       |
-| `DownloadPhotoIncludesDimensionsAndExif`        | 1            | 1               | Picker       |
-| `DownloadPhotoWrapsMalformedError`              | 1            | 1               | Picker       |
-| `GetMediaItemsFollowsPageToken`                 | 1            | 1               | Picker       |
-| `RegistrationRejectsEmptyScopes`                | 1            | 1               | Picker       |
-| `DisabledLimiterBypassesUnsafeRequests`         | 1            | 1               | RateLimiting |
-| `RegistrationCopiesRateLimitOptions`            | 1            | 1               | RateLimiting |
-| `RegistrationRejectsInvalidRateLimit`           | 1            | 1               | RateLimiting |
-| `RegistrationRejectsNullRateLimit`              | 1            | 1               | RateLimiting |
-| `QueuedWriteHonorsCancellation`                 | 1            | 1               | RateLimiting |
-| `ReadOnlySearchBypassesLimiter`                 | 1            | 1               | RateLimiting |
-| `SafeMethodBypassesLimiter`                     | 1            | 4               | RateLimiting |
-| `UnsafeMethodConsumesPermit`                    | 1            | 4               | RateLimiting |
-| Total                                           | 23           | 33              |              |
+| Test method                                     | Method count | Test case count | Category      |
+| ----------------------------------------------- | ------------ | --------------- | ------------- |
+| `DoLogin`                                       | 1            | 1               | Integration   |
+| `PickerSessionLifecycle`                        | 1            | 1               | Integration   |
+| `UploadMedia`                                   | 1            | 3               | Integration   |
+| `UploadSingle`                                  | 1            | 2               | Integration   |
+| `UploadMultiple`                                | 1            | 1               | Integration   |
+| `FilterMediaItems`                              | 1            | 1               | Integration   |
+| `AddEnrichments`                                | 1            | 1               | Integration   |
+| `DownloadBytes`                                 | 1            | 1               | Integration   |
+| `CreateSessionRejectsInvalidItemCount`          | 1            | 2               | Picker        |
+| `CreateSessionRejectsNonVersionFourRequestId`   | 1            | 1               | Picker        |
+| `DeleteSessionWrapsMalformedError`              | 1            | 1               | Picker        |
+| `DownloadPhotoIncludesDimensionsAndExif`        | 1            | 1               | Picker        |
+| `DownloadPhotoWrapsMalformedError`              | 1            | 1               | Picker        |
+| `GetMediaItemsFollowsPageToken`                 | 1            | 1               | Picker        |
+| `RegistrationRejectsEmptyScopes`                | 1            | 1               | Picker        |
+| `DisabledLimiterBypassesUnsafeRequests`         | 1            | 1               | RateLimiting  |
+| `RegistrationCopiesRateLimitOptions`            | 1            | 1               | RateLimiting  |
+| `RegistrationRejectsInvalidRateLimit`           | 1            | 1               | RateLimiting  |
+| `RegistrationRejectsNullRateLimit`              | 1            | 1               | RateLimiting  |
+| `QueuedWriteHonorsCancellation`                 | 1            | 1               | RateLimiting  |
+| `ReadOnlySearchBypassesLimiter`                 | 1            | 1               | RateLimiting  |
+| `SafeMethodBypassesLimiter`                     | 1            | 4               | RateLimiting  |
+| `UnsafeMethodConsumesPermit`                    | 1            | 4               | RateLimiting  |
+| `FilterUsesGoogleWireNames`                     | 1            | 1               | Serialization |
+| `MediaItemMapsGoogleWireNames`                  | 1            | 1               | Serialization |
+| `ResponsesMapGoogleWireNames`                   | 1            | 1               | Serialization |
+| Total                                           | 26           | 36              |               |
 
 ## Trait Categories
 
-Credentialed tests carry `Category=Integration`; unit tests carry `Category=Picker` or `Category=RateLimiting`. API-specific integration coverage carries `Type=GooglePhotosService` or `Type=GooglePhotosPickerService`.
+Credentialed tests carry `Category=Integration`; unit tests carry `Category=Picker`, `Category=RateLimiting`, or `Category=Serialization`. API-specific integration coverage carries `Type=GooglePhotosService` or `Type=GooglePhotosPickerService`.
 
 ## Skipped Tests
 
@@ -66,7 +69,8 @@ CasCap.Api.GooglePhotos.Tests/
 |   |   `-- TestBase.cs
 |   |-- Unit/
 |   |   |-- GooglePhotosPickerServiceTests.cs
-|   |   `-- GooglePhotosWriteRateLimitingHandlerTests.cs
+|   |   |-- GooglePhotosWriteRateLimitingHandlerTests.cs
+|   |   `-- ModelSerializationTests.cs
 |   `-- ExifTests.cs        # TODO: re-enable the EXIF metadata proof
 |-- testdata/
 |-- appsettings.Test.json

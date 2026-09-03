@@ -68,18 +68,18 @@ if (!await _googlePhotosSvc.LoginAsync())
 var albumTitle = $"{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}-{Guid.NewGuid()}";//make-up a random title
 var album = await _googlePhotosSvc.GetOrCreateAlbumAsync(albumTitle) ?? throw new GooglePhotosException("album creation failed!");
 
-Console.WriteLine($"{nameof(album)} '{album.title}' id is '{album.id}'");
+Console.WriteLine($"{nameof(album)} '{album.Title}' id is '{album.Id}'");
 
 //upload single media item and assign to album
-var mediaItem = await _googlePhotosSvc.UploadSingle($"{_testFolder}test1.jpg", album.id) ?? throw new GooglePhotosException("media item upload failed!");
+var mediaItem = await _googlePhotosSvc.UploadSingle($"{_testFolder}test1.jpg", album.Id) ?? throw new GooglePhotosException("media item upload failed!");
 
-Console.WriteLine($"{nameof(mediaItem)} '{mediaItem.mediaItem.filename}' id is '{mediaItem.mediaItem.id}'");
+Console.WriteLine($"{nameof(mediaItem)} '{mediaItem.MediaItem.Filename}' id is '{mediaItem.MediaItem.Id}'");
 
 //retrieve all media items in the album
 var i = 0;
-await foreach (var item in _googlePhotosSvc.GetMediaItemsByAlbumAsync(album.id))
+await foreach (var item in _googlePhotosSvc.GetMediaItemsByAlbumAsync(album.Id))
 {
     i++;
-    Console.WriteLine($"{i}\t{item.filename}\t{item.mediaMetadata.width}x{item.mediaMetadata.height}");
+    Console.WriteLine($"{i}\t{item.Filename}\t{item.MediaMetadata.Width}x{item.MediaMetadata.Height}");
 }
 if (i == 0) throw new GooglePhotosException("retrieve media items by album id failed!");
