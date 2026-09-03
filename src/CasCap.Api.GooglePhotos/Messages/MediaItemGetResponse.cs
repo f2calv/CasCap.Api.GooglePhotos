@@ -1,7 +1,7 @@
 namespace CasCap.Messages;
 
 /// <summary>Represents the result of retrieving one media item in a batch.</summary>
-internal class MediaItemGetResponse
+internal sealed class MediaItemGetResponse
 {
     /// <summary>Gets or sets the retrieved media item.</summary>
     [JsonPropertyName("mediaItem")]

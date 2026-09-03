@@ -1,7 +1,7 @@
 namespace CasCap.Models;
 
 /// <summary>Contains sharing information for an album.</summary>
-public class ShareInfo
+public sealed class ShareInfo
 {
     /// <summary>Gets or sets the options that control album sharing.</summary>
     [JsonPropertyName("sharedAlbumOptions")]

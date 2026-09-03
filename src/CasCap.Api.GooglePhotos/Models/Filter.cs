@@ -1,7 +1,7 @@
 namespace CasCap.Models;
 
 /// <summary>Defines filters for a Google Photos media search.</summary>
-public class Filter
+public sealed class Filter
 {
     /// <summary>Initializes an empty filter.</summary>
     public Filter() { }

@@ -5,13 +5,15 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace CasCap.Models;
 
-public record GooglePhotosOptions
+/// <summary>Configures Google Photos API endpoints, OAuth credentials, scopes, and client-side request behavior.</summary>
+public sealed record GooglePhotosOptions
 {
     /// <summary>
     /// Configuration sub-section locator key.
     /// </summary>
     public const string ConfigurationSectionName = $"{nameof(CasCap)}:{nameof(GooglePhotosOptions)}";
 
+    /// <summary>Initializes a new instance of the <see cref="GooglePhotosOptions" /> class with default endpoints and scopes.</summary>
     [SetsRequiredMembers]
     public GooglePhotosOptions() { }
 

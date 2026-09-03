@@ -1,7 +1,7 @@
 namespace CasCap.Models;
 
 /// <summary>Defines exact dates and date ranges for a media search.</summary>
-public class DateFilter
+public sealed class DateFilter
 {
     /// <summary>Gets or sets exact dates to include.</summary>
     [JsonPropertyName("dates")]

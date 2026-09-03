@@ -2,7 +2,7 @@ namespace CasCap.Models;
 
 /// <summary>Defines where an item is inserted into an album.</summary>
 /// <remarks><see href="https://developers.google.com/photos/library/reference/rest/v1/AlbumPosition" /></remarks>
-public class AlbumPosition
+public sealed class AlbumPosition
 {
     /// <summary>Gets or sets the position type.</summary>
     [JsonPropertyName("position")]

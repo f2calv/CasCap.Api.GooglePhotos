@@ -1,7 +1,7 @@
 ﻿namespace CasCap.Models;
 
 /// <summary>Provides progress information while paging through API results.</summary>
-public class PagingEventArgs(int pageSize, int pageNumber, int recordCount) : EventArgs
+public sealed class PagingEventArgs(int pageSize, int pageNumber, int recordCount) : EventArgs
 {
     /// <summary>Gets the number of records returned in the page.</summary>
     public int PageSize { get; } = pageSize;

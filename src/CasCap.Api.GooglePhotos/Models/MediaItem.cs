@@ -2,7 +2,7 @@ namespace CasCap.Models;
 
 /// <summary>Represents a Google Photos media item.</summary>
 /// <remarks><see href="https://developers.google.com/photos/library/guides/access-media-items#media-items" /></remarks>
-public class MediaItem
+public sealed class MediaItem
 {
     /// <summary>Gets or sets the permanent media item identifier.</summary>
     [JsonPropertyName("id")]

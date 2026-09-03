@@ -2,7 +2,7 @@ namespace CasCap.Models;
 
 /// <summary>Represents a Google API status.</summary>
 /// <remarks><see href="https://developers.google.com/photos/library/reference/rest/v1/Status" /></remarks>
-public class Status
+public sealed class Status
 {
     /// <summary>Gets or sets the numeric status code.</summary>
     [JsonPropertyName("code")]

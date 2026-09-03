@@ -8,7 +8,7 @@ using System.Text;
 namespace CasCap.Services;
 
 /// <summary>Creates and refreshes OAuth credentials for Google Photos API clients.</summary>
-internal static class GooglePhotosAuthorization
+internal static partial class GooglePhotosAuthorization
 {
     private static readonly FrozenDictionary<GooglePhotosScope, string> Scopes = new Dictionary<GooglePhotosScope, string>
     {
@@ -35,7 +35,7 @@ internal static class GooglePhotosAuthorization
             dataStore = new FileDataStore(options.FileDataStoreFullPathOverride, true);
 
         var requestedScopes = GetScopes(options.Scopes);
-        logger.LogDebug("{ClassName} requesting authorization", nameof(GooglePhotosAuthorization));
+        LogRequestingAuthorization(logger, nameof(GooglePhotosAuthorization));
         var credential = await GoogleWebAuthorizationBroker.AuthorizeAsync(
             secrets,
             requestedScopes,
@@ -45,10 +45,10 @@ internal static class GooglePhotosAuthorization
 
         if (credential.Token.IsStale)
         {
-            logger.LogWarning("{ClassName} access token expired; refreshing it", nameof(GooglePhotosAuthorization));
+            LogRefreshingAccessToken(logger, nameof(GooglePhotosAuthorization));
             if (!await credential.RefreshTokenAsync(cancellationToken).ConfigureAwait(false))
             {
-                logger.LogError("{ClassName} failed to refresh the access token", nameof(GooglePhotosAuthorization));
+                LogAccessTokenRefreshFailed(logger, nameof(GooglePhotosAuthorization));
                 return null;
             }
         }
@@ -68,7 +68,9 @@ internal static class GooglePhotosAuthorization
     }
 
     private static string[] GetScopes(IEnumerable<GooglePhotosScope> scopes)
-        => scopes.Select(scope => Scopes[scope]).ToArray();
+        => scopes.Select(scope => Scopes.TryGetValue(scope, out var value)
+            ? value
+            : throw new GooglePhotosException($"Unsupported Google Photos OAuth scope: {scope}.")).ToArray();
 
     private static string GetTokenStoreKey(string user, IEnumerable<string> scopes)
     {
@@ -76,4 +78,13 @@ internal static class GooglePhotosAuthorization
         var source = Encoding.UTF8.GetBytes($"{user}\n{normalizedScopes}");
         return Convert.ToHexString(SHA256.HashData(source));
     }
+
+    [LoggerMessage(EventId = 1, Level = LogLevel.Debug, Message = "{ClassName} requesting authorization")]
+    private static partial void LogRequestingAuthorization(ILogger logger, string className);
+
+    [LoggerMessage(EventId = 2, Level = LogLevel.Warning, Message = "{ClassName} access token expired; refreshing it")]
+    private static partial void LogRefreshingAccessToken(ILogger logger, string className);
+
+    [LoggerMessage(EventId = 3, Level = LogLevel.Error, Message = "{ClassName} failed to refresh the access token")]
+    private static partial void LogAccessTokenRefreshFailed(ILogger logger, string className);
 }

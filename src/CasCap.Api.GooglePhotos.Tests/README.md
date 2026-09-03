@@ -28,8 +28,10 @@ This project exercises the Google Photos client against a dedicated test account
 | `RegistrationRejectsEmptyScopes`                | 1            | 1               | Picker        |
 | `DisabledLimiterBypassesUnsafeRequests`         | 1            | 1               | RateLimiting  |
 | `RegistrationCopiesRateLimitOptions`            | 1            | 1               | RateLimiting  |
+| `RegistrationCopiesScopes`                      | 1            | 1               | RateLimiting  |
 | `RegistrationRejectsInvalidRateLimit`           | 1            | 1               | RateLimiting  |
 | `RegistrationRejectsNullRateLimit`              | 1            | 1               | RateLimiting  |
+| `RegistrationRejectsNullScopes`                 | 1            | 1               | RateLimiting  |
 | `QueuedWriteHonorsCancellation`                 | 1            | 1               | RateLimiting  |
 | `ReadOnlySearchBypassesLimiter`                 | 1            | 1               | RateLimiting  |
 | `SafeMethodBypassesLimiter`                     | 1            | 4               | RateLimiting  |
@@ -44,6 +46,7 @@ This project exercises the Google Photos client against a dedicated test account
 | `DownloadBytesBuildsPhotoParameters`            | 1            | 1               | Library       |
 | `DownloadBytesBuildsVideoParameters`            | 1            | 1               | Library       |
 | `DownloadBytesWrapsApiError`                    | 1            | 1               | Library       |
+| `GetAlbumWrapsApiError`                         | 1            | 1               | Library       |
 | `GetAlbumsRejectsInvalidPageSize`               | 1            | 2               | Library       |
 | `GetMediaItemsDeduplicatesAcrossPages`          | 1            | 1               | Library       |
 | `GetMediaItemsByFilterRemovesEmptyFilters`      | 1            | 1               | Library       |
@@ -51,7 +54,13 @@ This project exercises the Google Photos client against a dedicated test account
 | `GetOrCreateAlbumCreatesMissingAlbum`           | 1            | 1               | Library       |
 | `GetOrCreateAlbumReturnsExistingAlbum`          | 1            | 1               | Library       |
 | `IsFileUploadableByExtensionClassifiesTypes`    | 1            | 4               | Library       |
-| Total                                           | 40           | 57              |               |
+| `LoginRejectsUndefinedScope`                    | 1            | 1               | Library       |
+| `UploadMediaRecoversFromAcceptedChunk`          | 1            | 1               | Library       |
+| `UploadMediaRecoversFromAcceptedFinalChunk`     | 1            | 1               | Library       |
+| `UploadMediaRecoversResumableSingle`            | 1            | 1               | Library       |
+| `UploadMediaWrapsMalformedError`                | 1            | 1               | Library       |
+| `UploadMediaWrapsMalformedSessionError`         | 1            | 1               | Library       |
+| Total                                           | 49           | 66              |               |
 
 ## Trait Categories
 

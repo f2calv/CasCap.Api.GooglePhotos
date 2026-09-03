@@ -1,7 +1,7 @@
 namespace CasCap.Models;
 
 /// <summary>Defines included and excluded content categories.</summary>
-public class ContentFilter
+public sealed class ContentFilter
 {
     /// <summary>Gets or sets categories that must be included.</summary>
     [JsonPropertyName("includedContentCategories")]

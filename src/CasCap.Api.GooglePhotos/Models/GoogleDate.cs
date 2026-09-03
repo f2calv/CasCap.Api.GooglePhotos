@@ -1,7 +1,7 @@
 namespace CasCap.Models;
 
 /// <summary>Represents a calendar date in the Google Photos API.</summary>
-public class GoogleDate
+public sealed class GoogleDate
 {
     /// <summary>Initializes an empty date.</summary>
     public GoogleDate() { }

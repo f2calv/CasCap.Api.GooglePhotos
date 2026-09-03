@@ -1,7 +1,7 @@
 namespace CasCap.Models;
 
 /// <summary>Contains metadata for a Google Photos media item.</summary>
-public class MediaMetadata
+public sealed class MediaMetadata
 {
     /// <summary>Gets or sets when the media item was created.</summary>
     [JsonPropertyName("creationTime")]

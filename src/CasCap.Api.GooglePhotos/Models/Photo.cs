@@ -1,7 +1,7 @@
 namespace CasCap.Models;
 
 /// <summary>Contains metadata specific to a photo.</summary>
-public class Photo : Camera
+public sealed class Photo : Camera
 {
     /// <summary>Gets or sets the focal length of the camera lens.</summary>
     [JsonPropertyName("focalLength")]

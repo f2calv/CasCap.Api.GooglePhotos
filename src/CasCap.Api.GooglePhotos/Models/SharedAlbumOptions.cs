@@ -1,7 +1,7 @@
 namespace CasCap.Models;
 
 /// <summary>Defines the options for a shared album.</summary>
-public class SharedAlbumOptions
+public sealed class SharedAlbumOptions
 {
     /// <summary>Gets or sets whether collaborators can add media items.</summary>
     [JsonPropertyName("isCollaborative")]

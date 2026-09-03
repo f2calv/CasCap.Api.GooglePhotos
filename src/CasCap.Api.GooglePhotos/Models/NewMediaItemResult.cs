@@ -2,7 +2,7 @@ namespace CasCap.Models;
 
 /// <summary>Represents the result of creating one media item.</summary>
 /// <remarks><see href="https://developers.google.com/photos/library/reference/rest/v1/mediaItems/batchCreate#NewMediaItemResult" /></remarks>
-public class NewMediaItemResult
+public sealed class NewMediaItemResult
 {
     /// <summary>Gets or sets the upload token used to create the item.</summary>
     [JsonPropertyName("uploadToken")]

@@ -11,7 +11,8 @@ using System.Web;
 
 namespace CasCap.Services;
 
-public abstract class GooglePhotosServiceBase : HttpClientBase
+/// <summary>Provides authentication, album, media item, enrichment, and upload operations for the Google Photos Library API.</summary>
+public abstract partial class GooglePhotosServiceBase : HttpClientBase
 {
     private const int maxSizeImageBytes = 1024 * 1024 * 200;
     private const long maxSizeVideoBytes = 1024 * 1024 * 1024 * 10L;
@@ -28,24 +29,43 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
 
     private GooglePhotosOptions _options;
 
-    protected GooglePhotosServiceBase(ILogger<GooglePhotosServiceBase> logger,
+    /// <summary>Initializes a new instance of the <see cref="GooglePhotosServiceBase" /> class.</summary>
+    /// <param name="logger">The logger used for request diagnostics.</param>
+    /// <param name="options">The configured Google Photos options.</param>
+    /// <param name="client">The HTTP client used to send API requests.</param>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="client" /> is <see langword="null" />.</exception>
+    protected GooglePhotosServiceBase(
+        ILogger<GooglePhotosServiceBase> logger,
         IOptions<GooglePhotosOptions> options,
-        HttpClient client
-        )
+        HttpClient client)
     {
         _logger = logger;
         _options = options.Value;
         Client = client ?? throw new ArgumentNullException(nameof(client), $"{nameof(HttpClient)} cannot be null!");
     }
 
+    /// <summary>Raises <see cref="PagingEvent" /> after a page of results is processed.</summary>
+    /// <param name="args">The page progress information.</param>
     protected virtual void RaisePagingEvent(PagingEventArgs args) => PagingEvent?.Invoke(this, args);
+
+    /// <summary>Occurs after a page of results is processed and another page is available.</summary>
     public event EventHandler<PagingEventArgs>? PagingEvent;
 
+    /// <summary>Raises <see cref="UploadProgressEvent" /> after an upload chunk is accepted.</summary>
+    /// <param name="args">The upload progress information.</param>
     protected virtual void RaiseUploadProgressEvent(UploadProgressEventArgs args) => UploadProgressEvent?.Invoke(this, args);
+
+    /// <summary>Occurs after a resumable upload chunk is accepted.</summary>
     public event EventHandler<UploadProgressEventArgs>? UploadProgressEvent;
 
+    /// <summary>Determines whether a file has an image or video extension supported by Google Photos.</summary>
+    /// <param name="path">The file path to inspect.</param>
+    /// <returns><see langword="true" /> when the file extension is supported; otherwise, <see langword="false" />.</returns>
     public static bool IsFileUploadable(string path) => IsFileUploadableByExtension(Path.GetExtension(path));
 
+    /// <summary>Determines whether an extension maps to an image or video MIME type supported by Google Photos.</summary>
+    /// <param name="extension">The file extension to inspect.</param>
+    /// <returns><see langword="true" /> when the extension is supported; otherwise, <see langword="false" />.</returns>
     public static bool IsFileUploadableByExtension(string extension)
     {
         if (IsImage(extension))
@@ -96,25 +116,50 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
         { "video/x-ms-wmv" },
     };
 
-    public async Task<bool> LoginAsync(string User, string ClientId, string ClientSecret, GooglePhotosScope[] Scopes, string? FileDataStoreFullPathOverride = null, CancellationToken cancellationToken = default)
+    /// <summary>Authenticates with explicit OAuth settings and applies the resulting authorization header.</summary>
+    /// <param name="user">The Google account identifier used to partition the local token cache.</param>
+    /// <param name="clientId">The OAuth client identifier.</param>
+    /// <param name="clientSecret">The OAuth client secret.</param>
+    /// <param name="scopes">The Google Photos OAuth scopes to request.</param>
+    /// <param name="fileDataStoreFullPathOverride">An optional directory for the OAuth token cache.</param>
+    /// <param name="cancellationToken">A token that can cancel authentication.</param>
+    /// <returns><see langword="true" /> when authorization succeeds; otherwise, <see langword="false" />.</returns>
+    /// <exception cref="GooglePhotosException">Thrown when required settings are missing or a scope is unsupported.</exception>
+    public async Task<bool> LoginAsync(
+        string user,
+        string clientId,
+        string clientSecret,
+        GooglePhotosScope[] scopes,
+        string? fileDataStoreFullPathOverride = null,
+        CancellationToken cancellationToken = default)
     {
         _options = new GooglePhotosOptions
         {
-            User = User,
-            ClientId = ClientId,
-            ClientSecret = ClientSecret,
-            Scopes = Scopes,
-            FileDataStoreFullPathOverride = FileDataStoreFullPathOverride
+            User = user,
+            ClientId = clientId,
+            ClientSecret = clientSecret,
+            Scopes = scopes,
+            FileDataStoreFullPathOverride = fileDataStoreFullPathOverride
         };
-        return await LoginAsync(cancellationToken);
+        return await LoginAsync(cancellationToken).ConfigureAwait(false);
     }
 
+    /// <summary>Authenticates with the supplied options and applies the resulting authorization header.</summary>
+    /// <param name="options">The Google Photos authentication options.</param>
+    /// <param name="cancellationToken">A token that can cancel authentication.</param>
+    /// <returns><see langword="true" /> when authorization succeeds; otherwise, <see langword="false" />.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="options" /> is <see langword="null" />.</exception>
+    /// <exception cref="GooglePhotosException">Thrown when required settings are missing or a scope is unsupported.</exception>
     public async Task<bool> LoginAsync(GooglePhotosOptions options, CancellationToken cancellationToken = default)
     {
         _options = options ?? throw new ArgumentNullException(nameof(options), $"{nameof(GooglePhotosOptions)} cannot be null!");
-        return await LoginAsync(cancellationToken);
+        return await LoginAsync(cancellationToken).ConfigureAwait(false);
     }
 
+    /// <summary>Authenticates with the current options and applies the resulting authorization header.</summary>
+    /// <param name="cancellationToken">A token that can cancel authentication.</param>
+    /// <returns><see langword="true" /> when authorization succeeds; otherwise, <see langword="false" />.</returns>
+    /// <exception cref="GooglePhotosException">Thrown when required settings are missing or a scope is unsupported.</exception>
     public async Task<bool> LoginAsync(CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(_options.User)) throw new GooglePhotosException($"{nameof(GooglePhotosOptions)}.{nameof(_options.User)} cannot be null!");
@@ -133,22 +178,34 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
     /// <summary>
     /// Workaround to allow setting the auth header when running integration tests from CI.
     /// </summary>
-    /// <param name="tokenType"></param>
-    /// <param name="accessToken"></param>
+    /// <param name="tokenType">The authorization scheme, such as <c>Bearer</c>.</param>
+    /// <param name="accessToken">The access token value.</param>
     public void SetAuth(string tokenType, string accessToken)
         => Client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(tokenType, accessToken);
 
     #region https://photoslibrary.googleapis.com/v1/albums
 
     //https://photoslibrary.googleapis.com/v1/albums/{albumId}
+    /// <summary>Retrieves an album by its identifier.</summary>
+    /// <param name="albumId">The album identifier.</param>
+    /// <param name="cancellationToken">A token that can cancel the request.</param>
+    /// <returns>The album when found; otherwise, <see langword="null" />.</returns>
+    /// <exception cref="GooglePhotosException">Thrown when the API returns an error.</exception>
     public async Task<Album?> GetAlbumAsync(string albumId, CancellationToken cancellationToken = default)
     {
-        var tpl = await Get<Album, Error>(string.Format(RequestUris.GET_album, albumId), cancellationToken: cancellationToken);
+        var tpl = await Get<Album, Error>(string.Format(RequestUris.GET_album, albumId), cancellationToken: cancellationToken).ConfigureAwait(false);
+        if (tpl.error is not null)
+            throw new GooglePhotosException(tpl.error);
 
         return tpl.result;
     }
 
     /// <summary>Lists albums created by this application.</summary>
+    /// <param name="pageSize">The number of albums to request per page, from 1 through 50.</param>
+    /// <param name="cancellationToken">A token that can cancel the request.</param>
+    /// <returns>All albums returned by the API.</returns>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="pageSize" /> is outside the supported range.</exception>
+    /// <exception cref="GooglePhotosException">Thrown when the API returns an error.</exception>
     public Task<List<Album>> GetAlbumsAsync(int pageSize = defaultPageSizeAlbums, CancellationToken cancellationToken = default)
         => _GetAlbumsAsync(RequestUris.GET_albums, pageSize, cancellationToken);
 
@@ -165,7 +222,7 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
         {
             cancellationToken.ThrowIfCancellationRequested();
             var _requestUri = GetUrl(requestUri, pageSize, pageToken);
-            var tpl = await Get<AlbumsGetResponse, Error>(_requestUri, cancellationToken: cancellationToken);
+            var tpl = await Get<AlbumsGetResponse, Error>(_requestUri, cancellationToken: cancellationToken).ConfigureAwait(false);
             if (tpl.error is not null) throw new GooglePhotosException(tpl.error);
             else if (tpl.result is not null)//to hide nullability warning
             {
@@ -189,21 +246,38 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
         if (pageSize.HasValue && pageSize != defaultPageSizeAlbums) queryParams.Add(nameof(pageSize), pageSize.Value.ToString());
         if (!string.IsNullOrWhiteSpace(pageToken)) queryParams.Add(nameof(pageToken), pageToken!);//todo: nullability look further into this
         var url = QueryHelpers.AddQueryString(uri, queryParams);
-        _logger.LogDebug("{ClassName} {MethodName}, {Url}", nameof(GooglePhotosServiceBase), nameof(GetUrl), url);
+        LogRequestUrl(_logger, nameof(GooglePhotosServiceBase), nameof(GetUrl), url);
         return url;
     }
 
+    /// <summary>Creates an album with the specified title.</summary>
+    /// <param name="title">The title of the new album.</param>
+    /// <param name="cancellationToken">A token that can cancel the request.</param>
+    /// <returns>The created album when returned by the API; otherwise, <see langword="null" />.</returns>
+    /// <exception cref="GooglePhotosException">Thrown when the API returns an error.</exception>
     public async Task<Album?> CreateAlbumAsync(string title, CancellationToken cancellationToken = default)
     {
         var req = new { album = new Album { Title = title } };
-        var tpl = await PostJson<Album, Error>(RequestUris.POST_albums, req, cancellationToken: cancellationToken);
+        var tpl = await PostJson<Album, Error>(RequestUris.POST_albums, req, cancellationToken: cancellationToken).ConfigureAwait(false);
         if (tpl.error is not null) throw new GooglePhotosException(tpl.error);
         return tpl.result;
     }
 
+    /// <summary>Adds media items to an album in API-sized batches.</summary>
+    /// <param name="albumId">The destination album identifier.</param>
+    /// <param name="mediaItemIds">The media item identifiers to add.</param>
+    /// <param name="cancellationToken">A token that can cancel the request.</param>
+    /// <returns><see langword="true" /> when all batches are accepted.</returns>
+    /// <exception cref="GooglePhotosException">Thrown when the API returns an error.</exception>
     public Task<bool> AddMediaItemsToAlbumAsync(string albumId, string[] mediaItemIds, CancellationToken cancellationToken = default)
         => AddMediaItemsToAlbumAsync(albumId, mediaItemIds.ToList(), cancellationToken);
 
+    /// <summary>Adds media items to an album in API-sized batches.</summary>
+    /// <param name="albumId">The destination album identifier.</param>
+    /// <param name="mediaItemIds">The media item identifiers to add.</param>
+    /// <param name="cancellationToken">A token that can cancel the request.</param>
+    /// <returns><see langword="true" /> when all batches are accepted.</returns>
+    /// <exception cref="GooglePhotosException">Thrown when the API returns an error.</exception>
     public async Task<bool> AddMediaItemsToAlbumAsync(string albumId, List<string> mediaItemIds, CancellationToken cancellationToken = default)
     {
         var batches = mediaItemIds.Distinct().ToList().GetBatches(defaultBatchSizeMediaItems);
@@ -211,15 +285,27 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
         {
             cancellationToken.ThrowIfCancellationRequested();
             var req = new { mediaItemIds = batch.Value };
-            var tpl = await PostJson<string, Error>(string.Format(RequestUris.POST_albums_batchAddMediaItems, albumId), req, cancellationToken: cancellationToken);
+            var tpl = await PostJson<string, Error>(string.Format(RequestUris.POST_albums_batchAddMediaItems, albumId), req, cancellationToken: cancellationToken).ConfigureAwait(false);
             if (tpl.error is not null) throw new GooglePhotosException(tpl.error);
         }
         return true;
     }
 
+    /// <summary>Removes media items from an album in API-sized batches.</summary>
+    /// <param name="albumId">The album identifier.</param>
+    /// <param name="mediaItemIds">The media item identifiers to remove.</param>
+    /// <param name="cancellationToken">A token that can cancel the request.</param>
+    /// <returns><see langword="true" /> when all batches are accepted.</returns>
+    /// <exception cref="GooglePhotosException">Thrown when the API returns an error.</exception>
     public Task<bool> RemoveMediaItemsFromAlbumAsync(string albumId, string[] mediaItemIds, CancellationToken cancellationToken = default)
         => RemoveMediaItemsFromAlbumAsync(albumId, mediaItemIds.ToList(), cancellationToken);
 
+    /// <summary>Removes media items from an album in API-sized batches.</summary>
+    /// <param name="albumId">The album identifier.</param>
+    /// <param name="mediaItemIds">The media item identifiers to remove.</param>
+    /// <param name="cancellationToken">A token that can cancel the request.</param>
+    /// <returns><see langword="true" /> when all batches are accepted.</returns>
+    /// <exception cref="GooglePhotosException">Thrown when the API returns an error.</exception>
     public async Task<bool> RemoveMediaItemsFromAlbumAsync(string albumId, List<string> mediaItemIds, CancellationToken cancellationToken = default)
     {
         var batches = mediaItemIds.GetBatches(defaultBatchSizeMediaItems);
@@ -227,15 +313,22 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
         {
             cancellationToken.ThrowIfCancellationRequested();
             var req = new { mediaItemIds = batch.Value };
-            var tpl = await PostJson<string, Error>(string.Format(RequestUris.POST_albums_batchRemoveMediaItems, albumId), req, cancellationToken: cancellationToken);
+            var tpl = await PostJson<string, Error>(string.Format(RequestUris.POST_albums_batchRemoveMediaItems, albumId), req, cancellationToken: cancellationToken).ConfigureAwait(false);
             if (tpl.error is not null) throw new GooglePhotosException(tpl.error);
         }
         return true;
     }
 
+    /// <summary>Adds an enrichment item at a specified position in an album.</summary>
+    /// <param name="albumId">The album identifier.</param>
+    /// <param name="newEnrichmentItem">The enrichment content to add.</param>
+    /// <param name="albumPosition">The position at which to add the enrichment.</param>
+    /// <param name="cancellationToken">A token that can cancel the request.</param>
+    /// <returns>The created enrichment item when returned by the API; otherwise, <see langword="null" />.</returns>
+    /// <exception cref="GooglePhotosException">Thrown when the API returns an error.</exception>
     public async Task<EnrichmentItem?> AddEnrichmentToAlbumAsync(string albumId, NewEnrichmentItem newEnrichmentItem, AlbumPosition albumPosition, CancellationToken cancellationToken = default)
     {
-        var tpl = await PostJson<AddEnrichmentResponse, Error>(string.Format(RequestUris.POST_albums_addEnrichment, albumId), new AddEnrichmentRequest(newEnrichmentItem, albumPosition), cancellationToken: cancellationToken);
+        var tpl = await PostJson<AddEnrichmentResponse, Error>(string.Format(RequestUris.POST_albums_addEnrichment, albumId), new AddEnrichmentRequest(newEnrichmentItem, albumPosition), cancellationToken: cancellationToken).ConfigureAwait(false);
         if (tpl.error is not null) throw new GooglePhotosException(tpl.error);
         return tpl.result?.EnrichmentItem;
     }
@@ -258,7 +351,7 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
         {
             cancellationToken.ThrowIfCancellationRequested();
             var _requestUri = GetUrl(requestUri, pageSize, pageToken);
-            var tpl = await Get<MediaItemsResponse, Error>(_requestUri, cancellationToken: cancellationToken);
+            var tpl = await Get<MediaItemsResponse, Error>(_requestUri, cancellationToken: cancellationToken).ConfigureAwait(false);
             if (tpl.error is not null) throw new GooglePhotosException(tpl.error);
             else if (tpl.result is not null)
             {
@@ -301,7 +394,7 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
         {
             cancellationToken.ThrowIfCancellationRequested();
             var req = new { albumId, pageSize, pageToken, filters };
-            var tpl = await PostJson<MediaItemsResponse, Error>(requestUri, req, cancellationToken: cancellationToken);
+            var tpl = await PostJson<MediaItemsResponse, Error>(requestUri, req, cancellationToken: cancellationToken).ConfigureAwait(false);
             if (tpl.error is not null) throw new GooglePhotosException(tpl.error);
             else if (tpl.result is not null)
             {
@@ -327,24 +420,49 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
         }
     }
 
+    /// <summary>Streams media items from the user's library.</summary>
+    /// <param name="pageSize">The number of media items to request per page, from 1 through 100.</param>
+    /// <param name="maxPageCount">The maximum number of pages to request.</param>
+    /// <param name="cancellationToken">A token that can cancel enumeration.</param>
+    /// <returns>An asynchronous sequence of unique media items.</returns>
     public IAsyncEnumerable<MediaItem> GetMediaItemsAsync(int pageSize = defaultPageSizeMediaItems, int maxPageCount = int.MaxValue, CancellationToken cancellationToken = default)
         => _GetMediaItemsAsync(pageSize, maxPageCount, RequestUris.GET_mediaItems, cancellationToken);
 
+    /// <summary>Streams media items contained in an album.</summary>
+    /// <param name="albumId">The album identifier.</param>
+    /// <param name="pageSize">The number of media items to request per page, from 1 through 100.</param>
+    /// <param name="maxPageCount">The maximum number of pages to request.</param>
+    /// <param name="cancellationToken">A token that can cancel enumeration.</param>
+    /// <returns>An asynchronous sequence of unique media items.</returns>
     public IAsyncEnumerable<MediaItem> GetMediaItemsByAlbumAsync(string albumId, int pageSize = defaultPageSizeMediaItems, int maxPageCount = int.MaxValue, CancellationToken cancellationToken = default)
         => _GetMediaItemsViaPOSTAsync(albumId, pageSize, maxPageCount, null, RequestUris.POST_mediaItems_search, cancellationToken);
 
     //https://photoslibrary.googleapis.com/v1/mediaItems/media-item-id
+    /// <summary>Retrieves a media item by its identifier.</summary>
+    /// <param name="mediaItemId">The media item identifier.</param>
+    /// <param name="cancellationToken">A token that can cancel the request.</param>
+    /// <returns>The media item when found; otherwise, <see langword="null" />.</returns>
+    /// <exception cref="GooglePhotosException">Thrown when the API returns an error.</exception>
     public async Task<MediaItem?> GetMediaItemByIdAsync(string mediaItemId, CancellationToken cancellationToken = default)
     {
-        var tpl = await Get<MediaItem, Error>($"{RequestUris.GET_mediaItems}/{mediaItemId}", cancellationToken: cancellationToken);
+        var tpl = await Get<MediaItem, Error>($"{RequestUris.GET_mediaItems}/{mediaItemId}", cancellationToken: cancellationToken).ConfigureAwait(false);
         if (tpl.error is not null) throw new GooglePhotosException(tpl.error);
         return tpl.result;
     }
 
     //https://photoslibrary.googleapis.com/v1/mediaItems:batchGet?mediaItemIds=media-item-id&mediaItemIds=another-media-item-id&mediaItemIds=incorrect-media-item-id
+    /// <summary>Streams media items matching the supplied identifiers.</summary>
+    /// <param name="mediaItemIds">The media item identifiers to retrieve.</param>
+    /// <param name="cancellationToken">A token that can cancel enumeration.</param>
+    /// <returns>An asynchronous sequence of unique media items.</returns>
     public IAsyncEnumerable<MediaItem> GetMediaItemsByIdsAsync(string[] mediaItemIds, CancellationToken cancellationToken = default)
         => GetMediaItemsByIdsAsync(mediaItemIds.ToList(), cancellationToken);
 
+    /// <summary>Streams media items matching the supplied identifiers.</summary>
+    /// <param name="mediaItemIds">The media item identifiers to retrieve.</param>
+    /// <param name="cancellationToken">A token that can cancel enumeration.</param>
+    /// <returns>An asynchronous sequence of unique media items.</returns>
+    /// <exception cref="GooglePhotosException">Thrown when the API returns an error.</exception>
     public async IAsyncEnumerable<MediaItem> GetMediaItemsByIdsAsync(List<string> mediaItemIds, [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         var hs = new HashSet<string>();
@@ -361,7 +479,7 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
             foreach (var mediaItemId in batch.Value)
                 sb.Append($"&{nameof(mediaItemIds)}={mediaItemId}");
             var url = $"{RequestUris.GET_mediaItems_batchGet}?{sb.ToString()[1..]}";
-            var tpl = await Get<MediaItemsGetResponse, Error>(url, cancellationToken: cancellationToken);
+            var tpl = await Get<MediaItemsGetResponse, Error>(url, cancellationToken: cancellationToken).ConfigureAwait(false);
             if (tpl.error is not null) throw new GooglePhotosException(tpl.error);
             else if (tpl.result is not null)
             {
@@ -376,8 +494,12 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
                         }
                     }
                     else
-                        _logger.LogWarning("{ClassName} {MethodName}, status={Status}", nameof(GooglePhotosServiceBase),
-                            nameof(GetMediaItemsByIdsAsync), result.Status);//we highlight if any objects returned a non-null status object
+                        LogMediaItemStatus(
+                            _logger,
+                            nameof(GooglePhotosServiceBase),
+                            nameof(GetMediaItemsByIdsAsync),
+                            result.Status.Code,
+                            result.Status.StatusName);//we highlight if any objects returned a non-null status object
                 }
                 if (batch.Key + 1 != batches.Count)
                     RaisePagingEvent(new PagingEventArgs(tpl.result.MediaItemResults.Count, batch.Key + 1, hs.Count));
@@ -385,18 +507,44 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
         }
     }
 
+    /// <summary>Streams media items created within an inclusive date range.</summary>
+    /// <param name="startDate">The beginning of the date range.</param>
+    /// <param name="endDate">The end of the date range.</param>
+    /// <param name="maxPageCount">The maximum number of pages to request.</param>
+    /// <param name="cancellationToken">A token that can cancel enumeration.</param>
+    /// <returns>An asynchronous sequence of matching media items.</returns>
     public IAsyncEnumerable<MediaItem> GetMediaItemsByDateRangeAsync(DateTime startDate, DateTime endDate, int maxPageCount = int.MaxValue, CancellationToken cancellationToken = default)
         => GetMediaItemsByFilterAsync(new Filter(startDate, endDate), maxPageCount, cancellationToken);
 
+    /// <summary>Streams media items matching a content category.</summary>
+    /// <param name="category">The content category to include.</param>
+    /// <param name="maxPageCount">The maximum number of pages to request.</param>
+    /// <param name="cancellationToken">A token that can cancel enumeration.</param>
+    /// <returns>An asynchronous sequence of matching media items.</returns>
     public IAsyncEnumerable<MediaItem> GetMediaItemsByCategoryAsync(GooglePhotosContentCategoryType category, int maxPageCount = int.MaxValue, CancellationToken cancellationToken = default)
         => GetMediaItemsByFilterAsync(new Filter(category), maxPageCount, cancellationToken);
 
+    /// <summary>Streams media items matching any supplied content category.</summary>
+    /// <param name="categories">The content categories to include.</param>
+    /// <param name="maxPageCount">The maximum number of pages to request.</param>
+    /// <param name="cancellationToken">A token that can cancel enumeration.</param>
+    /// <returns>An asynchronous sequence of matching media items.</returns>
     public IAsyncEnumerable<MediaItem> GetMediaItemsByCategoriesAsync(GooglePhotosContentCategoryType[] categories, int maxPageCount = int.MaxValue, CancellationToken cancellationToken = default)
         => GetMediaItemsByFilterAsync(new Filter(categories), maxPageCount, cancellationToken);
 
+    /// <summary>Streams media items matching any supplied content category.</summary>
+    /// <param name="categories">The content categories to include.</param>
+    /// <param name="maxPageCount">The maximum number of pages to request.</param>
+    /// <param name="cancellationToken">A token that can cancel enumeration.</param>
+    /// <returns>An asynchronous sequence of matching media items.</returns>
     public IAsyncEnumerable<MediaItem> GetMediaItemsByCategoriesAsync(List<GooglePhotosContentCategoryType> categories, int maxPageCount = int.MaxValue, CancellationToken cancellationToken = default)
         => GetMediaItemsByFilterAsync(new Filter(categories), maxPageCount, cancellationToken);
 
+    /// <summary>Streams media items matching the supplied search filter.</summary>
+    /// <param name="filter">The filter applied to the media item search.</param>
+    /// <param name="maxPageCount">The maximum number of pages to request.</param>
+    /// <param name="cancellationToken">A token that can cancel enumeration.</param>
+    /// <returns>An asynchronous sequence of matching media items.</returns>
     public IAsyncEnumerable<MediaItem> GetMediaItemsByFilterAsync(Filter filter, int maxPageCount = int.MaxValue, CancellationToken cancellationToken = default)
         => _GetMediaItemsByFilterAsync(filter, maxPageCount, cancellationToken);
 
@@ -410,7 +558,7 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
             if (contentFilter.ExcludedContentCategories.IsNullOrEmpty()) contentFilter.ExcludedContentCategories = null;
             if (contentFilter.IncludedContentCategories is null && contentFilter.ExcludedContentCategories is null)
             {
-                _logger.LogDebug($"{nameof(contentFilter)} element empty so removed from outgoing request");
+                LogEmptyFilterRemoved(_logger, nameof(GooglePhotosServiceBase), nameof(contentFilter));
                 filter.ContentFilter = null;
             }
         }
@@ -421,7 +569,7 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
             if (dateFilter.Ranges.IsNullOrEmpty()) dateFilter.Ranges = null;
             if (dateFilter.Dates is null && dateFilter.Ranges is null)
             {
-                _logger.LogDebug($"{nameof(dateFilter)} element empty so removed from outgoing request");
+                LogEmptyFilterRemoved(_logger, nameof(GooglePhotosServiceBase), nameof(dateFilter));
                 filter.DateFilter = null;
             }
             //do we need to validate start/end date ranges, i.e. start before end...?
@@ -429,14 +577,14 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
         var mediaTypeFilter = filter.MediaTypeFilter;
         if (mediaTypeFilter is not null && mediaTypeFilter.MediaTypes.IsNullOrEmpty())
         {
-            _logger.LogDebug($"{nameof(mediaTypeFilter)} element empty so removed from outgoing request");
+            LogEmptyFilterRemoved(_logger, nameof(GooglePhotosServiceBase), nameof(mediaTypeFilter));
             filter.MediaTypeFilter = null;
         }
 
         var featureFilter = filter.FeatureFilter;
         if (featureFilter is not null && featureFilter.IncludedFeatures.IsNullOrEmpty())
         {
-            _logger.LogDebug($"{nameof(featureFilter)} element empty so removed from outgoing request");
+            LogEmptyFilterRemoved(_logger, nameof(GooglePhotosServiceBase), nameof(featureFilter));
             filter.FeatureFilter = null;
         }
 
@@ -447,10 +595,28 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
     private Task<NewMediaItemResult?> AddMediaItemAsync(string uploadToken, string? fileName = null, string? description = null, string? albumId = null, AlbumPosition? albumPosition = null, CancellationToken cancellationToken = default)
         => AddMediaItemAsync(new UploadItem(uploadToken, fileName, description), albumId, albumPosition, cancellationToken);
 
+    /// <summary>Creates one media item from an upload token.</summary>
+    /// <param name="uploadToken">The token returned by a completed media upload.</param>
+    /// <param name="fileName">The optional filename sent to Google Photos.</param>
+    /// <param name="description">The optional media item description.</param>
+    /// <param name="albumId">The optional destination album identifier.</param>
+    /// <param name="positionType">The requested position within the destination album.</param>
+    /// <param name="relativeMediaItemId">The media item used as a relative position anchor.</param>
+    /// <param name="relativeEnrichmentItemId">The enrichment item used as a relative position anchor.</param>
+    /// <param name="cancellationToken">A token that can cancel the request.</param>
+    /// <returns>The creation result when returned by the API; otherwise, <see langword="null" />.</returns>
     public Task<NewMediaItemResult?> AddMediaItemAsync(string uploadToken, string? fileName = null, string? description = null, string? albumId = null,
         GooglePhotosPositionType positionType = GooglePhotosPositionType.LastInAlbum, string? relativeMediaItemId = null, string? relativeEnrichmentItemId = null, CancellationToken cancellationToken = default)
         => AddMediaItemAsync(new UploadItem(uploadToken, fileName, description), albumId, GetAlbumPosition(albumId, positionType, relativeMediaItemId, relativeEnrichmentItemId), cancellationToken);
 
+    /// <summary>Creates one media item from prepared upload metadata.</summary>
+    /// <param name="uploadItem">The upload token and media item metadata.</param>
+    /// <param name="albumId">The optional destination album identifier.</param>
+    /// <param name="positionType">The requested position within the destination album.</param>
+    /// <param name="relativeMediaItemId">The media item used as a relative position anchor.</param>
+    /// <param name="relativeEnrichmentItemId">The enrichment item used as a relative position anchor.</param>
+    /// <param name="cancellationToken">A token that can cancel the request.</param>
+    /// <returns>The creation result when returned by the API; otherwise, <see langword="null" />.</returns>
     public Task<NewMediaItemResult?> AddMediaItemAsync(UploadItem uploadItem, string? albumId = null,
         GooglePhotosPositionType positionType = GooglePhotosPositionType.LastInAlbum, string? relativeMediaItemId = null, string? relativeEnrichmentItemId = null, CancellationToken cancellationToken = default)
         => AddMediaItemAsync(uploadItem, albumId, GetAlbumPosition(albumId, positionType, relativeMediaItemId, relativeEnrichmentItemId), cancellationToken);
@@ -459,17 +625,24 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
     private async Task<NewMediaItemResult?> AddMediaItemAsync(UploadItem uploadItem, string? albumId, AlbumPosition? albumPosition, CancellationToken cancellationToken)
     {
         var newMediaItems = new List<UploadItem> { uploadItem };
-        var res = await AddMediaItemsAsync(newMediaItems, albumId, albumPosition, cancellationToken);
+        var res = await AddMediaItemsAsync(newMediaItems, albumId, albumPosition, cancellationToken).ConfigureAwait(false);
         if (res is not null && !res.NewMediaItemResults.IsNullOrEmpty())
             return res.NewMediaItemResults[0];
         else
         {
-            _logger.LogError("{ClassName} {MethodName}, upload failure '{FileName}'", nameof(GooglePhotosServiceBase),
-                nameof(AddMediaItemAsync), uploadItem.FileName);
+            LogMediaItemCreationFailed(_logger, nameof(GooglePhotosServiceBase), nameof(AddMediaItemAsync));
             return null;
         }
     }
 
+    /// <summary>Creates media items in a batch from upload tokens and filenames.</summary>
+    /// <param name="items">The upload tokens and filenames to create.</param>
+    /// <param name="albumId">The optional destination album identifier.</param>
+    /// <param name="positionType">The requested position within the destination album.</param>
+    /// <param name="relativeMediaItemId">The media item used as a relative position anchor.</param>
+    /// <param name="relativeEnrichmentItemId">The enrichment item used as a relative position anchor.</param>
+    /// <param name="cancellationToken">A token that can cancel the request.</param>
+    /// <returns>The batch creation response when returned by the API; otherwise, <see langword="null" />.</returns>
     public Task<MediaItemsCreateResponse?> AddMediaItemsAsync(List<(string uploadToken, string FileName)> items, string? albumId = null,
         GooglePhotosPositionType positionType = GooglePhotosPositionType.LastInAlbum, string? relativeMediaItemId = null, string? relativeEnrichmentItemId = null, CancellationToken cancellationToken = default)
     {
@@ -479,6 +652,14 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
         return AddMediaItemsAsync(uploadItems, albumId, GetAlbumPosition(albumId, positionType, relativeMediaItemId, relativeEnrichmentItemId), cancellationToken);
     }
 
+    /// <summary>Creates media items in a batch from prepared upload metadata.</summary>
+    /// <param name="uploadItems">The upload tokens and media item metadata to create.</param>
+    /// <param name="albumId">The optional destination album identifier.</param>
+    /// <param name="positionType">The requested position within the destination album.</param>
+    /// <param name="relativeMediaItemId">The media item used as a relative position anchor.</param>
+    /// <param name="relativeEnrichmentItemId">The enrichment item used as a relative position anchor.</param>
+    /// <param name="cancellationToken">A token that can cancel the request.</param>
+    /// <returns>The batch creation response when returned by the API; otherwise, <see langword="null" />.</returns>
     public Task<MediaItemsCreateResponse?> AddMediaItemsAsync(List<UploadItem> uploadItems, string? albumId = null,
         GooglePhotosPositionType positionType = GooglePhotosPositionType.LastInAlbum, string? relativeMediaItemId = null, string? relativeEnrichmentItemId = null, CancellationToken cancellationToken = default)
         => AddMediaItemsAsync(uploadItems, albumId, GetAlbumPosition(albumId, positionType, relativeMediaItemId, relativeEnrichmentItemId), cancellationToken);
@@ -503,7 +684,7 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
             newMediaItems.Add(newMediaItem);
         }
         var req = new { newMediaItems, albumId, albumPosition };
-        var tpl = await PostJson<MediaItemsCreateResponse, Error>(RequestUris.POST_mediaItems_batchCreate, req, cancellationToken: cancellationToken);
+        var tpl = await PostJson<MediaItemsCreateResponse, Error>(RequestUris.POST_mediaItems_batchCreate, req, cancellationToken: cancellationToken).ConfigureAwait(false);
         if (tpl.error is not null) throw new GooglePhotosException(tpl.error);
         return tpl.result;
     }
@@ -524,6 +705,15 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
     //https://developers.google.com/photos/library/guides/upload-media
     //https://developers.google.com/photos/library/guides/upload-media#uploading-bytes
     //https://developers.google.com/photos/library/guides/resumable-uploads
+    /// <summary>Uploads a supported image or video and returns the token used to create a media item.</summary>
+    /// <param name="path">The local path of the media file to upload.</param>
+    /// <param name="uploadMethod">The upload protocol to use.</param>
+    /// <param name="callback">An optional upload callback retained for API compatibility.</param>
+    /// <param name="cancellationToken">A token that can cancel the upload.</param>
+    /// <returns>The upload token when the upload completes; otherwise, <see langword="null" />.</returns>
+    /// <exception cref="FileNotFoundException">Thrown when <paramref name="path" /> does not exist.</exception>
+    /// <exception cref="NotSupportedException">Thrown when the media type, size, or upload method is unsupported.</exception>
+    /// <exception cref="GooglePhotosException">Thrown when the upload protocol or API returns an error.</exception>
     public async Task<string?> UploadMediaAsync(string path, GooglePhotosUploadMethod uploadMethod = GooglePhotosUploadMethod.ResumableMultipart,
         Action<int>? callback = null, CancellationToken cancellationToken = default)
     {
@@ -561,7 +751,10 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
         }
         else
         {
-            var tpl = await PostBytes<string, Error>(RequestUris.uploads, [], additionalHeaders: headers, cancellationToken: cancellationToken);
+            var tpl = await PostUploadBufferAsync(RequestUris.uploads, [], 0, headers, cancellationToken).ConfigureAwait(false);
+            if (tpl.error is not null)
+                throw new GooglePhotosException(tpl.error);
+
             var status = tpl.responseHeaders.TryGetValue(X_Goog_Upload_Status);
 
             var Upload_URL = tpl.responseHeaders.TryGetValue(X_Goog_Upload_URL) ?? throw new GooglePhotosException($"{nameof(X_Goog_Upload_URL)}");
@@ -587,14 +780,34 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
                             (X_Goog_Upload_Command, "query")
                         ];
 
-                    tpl = await PostBytes<string, Error>(Upload_URL, [], additionalHeaders: headers, cancellationToken: cancellationToken);
-                    if (tpl.error is not null) throw new GooglePhotosException(tpl.error);
+                    tpl = await PostUploadBufferAsync(Upload_URL, [], 0, headers, cancellationToken).ConfigureAwait(false);
+                    if (tpl.error is not null)
+                        throw new GooglePhotosException(tpl.error);
 
-                    _ = tpl.responseHeaders.TryGetValue(X_Goog_Upload_Status);
-                    _ = tpl.responseHeaders.TryGetValue(X_Goog_Upload_Size_Received);
+                    status = tpl.responseHeaders.TryGetValue(X_Goog_Upload_Status);
+                    if (!string.Equals(status, "active", StringComparison.OrdinalIgnoreCase))
+                    {
+                        if (!string.IsNullOrWhiteSpace(tpl.result))
+                            return tpl.result;
+
+                        throw new GooglePhotosException(
+                            $"Resumable upload session terminated with status '{status ?? "missing"}' before an upload token was recovered.");
+                    }
+
+                    headers =
+                    [
+                        (X_Goog_Upload_Command, "upload, finalize"),
+                        (X_Goog_Upload_Offset, "0")
+                    ];
+                    await using var retryStream = OpenReadStream(path);
+                    tpl = await PostUploadStreamAsync(Upload_URL, retryStream, headers, cancellationToken).ConfigureAwait(false);
+                    if (tpl.error is not null)
+                        throw new GooglePhotosException(tpl.error);
                 }
 
-                return tpl.result;
+                return !string.IsNullOrWhiteSpace(tpl.result)
+                    ? tpl.result
+                    : throw new GooglePhotosException("Resumable upload completed without returning an upload token.");
             }
             else if (uploadMethod == GooglePhotosUploadMethod.ResumableMultipart)
             {
@@ -635,11 +848,44 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
                                 [
                                     (X_Goog_Upload_Command, "query")
                                 ];
-                            tpl = await PostBytes<string, Error>(Upload_URL, [], additionalHeaders: headers, cancellationToken: cancellationToken);
+                            tpl = await PostUploadBufferAsync(Upload_URL, [], 0, headers, cancellationToken).ConfigureAwait(false);
+                            if (tpl.error is not null)
+                                throw new GooglePhotosException(tpl.error);
 
                             status = tpl.responseHeaders.TryGetValue(X_Goog_Upload_Status);
-                            _logger.LogTrace("{ClassName} {MethodName}, Status={Status}", nameof(GooglePhotosServiceBase),
-                                nameof(UploadMediaAsync), status);
+                            if (!string.Equals(status, "active", StringComparison.OrdinalIgnoreCase))
+                            {
+                                if (!string.IsNullOrWhiteSpace(tpl.result))
+                                    return tpl.result;
+
+                                throw new GooglePhotosException(
+                                    $"Resumable upload session terminated with status '{status ?? "missing"}' before an upload token was recovered.");
+                            }
+
+                            var sizeReceived = tpl.responseHeaders.TryGetValue(X_Goog_Upload_Size_Received);
+                            if (!long.TryParse(sizeReceived, out var receivedOffset)
+                                || receivedOffset < 0
+                                || receivedOffset > size)
+                                throw new GooglePhotosException($"Missing or invalid {X_Goog_Upload_Size_Received}.");
+                            if (receivedOffset == size)
+                            {
+                                stream.Position = 0;
+                                headers =
+                                [
+                                    (X_Goog_Upload_Command, "upload, finalize"),
+                                    (X_Goog_Upload_Offset, "0")
+                                ];
+                                tpl = await PostUploadStreamAsync(Upload_URL, stream, headers, cancellationToken).ConfigureAwait(false);
+                                if (tpl.error is not null)
+                                    throw new GooglePhotosException(tpl.error);
+
+                                return !string.IsNullOrWhiteSpace(tpl.result)
+                                    ? tpl.result
+                                    : throw new GooglePhotosException("Resumable upload completed without returning an upload token.");
+                            }
+
+                            offset = receivedOffset;
+                            LogUploadStatus(_logger, nameof(GooglePhotosServiceBase), nameof(UploadMediaAsync), status);
                         }
                         else
                         {
@@ -707,8 +953,19 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
         if (response.IsSuccessStatusCode)
             return (responseBody, null, response.StatusCode, response.Headers);
 
-        _logger.LogError("{ClassName} upload failed with StatusCode={StatusCode}", nameof(GooglePhotosServiceBase), response.StatusCode);
-        return (null, responseBody.FromJson<Error>(), response.StatusCode, response.Headers);
+        LogUploadFailed(_logger, nameof(GooglePhotosServiceBase), response.StatusCode);
+        if (responseBody.TryFromJson<Error>(out var error) && error?.ErrorStatus is not null)
+            return (null, error, response.StatusCode, response.Headers);
+
+        return (null, new Error
+        {
+            ErrorStatus = new Status
+            {
+                Code = (int)response.StatusCode,
+                Message = $"Upload failed with HTTP {(int)response.StatusCode}.",
+                StatusName = response.StatusCode.ToString()
+            }
+        }, response.StatusCode, response.Headers);
     }
 
     private static FileStream OpenReadStream(string path)
@@ -756,4 +1013,22 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
             throw new NotSupportedException($"unexpected {nameof(positionType)} '{positionType}'?");
         return albumPosition;
     }
+
+    [LoggerMessage(EventId = 1, Level = LogLevel.Debug, Message = "{ClassName} {MethodName}, {Url}")]
+    private static partial void LogRequestUrl(ILogger logger, string className, string methodName, string url);
+
+    [LoggerMessage(EventId = 2, Level = LogLevel.Warning, Message = "{ClassName} {MethodName}, StatusCode={StatusCode}, StatusName={StatusName}")]
+    private static partial void LogMediaItemStatus(ILogger logger, string className, string methodName, int statusCode, string? statusName);
+
+    [LoggerMessage(EventId = 3, Level = LogLevel.Debug, Message = "{ClassName} {FilterName} element empty so removed from outgoing request")]
+    private static partial void LogEmptyFilterRemoved(ILogger logger, string className, string filterName);
+
+    [LoggerMessage(EventId = 4, Level = LogLevel.Error, Message = "{ClassName} {MethodName}, upload failed")]
+    private static partial void LogMediaItemCreationFailed(ILogger logger, string className, string methodName);
+
+    [LoggerMessage(EventId = 5, Level = LogLevel.Trace, Message = "{ClassName} {MethodName}, Status={Status}")]
+    private static partial void LogUploadStatus(ILogger logger, string className, string methodName, string? status);
+
+    [LoggerMessage(EventId = 6, Level = LogLevel.Error, Message = "{ClassName} upload failed with StatusCode={StatusCode}")]
+    private static partial void LogUploadFailed(ILogger logger, string className, HttpStatusCode statusCode);
 }

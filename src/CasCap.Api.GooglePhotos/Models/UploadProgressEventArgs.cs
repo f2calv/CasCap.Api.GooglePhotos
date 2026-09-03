@@ -1,7 +1,7 @@
 ﻿namespace CasCap.Models;
 
 /// <summary>Provides progress information while uploading media bytes.</summary>
-public class UploadProgressEventArgs(string fileName, long totalBytes, int batchIndex, long uploadedBytes, long batchSize) : EventArgs
+public sealed class UploadProgressEventArgs(string fileName, long totalBytes, int batchIndex, long uploadedBytes, long batchSize) : EventArgs
 {
     /// <summary>Gets the uploaded filename.</summary>
     public string FileName { get; } = fileName;

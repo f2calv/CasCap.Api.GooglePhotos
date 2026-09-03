@@ -2,7 +2,7 @@ namespace CasCap.Models;
 
 /// <summary>Represents a physical location.</summary>
 /// <remarks><see href="https://developers.google.com/photos/library/reference/rest/v1/albums/addEnrichment#location" /></remarks>
-public class Location(string locationName, LatLng latLng)
+public sealed class Location(string locationName, LatLng latLng)
 {
     /// <summary>Gets or sets the display name of the location.</summary>
     [JsonPropertyName("locationName")]

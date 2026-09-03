@@ -2,7 +2,7 @@ namespace CasCap.Models;
 
 /// <summary>Identifies uploaded media bytes for a create request.</summary>
 /// <remarks><see href="https://developers.google.com/photos/library/reference/rest/v1/mediaItems/batchCreate#SimpleMediaItem" /></remarks>
-public class SimpleMediaItem
+public sealed class SimpleMediaItem
 {
     /// <summary>Gets or sets the token identifying uploaded media bytes.</summary>
     [JsonPropertyName("uploadToken")]

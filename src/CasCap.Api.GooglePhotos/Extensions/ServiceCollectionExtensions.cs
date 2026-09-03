@@ -4,8 +4,14 @@ using System.Net.Http.Headers;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
+/// <summary>Provides dependency-injection registrations for Google Photos API services.</summary>
 public static class ServiceCollectionExtensions
 {
+    /// <summary>Registers Google Photos services using options bound from configuration.</summary>
+    /// <param name="services">The service collection to configure.</param>
+    /// <param name="configuration">The configuration containing the Google Photos options section.</param>
+    /// <param name="sectionName">The configuration section name to bind.</param>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="configuration" /> is <see langword="null" />.</exception>
     public static void AddGooglePhotos(this IServiceCollection services, IConfiguration configuration, string sectionName = GooglePhotosOptions.ConfigurationSectionName)
     {
         ArgumentNullException.ThrowIfNull(configuration);
@@ -16,6 +22,10 @@ public static class ServiceCollectionExtensions
         services.AddServices();
     }
 
+    /// <summary>Registers Google Photos services using a supplied options instance.</summary>
+    /// <param name="services">The service collection to configure.</param>
+    /// <param name="googlePhotosOptions">The options copied into the registered configuration.</param>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="googlePhotosOptions" /> is <see langword="null" />.</exception>
     public static void AddGooglePhotos(this IServiceCollection services, GooglePhotosOptions googlePhotosOptions)
     {
         ArgumentNullException.ThrowIfNull(googlePhotosOptions);
@@ -26,7 +36,9 @@ public static class ServiceCollectionExtensions
                 options.BaseAddress = googlePhotosOptions.BaseAddress;
                 options.PickerBaseAddress = googlePhotosOptions.PickerBaseAddress;
                 options.User = googlePhotosOptions.User;
-                options.Scopes = googlePhotosOptions.Scopes;
+                options.Scopes = googlePhotosOptions.Scopes is null
+                    ? null!
+                    : [.. googlePhotosOptions.Scopes];
                 options.ClientId = googlePhotosOptions.ClientId;
                 options.ClientSecret = googlePhotosOptions.ClientSecret;
                 options.FileDataStoreFullPathOverride = googlePhotosOptions.FileDataStoreFullPathOverride;
@@ -45,6 +57,10 @@ public static class ServiceCollectionExtensions
         services.AddServices();
     }
 
+    /// <summary>Registers Google Photos services using an options configuration delegate.</summary>
+    /// <param name="services">The service collection to configure.</param>
+    /// <param name="configureOptions">The delegate used to configure Google Photos options.</param>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="configureOptions" /> is <see langword="null" />.</exception>
     public static void AddGooglePhotos(this IServiceCollection services, Action<GooglePhotosOptions> configureOptions)
     {
         ArgumentNullException.ThrowIfNull(configureOptions);
@@ -120,7 +136,7 @@ public static class ServiceCollectionExtensions
         => optionsBuilder
             .ValidateDataAnnotations()
             .Validate(
-                options => options.Scopes.Length > 0 && options.Scopes.All(Enum.IsDefined),
+                options => options.Scopes is { Length: > 0 } && options.Scopes.All(Enum.IsDefined),
                 "At least one valid Google Photos OAuth scope is required.")
             .Validate(
                 options => options.WriteRateLimit is null

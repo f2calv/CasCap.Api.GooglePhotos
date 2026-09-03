@@ -1,7 +1,7 @@
 namespace CasCap.Models;
 
 /// <summary>Represents an error response from a Google Photos API.</summary>
-public class Error
+public sealed class Error
 {
     /// <summary>Gets or sets the returned error status.</summary>
     [JsonPropertyName("error")]

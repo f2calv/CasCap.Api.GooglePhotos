@@ -1,7 +1,7 @@
 namespace CasCap.Messages;
 
 /// <summary>Represents the result of creating media items.</summary>
-public class MediaItemsCreateResponse
+public sealed class MediaItemsCreateResponse
 {
     /// <summary>Gets or sets the media item creation results.</summary>
     [JsonPropertyName("newMediaItemResults")]

@@ -1,7 +1,7 @@
 namespace CasCap.Models;
 
 /// <summary>Defines an uploaded item to include in a media creation request.</summary>
-public class UploadItem
+public sealed class UploadItem
 {
     /// <summary>Initializes an uploaded item with an optional description.</summary>
     public UploadItem(string uploadToken, string? fileName, string? description)

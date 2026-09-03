@@ -9,6 +9,21 @@ namespace CasCap.Tests;
 public sealed class GooglePhotosServiceTests
 {
     [Fact]
+    public async Task GetAlbumWrapsApiError()
+    {
+        using var client = CreateClient((_, _) => Task.FromResult(CreateJsonResponse(
+            """{"error":{"code":403,"message":"forbidden","status":"PERMISSION_DENIED"}}""",
+            HttpStatusCode.Forbidden)));
+        var service = CreateService(client);
+
+        var exception = await Assert.ThrowsAsync<GooglePhotosException>(() => service.GetAlbumAsync(
+            "album-id",
+            TestContext.Current.CancellationToken));
+
+        Assert.Equal("forbidden", exception.Message);
+    }
+
+    [Fact]
     public async Task AddMediaItemsToAlbumDeduplicatesAndBatches()
     {
         var batches = new List<string[]>();
@@ -334,6 +349,234 @@ public sealed class GooglePhotosServiceTests
         var actual = GooglePhotosService.IsFileUploadableByExtension(extension);
 
         Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public async Task LoginRejectsUndefinedScope()
+    {
+        using var client = CreateClient((_, _) => Task.FromResult(CreateJsonResponse("{}")));
+        var service = CreateService(client);
+        var options = new GooglePhotosOptions
+        {
+            User = "local-user",
+            ClientId = "client-id",
+            ClientSecret = "client-secret",
+            Scopes = [(GooglePhotosScope)int.MaxValue]
+        };
+
+        var exception = await Assert.ThrowsAsync<GooglePhotosException>(() => service.LoginAsync(
+            options,
+            TestContext.Current.CancellationToken));
+
+        Assert.Contains("Unsupported Google Photos OAuth scope", exception.Message);
+    }
+
+    [Fact]
+    public async Task UploadMediaRecoversFromAcceptedChunk()
+    {
+        var requestCount = 0;
+        var uploadOffsets = new List<string?>();
+        var path = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid():N}.jpg");
+        await File.WriteAllBytesAsync(path, [1, 2, 3, 4], TestContext.Current.CancellationToken);
+        try
+        {
+            using var client = CreateClient(async (request, cancellationToken) =>
+            {
+                requestCount++;
+                if (requestCount == 1)
+                {
+                    var response = CreateJsonResponse(string.Empty);
+                    response.Headers.Add("X-Goog-Upload-URL", "https://upload.example.test/session");
+                    response.Headers.Add("X-Goog-Upload-Chunk-Granularity", "2");
+                    response.Headers.Add("X-Goog-Upload-Status", "active");
+                    return response;
+                }
+
+                var command = request.Headers.GetValues("X-Goog-Upload-Command").Single();
+                if (command == "query")
+                {
+                    var response = CreateJsonResponse(string.Empty);
+                    response.Headers.Add("X-Goog-Upload-Status", "active");
+                    response.Headers.Add("X-Goog-Upload-Size-Received", "2");
+                    return response;
+                }
+
+                uploadOffsets.Add(request.Headers.GetValues("X-Goog-Upload-Offset").SingleOrDefault());
+                _ = await request.Content!.ReadAsByteArrayAsync(cancellationToken);
+                return requestCount == 2
+                    ? CreateJsonResponse(
+                        """{"error":{"code":500,"message":"lost response","status":"INTERNAL"}}""",
+                        HttpStatusCode.InternalServerError)
+                    : CreateJsonResponse("upload-token");
+            });
+            var service = CreateService(client);
+
+            var uploadToken = await service.UploadMediaAsync(
+                path,
+                GooglePhotosUploadMethod.ResumableMultipart,
+                cancellationToken: TestContext.Current.CancellationToken);
+
+            Assert.Equal("upload-token", uploadToken);
+            Assert.Equal(["0", "2"], uploadOffsets);
+            Assert.Equal(4, requestCount);
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
+    [Fact]
+    public async Task UploadMediaRecoversFromAcceptedFinalChunk()
+    {
+        var requestCount = 0;
+        var path = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid():N}.jpg");
+        await File.WriteAllBytesAsync(path, [1], TestContext.Current.CancellationToken);
+        try
+        {
+            using var client = CreateClient((request, _) =>
+            {
+                requestCount++;
+                if (requestCount == 1)
+                {
+                    var response = CreateJsonResponse(string.Empty);
+                    response.Headers.Add("X-Goog-Upload-URL", "https://upload.example.test/session");
+                    response.Headers.Add("X-Goog-Upload-Chunk-Granularity", "2");
+                    response.Headers.Add("X-Goog-Upload-Status", "active");
+                    return Task.FromResult(response);
+                }
+
+                var command = request.Headers.GetValues("X-Goog-Upload-Command").Single();
+                if (command == "query")
+                {
+                    var response = CreateJsonResponse(string.Empty);
+                    response.Headers.Add("X-Goog-Upload-Status", "active");
+                    response.Headers.Add("X-Goog-Upload-Size-Received", "1");
+                    return Task.FromResult(response);
+                }
+
+                return Task.FromResult(requestCount == 2
+                    ? CreateJsonResponse(
+                        """{"error":{"code":500,"message":"lost response","status":"INTERNAL"}}""",
+                        HttpStatusCode.InternalServerError)
+                    : CreateJsonResponse("upload-token"));
+            });
+            var service = CreateService(client);
+
+            var uploadToken = await service.UploadMediaAsync(
+                path,
+                GooglePhotosUploadMethod.ResumableMultipart,
+                cancellationToken: TestContext.Current.CancellationToken);
+
+            Assert.Equal("upload-token", uploadToken);
+            Assert.Equal(4, requestCount);
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
+    [Fact]
+    public async Task UploadMediaRecoversResumableSingle()
+    {
+        var requestCount = 0;
+        var path = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid():N}.jpg");
+        await File.WriteAllBytesAsync(path, [1, 2], TestContext.Current.CancellationToken);
+        try
+        {
+            using var client = CreateClient((request, _) =>
+            {
+                requestCount++;
+                if (requestCount == 1)
+                {
+                    var response = CreateJsonResponse(string.Empty);
+                    response.Headers.Add("X-Goog-Upload-URL", "https://upload.example.test/session");
+                    response.Headers.Add("X-Goog-Upload-Status", "active");
+                    return Task.FromResult(response);
+                }
+
+                var command = request.Headers.GetValues("X-Goog-Upload-Command").Single();
+                if (command == "query")
+                {
+                    var response = CreateJsonResponse(string.Empty);
+                    response.Headers.Add("X-Goog-Upload-Status", "active");
+                    response.Headers.Add("X-Goog-Upload-Size-Received", "2");
+                    return Task.FromResult(response);
+                }
+
+                return Task.FromResult(requestCount == 2
+                    ? CreateJsonResponse(
+                        """{"error":{"code":500,"message":"lost response","status":"INTERNAL"}}""",
+                        HttpStatusCode.InternalServerError)
+                    : CreateJsonResponse("upload-token"));
+            });
+            var service = CreateService(client);
+
+            var uploadToken = await service.UploadMediaAsync(
+                path,
+                GooglePhotosUploadMethod.ResumableSingle,
+                cancellationToken: TestContext.Current.CancellationToken);
+
+            Assert.Equal("upload-token", uploadToken);
+            Assert.Equal(4, requestCount);
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
+    [Fact]
+    public async Task UploadMediaWrapsMalformedSessionError()
+    {
+        var path = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid():N}.jpg");
+        await File.WriteAllBytesAsync(path, [1], TestContext.Current.CancellationToken);
+        try
+        {
+            using var client = CreateClient((_, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.BadGateway)
+            {
+                Content = new StringContent("not-json", Encoding.UTF8, "text/plain")
+            }));
+            var service = CreateService(client);
+
+            var exception = await Assert.ThrowsAsync<GooglePhotosException>(() => service.UploadMediaAsync(
+                path,
+                GooglePhotosUploadMethod.ResumableMultipart,
+                cancellationToken: TestContext.Current.CancellationToken));
+
+            Assert.Equal("Upload failed with HTTP 502.", exception.Message);
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
+    [Fact]
+    public async Task UploadMediaWrapsMalformedError()
+    {
+        var path = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid():N}.jpg");
+        await File.WriteAllBytesAsync(path, [1], TestContext.Current.CancellationToken);
+        try
+        {
+            using var client = CreateClient((_, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.BadGateway)
+            {
+                Content = new StringContent("not-json", Encoding.UTF8, "text/plain")
+            }));
+            var service = CreateService(client);
+
+            var exception = await Assert.ThrowsAsync<GooglePhotosException>(() => service.UploadMediaAsync(
+                path,
+                GooglePhotosUploadMethod.Simple,
+                cancellationToken: TestContext.Current.CancellationToken));
+
+            Assert.Equal("Upload failed with HTTP 502.", exception.Message);
+        }
+        finally
+        {
+            File.Delete(path);
+        }
     }
 
     private static HttpClient CreateClient(

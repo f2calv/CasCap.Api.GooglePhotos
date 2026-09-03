@@ -1,7 +1,7 @@
 namespace CasCap.Models;
 
 /// <summary>Defines a media item to create after uploading bytes.</summary>
-public class NewMediaItem
+public sealed class NewMediaItem
 {
     /// <summary>Gets or sets the description shown in Google Photos.</summary>
     [JsonPropertyName("description")]

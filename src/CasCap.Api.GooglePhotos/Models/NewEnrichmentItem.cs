@@ -1,7 +1,7 @@
 namespace CasCap.Models;
 
 /// <summary>A new enrichment item to add to an album. Only one enrichment property can be set.</summary>
-public class NewEnrichmentItem
+public sealed class NewEnrichmentItem
 {
     /// <summary>Initializes a text enrichment.</summary>
     public NewEnrichmentItem(string text)

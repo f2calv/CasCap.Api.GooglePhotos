@@ -49,6 +49,26 @@ public sealed class GooglePhotosWriteRateLimitingHandlerTests
     }
 
     [Fact]
+    public void RegistrationCopiesScopes()
+    {
+        GooglePhotosScope[] scopes = [GooglePhotosScope.AppendOnly];
+        var services = new ServiceCollection();
+        services.AddGooglePhotos(new GooglePhotosOptions
+        {
+            User = "user@example.com",
+            ClientId = "client-id",
+            ClientSecret = "client-secret",
+            Scopes = scopes
+        });
+        using var serviceProvider = services.BuildServiceProvider();
+        var resolvedOptions = serviceProvider.GetRequiredService<IOptions<GooglePhotosOptions>>().Value;
+
+        scopes[0] = GooglePhotosScope.PickerMediaItemsReadOnly;
+
+        Assert.Equal(GooglePhotosScope.AppendOnly, Assert.Single(resolvedOptions.Scopes));
+    }
+
+    [Fact]
     public void RegistrationRejectsInvalidRateLimit()
     {
         var services = new ServiceCollection();
@@ -80,6 +100,23 @@ public sealed class GooglePhotosWriteRateLimitingHandlerTests
             ClientId = "client-id",
             ClientSecret = "client-secret",
             WriteRateLimit = null!
+        });
+        using var serviceProvider = services.BuildServiceProvider();
+
+        Assert.Throws<OptionsValidationException>(
+            () => serviceProvider.GetRequiredService<IOptions<GooglePhotosOptions>>().Value);
+    }
+
+    [Fact]
+    public void RegistrationRejectsNullScopes()
+    {
+        var services = new ServiceCollection();
+        services.AddGooglePhotos(new GooglePhotosOptions
+        {
+            User = "user@example.com",
+            ClientId = "client-id",
+            ClientSecret = "client-secret",
+            Scopes = null!
         });
         using var serviceProvider = services.BuildServiceProvider();
 

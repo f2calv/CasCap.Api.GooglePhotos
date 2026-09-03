@@ -2,7 +2,7 @@
 
 /// <summary>Represents a Google Photos album.</summary>
 [JsonNumberHandling(JsonNumberHandling.AllowReadingFromString)]
-public class Album
+public sealed class Album
 {
     /// <summary>
     /// Identifier for the album. This is a persistent identifier that can be used between sessions to identify this album.
@@ -52,6 +52,7 @@ public class Album
     [JsonPropertyName("shareInfo")]
     public ShareInfo? ShareInfo { get; set; }
 
+    /// <inheritdoc/>
     public override string ToString()
     {
         return $"{Title}, {MediaItemsCount} media items";
