@@ -23,6 +23,20 @@ public sealed class ServiceCollectionExtensionsTests
     }
 
     [Fact]
+    public void RegistrationIsIdempotent()
+    {
+        var services = new ServiceCollection();
+        services.AddGooglePhotos(CreateValidOptions());
+        services.AddGooglePhotos(CreateValidOptions());
+        using var serviceProvider = services.BuildServiceProvider();
+
+        var libraryService = serviceProvider.GetRequiredService<GooglePhotosService>();
+
+        Assert.Single(libraryService.Client.DefaultRequestHeaders.UserAgent);
+        Assert.Single(libraryService.Client.DefaultRequestHeaders.Accept);
+    }
+
+    [Fact]
     public void RegistrationCopiesEveryOption()
     {
         var supplied = new GooglePhotosOptions

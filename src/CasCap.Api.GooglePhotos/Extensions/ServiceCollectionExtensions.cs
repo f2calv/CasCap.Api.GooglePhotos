@@ -6,19 +6,29 @@ using System.Net.Http.Headers;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
-/// <summary>Provides dependency-injection registrations for Google Photos API services.</summary>
+/// <summary>
+/// Extension methods to register the Google Photos Library and Picker API clients.
+/// Follows official best practice/guidance from Microsoft for library authors,
+/// <see href="https://learn.microsoft.com/en-us/dotnet/core/extensions/options-library-authors"/>.
+/// </summary>
+/// <remarks>
+/// Note: Official documentation says to not add these extension methods to the
+/// <see cref="DependencyInjection"/> namespace however we are opting to ignore that recommendation!
+/// </remarks>
 public static class ServiceCollectionExtensions
 {
     /// <summary>Registers Google Photos services using options bound from configuration.</summary>
     /// <param name="services">The service collection to configure.</param>
     /// <param name="configuration">The configuration containing the Google Photos options section.</param>
-    /// <param name="sectionName">The configuration section name to bind.</param>
+    /// <param name="sectionName">The configuration section name to bind. Defaults to <see cref="GooglePhotosOptions.ConfigurationSectionName"/>.</param>
     /// <returns>The same service collection so that calls can be chained.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="configuration" /> is <see langword="null" />.</exception>
-    public static IServiceCollection AddGooglePhotos(this IServiceCollection services, IConfiguration configuration, string sectionName = GooglePhotosOptions.ConfigurationSectionName)
+    public static IServiceCollection AddGooglePhotos(this IServiceCollection services, IConfiguration configuration, string? sectionName = null)
     {
         ArgumentNullException.ThrowIfNull(configuration);
 
+        //Resolved here rather than as a default parameter value, which would be baked into consumer assemblies.
+        sectionName ??= GooglePhotosOptions.ConfigurationSectionName;
         services.AddOptions<GooglePhotosOptions>()
             .Bind(configuration.GetSection(sectionName))
             .ValidateGooglePhotosOptions();
@@ -73,9 +83,13 @@ public static class ServiceCollectionExtensions
 
     private static IServiceCollection AddServices(this IServiceCollection services)
     {
+        //Options configuration accumulates across repeated calls, but the clients and handlers must only be wired once.
+        if (services.Any(descriptor => descriptor.ServiceType == typeof(GooglePhotosCredentialProvider)))
+            return services;
+
         services.TryAddSingleton<GooglePhotosCredentialProvider>();
-        services.AddTransient<GooglePhotosAuthorizationHandler>();
-        services.AddTransient<GooglePhotosWriteRateLimitingHandler>();
+        services.TryAddTransient<GooglePhotosAuthorizationHandler>();
+        services.TryAddTransient<GooglePhotosWriteRateLimitingHandler>();
 
         var libraryBuilder = services.AddHttpClient<GooglePhotosService>((serviceProvider, client) =>
         {

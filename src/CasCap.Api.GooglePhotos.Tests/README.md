@@ -39,6 +39,7 @@ This project exercises the Google Photos client against a dedicated test account
 | `MediaItemMapsGoogleWireNames`                  | 1            | 1               | Serialization |
 | `ResponsesMapGoogleWireNames`                   | 1            | 1               | Serialization |
 | `RegistrationCopiesEveryOption`                 | 1            | 1               | Registration  |
+| `RegistrationIsIdempotent`                      | 1            | 1               | Registration  |
 | `RegistrationIsolatesRateLimitOptions`          | 1            | 1               | Registration  |
 | `RegistrationIsolatesScopes`                    | 1            | 1               | Registration  |
 | `RegistrationRejectsEmptyScopes`                | 1            | 1               | Registration  |
@@ -81,7 +82,7 @@ This project exercises the Google Photos client against a dedicated test account
 | `UploadMediaRecoversResumableSingle`            | 1            | 1               | Library       |
 | `UploadMediaWrapsMalformedError`                | 1            | 3               | Library       |
 | `UploadRequestDetectionMatchesProtocolHeaders`  | 1            | 4               | Library       |
-| Total                                           | 70           | 102             |               |
+| Total                                           | 71           | 103             |               |
 
 ## Trait Categories
 
