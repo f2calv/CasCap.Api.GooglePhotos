@@ -34,6 +34,20 @@ public sealed class GooglePhotosIntegrationTests(ITestOutputHelper output) : Tes
 
     private static string GetRandomAlbumName() => $"integration-{DateTime.UtcNow:yyyyMMdd-HHmmss}-{Guid.NewGuid():N}";
 
+    private async Task<MediaItem> CreateMediaItemAsync(string fileName, CancellationToken cancellationToken)
+    {
+        var created = await _googlePhotosSvc.UploadSingle(
+            Path.Combine(_testFolder, fileName),
+            cancellationToken: cancellationToken);
+        Assert.NotNull(created);
+        Assert.NotNull(created.mediaItem);
+        Assert.False(string.IsNullOrWhiteSpace(created.mediaItem.id));
+
+        var mediaItem = await _googlePhotosSvc.GetMediaItemByIdAsync(created.mediaItem.id, cancellationToken);
+        Assert.NotNull(mediaItem);
+        return mediaItem;
+    }
+
     [Fact, Trait("Type", nameof(GooglePhotosPickerService))]
     public async Task PickerSessionLifecycle()
     {
@@ -180,24 +194,17 @@ public sealed class GooglePhotosIntegrationTests(ITestOutputHelper output) : Tes
     {
         var loginResult = await LoginAsync(TestContext.Current.CancellationToken);
         Assert.True(loginResult);
+        var mediaItem = await CreateMediaItemAsync("test0.jpg", TestContext.Current.CancellationToken);
 
         var filter = new Filter
         {
-            dateFilter = new dateFilter
+            mediaTypeFilter = new mediaTypeFilter
             {
-                ranges =
-                [
-                    new gDateRange
-                    {
-                        startDate = new gDate { year = 1900 },
-                        endDate = new gDate { year = DateTime.UtcNow.Year }
-                    }
-                ]
+                mediaTypes = [GooglePhotosMediaType.PHOTO]
             }
         };
         var searchResults = await _googlePhotosSvc.GetMediaItemsByFilterAsync(filter, cancellationToken: TestContext.Current.CancellationToken).ToListAsync(TestContext.Current.CancellationToken);
-        Assert.NotEmpty(searchResults);
-        Assert.All(searchResults, result => Assert.False(string.IsNullOrWhiteSpace(result.id)));
+        Assert.Contains(searchResults, result => result.id == mediaItem.id);
         _output.WriteLine($"Filter returned {searchResults.Count} media items.");
     }
 
@@ -258,11 +265,12 @@ public sealed class GooglePhotosIntegrationTests(ITestOutputHelper output) : Tes
     {
         var loginResult = await LoginAsync(TestContext.Current.CancellationToken);
         Assert.True(loginResult);
+        var mediaItem = await CreateMediaItemAsync("test0.jpg", TestContext.Current.CancellationToken);
 
         var mediaItems = await _googlePhotosSvc.GetMediaItemsAsync(pageSize, maxPageCount, cancellationToken: TestContext.Current.CancellationToken).ToListAsync(TestContext.Current.CancellationToken);
-        Assert.NotEmpty(mediaItems);
+        Assert.Contains(mediaItems, item => item.id == mediaItem.id);
 
-        var bytes = await _googlePhotosSvc.DownloadBytes(mediaItems[0], cancellationToken: TestContext.Current.CancellationToken);
+        var bytes = await _googlePhotosSvc.DownloadBytes(mediaItem, cancellationToken: TestContext.Current.CancellationToken);
         Assert.NotNull(bytes);
         Assert.NotEmpty(bytes);
     }
