@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using CasCap.Models.Picker;
+using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
 
 namespace CasCap.Models;
@@ -16,8 +17,12 @@ public record GooglePhotosOptions
     /// <summary>
     /// The default endpoint for REST API requests, currently defaults to REST API v1.0
     /// </summary>
-    [Required]
+    [Required, Url]
     public required string BaseAddress { get; set; } = RequestUris.BaseAddress;
+
+    /// <summary>Gets or sets the endpoint for Google Photos Picker API requests.</summary>
+    [Required, Url]
+    public required string PickerBaseAddress { get; set; } = PickerRequestUris.BaseAddress;
 
     /// <summary>
     /// The email address of the Google Account that holds the photos.

@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using Microsoft.Extensions.Http.Resilience;
+using System.Net;
 using System.Net.Http.Headers;
 
 namespace Microsoft.Extensions.DependencyInjection;
@@ -24,6 +25,7 @@ public static class ServiceCollectionExtensions
             .Configure(options =>
             {
                 options.BaseAddress = googlePhotosOptions.BaseAddress;
+                options.PickerBaseAddress = googlePhotosOptions.PickerBaseAddress;
                 options.User = googlePhotosOptions.User;
                 options.Scopes = googlePhotosOptions.Scopes;
                 options.ClientId = googlePhotosOptions.ClientId;
@@ -86,5 +88,20 @@ public static class ServiceCollectionExtensions
                 Timeout = TimeSpan.FromSeconds(90)
             };
         });
+
+        services.AddHttpClient<GooglePhotosPickerService>((serviceProvider, client) =>
+        {
+            var googlePhotosOptions = serviceProvider.GetRequiredService<IOptions<GooglePhotosOptions>>().Value;
+            client.BaseAddress = new Uri(googlePhotosOptions.PickerBaseAddress);
+            client.DefaultRequestHeaders.Add("User-Agent", $"{nameof(CasCap)}.{AppDomain.CurrentDomain.FriendlyName}.{Environment.MachineName}");
+            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            client.DefaultRequestHeaders.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));
+            client.DefaultRequestHeaders.AcceptEncoding.Add(new StringWithQualityHeaderValue("deflate"));
+            client.Timeout = Timeout.InfiniteTimeSpan;
+        }).ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+        {
+            AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
+        })
+        .AddStandardResilienceHandler(options => options.Retry.DisableForUnsafeHttpMethods());
     }
 }
