@@ -85,6 +85,12 @@ Store test credentials in .NET User Secrets. Never add account identifiers, OAut
 
 ## Running Tests
 
+CI runs the credential-free tests on every push, excluding the integration category:
+
+```powershell
+dotnet test --project .\src\CasCap.Api.GooglePhotos.Tests\CasCap.Api.GooglePhotos.Tests.csproj --filter-not-trait Category=Integration
+```
+
 Ask before running integration tests. Microsoft.Testing.Platform supports precise method filtering and explicit live xUnit output:
 
 ```powershell
