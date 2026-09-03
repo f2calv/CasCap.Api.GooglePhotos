@@ -29,18 +29,22 @@ public class Filter
 
     /// <summary>Gets or sets content-category criteria.</summary>
     [JsonPropertyName("contentFilter")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public ContentFilter? ContentFilter { get; set; }
 
     /// <summary>Gets or sets date criteria.</summary>
     [JsonPropertyName("dateFilter")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public DateFilter? DateFilter { get; set; }
 
     /// <summary>Gets or sets feature criteria.</summary>
     [JsonPropertyName("featureFilter")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public FeatureFilter? FeatureFilter { get; set; }
 
     /// <summary>Gets or sets media-type criteria.</summary>
     [JsonPropertyName("mediaTypeFilter")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public MediaTypeFilter? MediaTypeFilter { get; set; }
 
     /// <summary>Gets or sets whether media not created by this application is excluded.</summary>

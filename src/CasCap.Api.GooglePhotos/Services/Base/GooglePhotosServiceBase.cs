@@ -409,7 +409,10 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
             if (contentFilter.IncludedContentCategories.IsNullOrEmpty()) contentFilter.IncludedContentCategories = null;
             if (contentFilter.ExcludedContentCategories.IsNullOrEmpty()) contentFilter.ExcludedContentCategories = null;
             if (contentFilter.IncludedContentCategories is null && contentFilter.ExcludedContentCategories is null)
+            {
                 _logger.LogDebug($"{nameof(contentFilter)} element empty so removed from outgoing request");
+                filter.ContentFilter = null;
+            }
         }
         var dateFilter = filter.DateFilter;
         if (dateFilter is not null)
@@ -417,16 +420,25 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
             if (dateFilter.Dates.IsNullOrEmpty()) dateFilter.Dates = null;
             if (dateFilter.Ranges.IsNullOrEmpty()) dateFilter.Ranges = null;
             if (dateFilter.Dates is null && dateFilter.Ranges is null)
+            {
                 _logger.LogDebug($"{nameof(dateFilter)} element empty so removed from outgoing request");
+                filter.DateFilter = null;
+            }
             //do we need to validate start/end date ranges, i.e. start before end...?
         }
         var mediaTypeFilter = filter.MediaTypeFilter;
         if (mediaTypeFilter is not null && mediaTypeFilter.MediaTypes.IsNullOrEmpty())
+        {
             _logger.LogDebug($"{nameof(mediaTypeFilter)} element empty so removed from outgoing request");
+            filter.MediaTypeFilter = null;
+        }
 
         var featureFilter = filter.FeatureFilter;
         if (featureFilter is not null && featureFilter.IncludedFeatures.IsNullOrEmpty())
+        {
             _logger.LogDebug($"{nameof(featureFilter)} element empty so removed from outgoing request");
+            filter.FeatureFilter = null;
+        }
 
         return _GetMediaItemsViaPOSTAsync(null, defaultPageSizeMediaItems, maxPageCount, filter, RequestUris.POST_mediaItems_search, cancellationToken);
     }

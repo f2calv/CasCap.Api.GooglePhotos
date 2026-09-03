@@ -37,11 +37,25 @@ This project exercises the Google Photos client against a dedicated test account
 | `FilterUsesGoogleWireNames`                     | 1            | 1               | Serialization |
 | `MediaItemMapsGoogleWireNames`                  | 1            | 1               | Serialization |
 | `ResponsesMapGoogleWireNames`                   | 1            | 1               | Serialization |
-| Total                                           | 26           | 36              |               |
+| `AddMediaItemsToAlbumDeduplicatesAndBatches`    | 1            | 1               | Library       |
+| `AddMediaItemsToAlbumHonorsCancellation`        | 1            | 1               | Library       |
+| `AddMediaItemsToAlbumWrapsApiError`             | 1            | 1               | Library       |
+| `AddMediaItemRejectsInvalidAlbumPosition`       | 1            | 3               | Library       |
+| `DownloadBytesBuildsPhotoParameters`            | 1            | 1               | Library       |
+| `DownloadBytesBuildsVideoParameters`            | 1            | 1               | Library       |
+| `DownloadBytesWrapsApiError`                    | 1            | 1               | Library       |
+| `GetAlbumsRejectsInvalidPageSize`               | 1            | 2               | Library       |
+| `GetMediaItemsDeduplicatesAcrossPages`          | 1            | 1               | Library       |
+| `GetMediaItemsByFilterRemovesEmptyFilters`      | 1            | 1               | Library       |
+| `GetMediaItemsRejectsInvalidPageSize`           | 1            | 2               | Library       |
+| `GetOrCreateAlbumCreatesMissingAlbum`           | 1            | 1               | Library       |
+| `GetOrCreateAlbumReturnsExistingAlbum`          | 1            | 1               | Library       |
+| `IsFileUploadableByExtensionClassifiesTypes`    | 1            | 4               | Library       |
+| Total                                           | 40           | 57              |               |
 
 ## Trait Categories
 
-Credentialed tests carry `Category=Integration`; unit tests carry `Category=Picker`, `Category=RateLimiting`, or `Category=Serialization`. API-specific integration coverage carries `Type=GooglePhotosService` or `Type=GooglePhotosPickerService`.
+Credentialed tests carry `Category=Integration`; unit tests carry `Category=Library`, `Category=Picker`, `Category=RateLimiting`, or `Category=Serialization`. API-specific integration coverage carries `Type=GooglePhotosService` or `Type=GooglePhotosPickerService`.
 
 ## Skipped Tests
 
@@ -69,6 +83,7 @@ CasCap.Api.GooglePhotos.Tests/
 |   |   `-- TestBase.cs
 |   |-- Unit/
 |   |   |-- GooglePhotosPickerServiceTests.cs
+|   |   |-- GooglePhotosServiceTests.cs
 |   |   |-- GooglePhotosWriteRateLimitingHandlerTests.cs
 |   |   `-- ModelSerializationTests.cs
 |   `-- ExifTests.cs        # TODO: re-enable the EXIF metadata proof
