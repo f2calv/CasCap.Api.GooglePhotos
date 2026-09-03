@@ -38,6 +38,7 @@ public sealed class GooglePhotosWriteRateLimitingHandlerTests
             User = "user@example.com",
             ClientId = "client-id",
             ClientSecret = "client-secret",
+            Scopes = [GooglePhotosScope.AppendOnly],
             WriteRateLimit = configuredOptions
         });
         using var serviceProvider = services.BuildServiceProvider();
