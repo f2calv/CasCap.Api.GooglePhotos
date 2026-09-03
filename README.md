@@ -20,6 +20,18 @@ Google changed the Photos APIs on March 31, 2025:
 
 Applications that previously listed a user's complete library must migrate that workflow to the Picker API. See [Google's API update](https://developers.google.com/photos/support/updates) and issue [#208](https://github.com/f2calv/CasCap.Api.GooglePhotos/issues/208).
 
+## Migrating to v4
+
+Version 4 is a breaking release:
+
+* The library targets .NET 10 only.
+* Public DTO properties and enum members use PascalCase while preserving Google's JSON wire names.
+* Removed Google sharing APIs and scopes are no longer exposed.
+* Library API operations now apply only to content created by the configured OAuth client.
+* OAuth cache entries are isolated by local user, OAuth client ID, and requested scopes.
+
+Applications that need existing user media must use `GooglePhotosPickerService`. Recompile consumers and update renamed DTO members before upgrading.
+
 ## Installation
 
 ```powershell

@@ -40,6 +40,7 @@ This project exercises the Google Photos client against a dedicated test account
 | `MediaItemMapsGoogleWireNames`                  | 1            | 1               | Serialization |
 | `ResponsesMapGoogleWireNames`                   | 1            | 1               | Serialization |
 | `AddMediaItemsToAlbumDeduplicatesAndBatches`    | 1            | 1               | Library       |
+| `AddMediaItemsBatchesCreationRequests`          | 1            | 1               | Library       |
 | `AddMediaItemsToAlbumHonorsCancellation`        | 1            | 1               | Library       |
 | `AddMediaItemsToAlbumWrapsApiError`             | 1            | 1               | Library       |
 | `AddMediaItemRejectsInvalidAlbumPosition`       | 1            | 3               | Library       |
@@ -55,12 +56,13 @@ This project exercises the Google Photos client against a dedicated test account
 | `GetOrCreateAlbumReturnsExistingAlbum`          | 1            | 1               | Library       |
 | `IsFileUploadableByExtensionClassifiesTypes`    | 1            | 4               | Library       |
 | `LoginRejectsUndefinedScope`                    | 1            | 1               | Library       |
+| `OAuthCacheKeyIncludesClientId`                 | 1            | 1               | Library       |
 | `UploadMediaRecoversFromAcceptedChunk`          | 1            | 1               | Library       |
 | `UploadMediaRecoversFromAcceptedFinalChunk`     | 1            | 1               | Library       |
 | `UploadMediaRecoversResumableSingle`            | 1            | 1               | Library       |
 | `UploadMediaWrapsMalformedError`                | 1            | 1               | Library       |
 | `UploadMediaWrapsMalformedSessionError`         | 1            | 1               | Library       |
-| Total                                           | 49           | 66              |               |
+| Total                                           | 51           | 68              |               |
 
 ## Trait Categories
 

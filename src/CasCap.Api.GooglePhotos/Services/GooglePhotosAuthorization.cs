@@ -39,7 +39,7 @@ internal static partial class GooglePhotosAuthorization
         var credential = await GoogleWebAuthorizationBroker.AuthorizeAsync(
             secrets,
             requestedScopes,
-            GetTokenStoreKey(options.User, requestedScopes),
+            GetTokenStoreKey(options.User, options.ClientId, requestedScopes),
             cancellationToken,
             dataStore).ConfigureAwait(false);
 
@@ -72,10 +72,11 @@ internal static partial class GooglePhotosAuthorization
             ? value
             : throw new GooglePhotosException($"Unsupported Google Photos OAuth scope: {scope}.")).ToArray();
 
-    private static string GetTokenStoreKey(string user, IEnumerable<string> scopes)
+    /// <summary>Creates an OAuth cache key isolated by local user, OAuth client, and requested scopes.</summary>
+    internal static string GetTokenStoreKey(string user, string clientId, IEnumerable<string> scopes)
     {
         var normalizedScopes = string.Join('\n', scopes.Order(StringComparer.Ordinal));
-        var source = Encoding.UTF8.GetBytes($"{user}\n{normalizedScopes}");
+        var source = Encoding.UTF8.GetBytes($"{user}\n{clientId}\n{normalizedScopes}");
         return Convert.ToHexString(SHA256.HashData(source));
     }
 

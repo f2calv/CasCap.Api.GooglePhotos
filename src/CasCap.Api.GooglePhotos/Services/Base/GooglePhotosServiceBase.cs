@@ -15,7 +15,7 @@ namespace CasCap.Services;
 public abstract partial class GooglePhotosServiceBase : HttpClientBase
 {
     private const int maxSizeImageBytes = 1024 * 1024 * 200;
-    private const long maxSizeVideoBytes = 1024 * 1024 * 1024 * 10L;
+    private const long maxSizeVideoBytes = 1024 * 1024 * 1024 * 20L;
 
     private const int minPageSizeAlbums = 1;
     private const int defaultPageSizeAlbums = 50;
@@ -669,24 +669,36 @@ public abstract partial class GooglePhotosServiceBase : HttpClientBase
     {
         if (uploadItems.IsNullOrEmpty())
             throw new ArgumentNullException(nameof(uploadItems), $"Invalid {nameof(uploadItems)} quantity, must be >= 1");
-        var newMediaItems = new List<NewMediaItem>(uploadItems.Count);
-        foreach (var mediaItem in uploadItems)
+        if (albumPosition is not null && uploadItems.Count > defaultBatchSizeMediaItems)
+            throw new NotSupportedException("Explicit album positioning supports at most 50 media items per request.");
+
+        var response = new MediaItemsCreateResponse { NewMediaItemResults = [] };
+        foreach (var batch in uploadItems.Chunk(defaultBatchSizeMediaItems))
         {
-            var newMediaItem = new NewMediaItem
+            cancellationToken.ThrowIfCancellationRequested();
+            var newMediaItems = new List<NewMediaItem>(batch.Length);
+            foreach (var mediaItem in batch)
             {
-                Description = mediaItem.Description,
-                SimpleMediaItem = new SimpleMediaItem
+                newMediaItems.Add(new NewMediaItem
                 {
-                    FileName = mediaItem.FileName,
-                    UploadToken = mediaItem.UploadToken,
-                }
-            };
-            newMediaItems.Add(newMediaItem);
+                    Description = mediaItem.Description,
+                    SimpleMediaItem = new SimpleMediaItem
+                    {
+                        FileName = mediaItem.FileName,
+                        UploadToken = mediaItem.UploadToken,
+                    }
+                });
+            }
+
+            var request = new { newMediaItems, albumId, albumPosition };
+            var result = await PostJson<MediaItemsCreateResponse, Error>(RequestUris.POST_mediaItems_batchCreate, request, cancellationToken: cancellationToken).ConfigureAwait(false);
+            if (result.error is not null)
+                throw new GooglePhotosException(result.error);
+            if (result.result is not null)
+                response.NewMediaItemResults.AddRange(result.result.NewMediaItemResults);
         }
-        var req = new { newMediaItems, albumId, albumPosition };
-        var tpl = await PostJson<MediaItemsCreateResponse, Error>(RequestUris.POST_mediaItems_batchCreate, req, cancellationToken: cancellationToken).ConfigureAwait(false);
-        if (tpl.error is not null) throw new GooglePhotosException(tpl.error);
-        return tpl.result;
+
+        return response;
     }
     #endregion
 

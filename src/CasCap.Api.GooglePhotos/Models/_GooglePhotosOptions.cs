@@ -13,7 +13,7 @@ public sealed record GooglePhotosOptions
     /// </summary>
     public const string ConfigurationSectionName = $"{nameof(CasCap)}:{nameof(GooglePhotosOptions)}";
 
-    /// <summary>Initializes a new instance of the <see cref="GooglePhotosOptions" /> class with default endpoints and scopes.</summary>
+    /// <summary>Initializes a new instance of the <see cref="GooglePhotosOptions" /> class with default endpoints.</summary>
     [SetsRequiredMembers]
     public GooglePhotosOptions() { }
 
@@ -35,18 +35,10 @@ public sealed record GooglePhotosOptions
     public required string User { get; set; } = string.Empty;
 
     /// <summary>
-    /// Security Scopes, i.e. access levels.
-    /// Note: When changing scopes under the same User you must manually delete the local JSON file to clear the local cache,
-    /// you can use the GooglePhotosOptions.FileDataStoreFullPathDefault property to locate the path to the JSON file(s).
+    /// Security scopes requested from the user. Configure only the scopes required by the application.
     /// </summary>
     [Required, MinLength(1)]
-    public required GooglePhotosScope[] Scopes { get; set; } =
-    [
-        GooglePhotosScope.AppendOnly,
-        GooglePhotosScope.ReadOnlyAppCreatedData,
-        GooglePhotosScope.EditAppCreatedData,
-        GooglePhotosScope.PickerMediaItemsReadOnly
-    ];
+    public required GooglePhotosScope[] Scopes { get; set; } = [];
 
     /// <summary>
     /// Google Client Id string, numerical/alphanumeric.

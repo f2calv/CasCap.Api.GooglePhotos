@@ -9,6 +9,30 @@ namespace CasCap.Tests;
 public sealed class GooglePhotosServiceTests
 {
     [Fact]
+    public async Task AddMediaItemsBatchesCreationRequests()
+    {
+        var batchSizes = new List<int>();
+        using var client = CreateClient(async (request, cancellationToken) =>
+        {
+            var json = await request.Content!.ReadAsStringAsync(cancellationToken);
+            using var document = JsonDocument.Parse(json);
+            batchSizes.Add(document.RootElement.GetProperty("newMediaItems").GetArrayLength());
+            return CreateJsonResponse("""{"newMediaItemResults":[]}""");
+        });
+        var service = CreateService(client);
+        var uploadItems = Enumerable.Range(0, 51)
+            .Select(index => new UploadItem($"token-{index}", $"file-{index}.jpg"))
+            .ToList();
+
+        var response = await service.AddMediaItemsAsync(
+            uploadItems,
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        Assert.NotNull(response);
+        Assert.Equal([50, 1], batchSizes);
+    }
+
+    [Fact]
     public async Task GetAlbumWrapsApiError()
     {
         using var client = CreateClient((_, _) => Task.FromResult(CreateJsonResponse(
@@ -369,6 +393,19 @@ public sealed class GooglePhotosServiceTests
             TestContext.Current.CancellationToken));
 
         Assert.Contains("Unsupported Google Photos OAuth scope", exception.Message);
+    }
+
+    [Fact]
+    public void OAuthCacheKeyIncludesClientId()
+    {
+        var scopes = new[] { "scope-b", "scope-a" };
+
+        var first = GooglePhotosAuthorization.GetTokenStoreKey("local-user", "client-a", scopes);
+        var reordered = GooglePhotosAuthorization.GetTokenStoreKey("local-user", "client-a", scopes.Reverse());
+        var secondClient = GooglePhotosAuthorization.GetTokenStoreKey("local-user", "client-b", scopes);
+
+        Assert.Equal(first, reordered);
+        Assert.NotEqual(first, secondClient);
     }
 
     [Fact]
