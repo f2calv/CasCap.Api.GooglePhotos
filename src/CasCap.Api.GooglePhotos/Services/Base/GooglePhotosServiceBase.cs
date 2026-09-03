@@ -192,14 +192,6 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
         return tpl.result;
     }
 
-    public async Task<Album?> GetSharedAlbumAsync(string sharedToken, CancellationToken cancellationToken = default)
-    {
-        var tpl = await Get<Album, Error>(string.Format(RequestUris.GET_sharedAlbum, sharedToken), cancellationToken: cancellationToken);
-        if (tpl.error is not null) throw new GooglePhotosException(tpl.error);
-
-        return tpl.result;
-    }
-
     /// <summary>
     ///
     /// </summary>
@@ -211,9 +203,6 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
     {
         return _GetAlbumsAsync(RequestUris.GET_albums, pageSize, excludeNonAppCreatedData, cancellationToken);
     }
-
-    public Task<List<Album>> GetSharedAlbumsAsync(int pageSize = defaultPageSizeAlbums, bool excludeNonAppCreatedData = false, CancellationToken cancellationToken = default)
-        => _GetAlbumsAsync(RequestUris.GET_sharedAlbums, pageSize, excludeNonAppCreatedData, cancellationToken);
 
     //todo: add IPagable interface and merge with similar
     private async Task<List<Album>> _GetAlbumsAsync(string requestUri, int pageSize, bool excludeNonAppCreatedData, CancellationToken cancellationToken)/* where T : IPagingToken where V : IEnumerable<V>, new()*/
@@ -234,7 +223,6 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
             {
                 var batch = new List<Album>(pageSize);
                 if (!tpl.result.albums.IsNullOrEmpty()) batch = tpl.result.albums ?? [];
-                if (!tpl.result.sharedAlbums.IsNullOrEmpty()) batch = tpl.result.sharedAlbums ?? [];
                 l.AddRange(batch);
                 if (!string.IsNullOrWhiteSpace(tpl.result.nextPageToken))
                     RaisePagingEvent(new PagingEventArgs(batch.Count, pageNumber, l.Count));
@@ -305,34 +293,6 @@ public abstract class GooglePhotosServiceBase : HttpClientBase
         return tpl.result is not null && tpl.result.enrichmentItem is not null ? tpl.result.enrichmentItem : null;
     }
 
-    public async Task<ShareInfo?> ShareAlbumAsync(string albumId, bool isCollaborative = true, bool isCommentable = true, CancellationToken cancellationToken = default)
-    {
-        var req = new { sharedAlbumOptions = new SharedAlbumOptions { isCollaborative = isCollaborative, isCommentable = isCommentable } };
-        var tpl = await PostJson<sharedAlbumResponse, Error>(string.Format(RequestUris.POST_share, albumId), req, cancellationToken: cancellationToken);
-        if (tpl.error is not null) throw new GooglePhotosException(tpl.error);
-        return tpl.result is not null && tpl.result.shareInfo is not null ? tpl.result.shareInfo : null;
-    }
-
-    public async Task<bool> UnShareAlbumAsync(string albumId, CancellationToken cancellationToken = default)
-    {
-        var tpl = await PostJson<string, Error>(string.Format(RequestUris.POST_unshare, albumId), new { }, cancellationToken: cancellationToken);
-        if (tpl.error is not null) throw new GooglePhotosException(tpl.error);
-        return true;
-    }
-
-    public async Task<Album?> JoinSharedAlbumAsync(string shareToken, CancellationToken cancellationToken = default)
-    {
-        var tpl = await PostJson<Album, Error>(RequestUris.POST_sharedAlbums_join, new { shareToken }, cancellationToken: cancellationToken);
-        if (tpl.error is not null) throw new GooglePhotosException(tpl.error);
-        return tpl.result;
-    }
-
-    public async Task<bool> LeaveSharedAlbumAsync(string shareToken, CancellationToken cancellationToken = default)
-    {
-        var tpl = await PostJson<string, Error>(RequestUris.POST_sharedAlbums_leave, new { shareToken }, cancellationToken: cancellationToken);
-        if (tpl.error is not null) throw new GooglePhotosException(tpl.error);
-        return true;
-    }
     #endregion
 
     #region https://photoslibrary.googleapis.com/v1/mediaItems

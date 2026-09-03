@@ -3,12 +3,6 @@
 internal class albumsGetResponse : ResponseBase
 {
     public List<Album>? albums { get; set; }
-    public List<Album>? sharedAlbums { get; set; }
-}
-
-internal class sharedAlbumResponse
-{
-    public ShareInfo shareInfo { get; set; } = default!;
 }
 
 public class mediaItemsCreateResponse//todo: should this be internal?

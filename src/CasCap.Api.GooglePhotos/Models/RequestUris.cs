@@ -34,23 +34,9 @@ public static class RequestUris
     /// </summary>
     public const string GET_album = "albums/{0}";
 
-    /// <summary>
-    /// Marks an album as shared and accessible to other users.
-    /// </summary>
-    public const string POST_share = "albums/{0}:share";
-
-    /// <summary>
-    /// Marks a previously shared album as private.
-    /// </summary>
-    public const string POST_unshare = "albums/{0}:unshare";
-
     public const string uploads = nameof(uploads);
     public const string GET_mediaItems = "mediaItems";
     public const string POST_mediaItems_search = "mediaItems:search";
     public const string POST_mediaItems_batchCreate = "mediaItems:batchCreate";
     public const string GET_mediaItems_batchGet = "mediaItems:batchGet";
-    public const string GET_sharedAlbums = "sharedAlbums";
-    public const string GET_sharedAlbum = "sharedAlbums/{0}";
-    public const string POST_sharedAlbums_join = "sharedAlbums:join";
-    public const string POST_sharedAlbums_leave = "sharedAlbums:leave";
 }
