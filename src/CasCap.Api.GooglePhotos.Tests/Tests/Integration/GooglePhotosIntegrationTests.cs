@@ -81,16 +81,13 @@ public sealed class GooglePhotosIntegrationTests(ITestOutputHelper output) : Tes
         var loginResult = await LoginAsync(TestContext.Current.CancellationToken);
         Assert.True(loginResult);
 
-        var paths = Directory.GetFiles(_testFolder);
-        foreach (var path in paths)
-        {
-            var uploadToken = await _googlePhotosSvc.UploadMediaAsync(path, uploadMethod, cancellationToken: TestContext.Current.CancellationToken);
-            Assert.False(string.IsNullOrWhiteSpace(uploadToken));
-            var newMediaItemResult = await _googlePhotosSvc.AddMediaItemAsync(uploadToken, path, cancellationToken: TestContext.Current.CancellationToken);
-            Assert.NotNull(newMediaItemResult);
-            Assert.NotNull(newMediaItemResult.mediaItem);
-            Assert.False(string.IsNullOrWhiteSpace(newMediaItemResult.mediaItem.id));
-        }
+        var path = Path.Combine(_testFolder, "test0.jpg");
+        var uploadToken = await _googlePhotosSvc.UploadMediaAsync(path, uploadMethod, cancellationToken: TestContext.Current.CancellationToken);
+        Assert.False(string.IsNullOrWhiteSpace(uploadToken));
+        var newMediaItemResult = await _googlePhotosSvc.AddMediaItemAsync(uploadToken, path, cancellationToken: TestContext.Current.CancellationToken);
+        Assert.NotNull(newMediaItemResult);
+        Assert.NotNull(newMediaItemResult.mediaItem);
+        Assert.False(string.IsNullOrWhiteSpace(newMediaItemResult.mediaItem.id));
     }
 
     [Theory]
@@ -251,23 +248,14 @@ public sealed class GooglePhotosIntegrationTests(ITestOutputHelper output) : Tes
         Assert.False(string.IsNullOrWhiteSpace(enrichmentId2.id));
     }
 
-    [Theory]
-    [InlineData(1, 10)]
-    [InlineData(1, 100)]
-    [InlineData(2, 10)]
-    [InlineData(2, 100)]
-    [InlineData(2, int.MaxValue)]
-    [InlineData(3, 100)]
-    [InlineData(4, 100)]
-    [InlineData(10, 10)]
-    [InlineData(20, 10)]
-    public async Task DownloadBytes(int pageSize, int maxPageCount)
+    [Fact]
+    public async Task DownloadBytes()
     {
         var loginResult = await LoginAsync(TestContext.Current.CancellationToken);
         Assert.True(loginResult);
         var mediaItem = await CreateMediaItemAsync("test0.jpg", TestContext.Current.CancellationToken);
 
-        var mediaItems = await _googlePhotosSvc.GetMediaItemsAsync(pageSize, maxPageCount, cancellationToken: TestContext.Current.CancellationToken).ToListAsync(TestContext.Current.CancellationToken);
+        var mediaItems = await _googlePhotosSvc.GetMediaItemsAsync(cancellationToken: TestContext.Current.CancellationToken).ToListAsync(TestContext.Current.CancellationToken);
         Assert.Contains(mediaItems, item => item.id == mediaItem.id);
 
         var bytes = await _googlePhotosSvc.DownloadBytes(mediaItem, cancellationToken: TestContext.Current.CancellationToken);

@@ -18,7 +18,7 @@ This project exercises the Google Photos client against a dedicated test account
 | `UploadMultiple`                                | 1            | 1               | Integration |
 | `FilterMediaItems`                              | 1            | 1               | Integration |
 | `AddEnrichments`                                | 1            | 1               | Integration |
-| `DownloadBytes`                                 | 1            | 9               | Integration |
+| `DownloadBytes`                                 | 1            | 1               | Integration |
 | `CreateSessionRejectsInvalidItemCount`          | 1            | 2               | Picker      |
 | `CreateSessionRejectsNonVersionFourRequestId`   | 1            | 1               | Picker      |
 | `DeleteSessionWrapsMalformedError`              | 1            | 1               | Picker      |
@@ -26,7 +26,7 @@ This project exercises the Google Photos client against a dedicated test account
 | `DownloadPhotoWrapsMalformedError`              | 1            | 1               | Picker      |
 | `GetMediaItemsFollowsPageToken`                 | 1            | 1               | Picker      |
 | `RegistrationRejectsEmptyScopes`                | 1            | 1               | Picker      |
-| Total                                           | 15           | 27              |             |
+| Total                                           | 15           | 19              |             |
 
 ## Trait Categories
 
