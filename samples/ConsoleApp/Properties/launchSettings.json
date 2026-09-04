@@ -1,7 +1,13 @@
 {
   "profiles": {
     "ConsoleApp": {
-      "commandName": "Project"
+      "commandName": "Project",
+      "commandLineArgs": "\"C:\\\\media\\\\photo.jpg\"",
+      "environmentVariables": {
+        "GOOGLE_PHOTOS_USER": "",
+        "GOOGLE_PHOTOS_CLIENT_ID": "",
+        "GOOGLE_PHOTOS_CLIENT_SECRET": ""
+      }
     }
   }
 }

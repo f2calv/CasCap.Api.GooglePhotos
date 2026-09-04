@@ -21,6 +21,25 @@ $env:GOOGLE_PHOTOS_CLIENT_ID = "your-client-id"
 $env:GOOGLE_PHOTOS_CLIENT_SECRET = "your-client-secret"
 ```
 
+When debugging, fill in the blank placeholders in [Properties/launchSettings.json](Properties/launchSettings.json) instead, along with `commandLineArgs` for the media file path. That file is tracked, so leave the placeholders empty when committing.
+
+## Walkthrough
+
+[Program.cs](Program.cs) is written as twelve numbered steps so the hand-built pipeline can be read top to bottom:
+
+1. Read the media file argument.
+2. Wire Ctrl+C to a `CancellationToken`.
+3. Create a logger factory.
+4. Build `GooglePhotosOptions` and choose OAuth scopes.
+5. Report where the OAuth grant is cached, which explains when the browser opens.
+6. Create the `HttpClientHandler`.
+7. Create the credential provider and its authorization handler.
+8. Construct `GooglePhotosService`.
+9. Authenticate.
+10. Find or create an album.
+11. Upload the media file.
+12. List the album contents.
+
 ## Run
 
 Pass an existing photo or video path after `--`:

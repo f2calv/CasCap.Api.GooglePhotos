@@ -20,6 +20,14 @@ dotnet user-secrets set "CasCap:GooglePhotosOptions:ClientSecret" "your-client-s
 dotnet user-secrets set "Sample:MediaPath" "C:\media\photo.jpg" --project samples/GenericHost
 ```
 
+Unlike the ConsoleApp sample, the credentials are deliberately not listed in [Properties/launchSettings.json](Properties/launchSettings.json). Environment variables are loaded after User Secrets, so a blank placeholder there would override a secret you had already set and the sample would fail to authenticate.
+
+To use environment variables anyway, supply the whole value in the standard double-underscore form, for example `CasCap__GooglePhotosOptions__ClientId`.
+
+## Walkthrough
+
+[Program.cs](Program.cs) registers the library and a `BackgroundService`. [Services/GooglePhotosWorker.cs](Services/GooglePhotosWorker.cs) does the work in five numbered steps: read the configured media path, authenticate, find or create an album, upload, then read the album back.
+
 ## Run
 
 ```powershell
