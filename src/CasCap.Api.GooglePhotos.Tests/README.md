@@ -3,6 +3,8 @@ title: CasCap.Api.GooglePhotos Tests
 description: Integration test structure, authentication requirements, and execution commands.
 ---
 
+# CasCap.Api.GooglePhotos Tests
+
 ## Purpose
 
 This project exercises the Google Photos client against a dedicated test account. The tests require OAuth credentials from .NET User Secrets and may create albums and upload synthetic media.

@@ -3,6 +3,8 @@ title: Direct Console Sample
 description: Run CasCap.Api.GooglePhotos through direct service construction without dependency injection.
 ---
 
+# Direct Console Sample
+
 ## Purpose
 
 This sample constructs `GooglePhotosService`, `HttpClient`, logging, and options directly. It creates an album, uploads one media file, and lists that album's contents.

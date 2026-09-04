@@ -18,7 +18,7 @@ applyTo: '**/*.md'
 
 ### Structure and SEO
 
-Apply to the repository root `README.md` and to every project `README.md`:
+Apply to every file named `README.md`, wherever it lives — repository root, project, sample, chart, or documentation sub-folder. These rules are specific to `README.md` and do not apply to other Markdown files.
 
 - **Exactly one `# H1`**, as the first content line after any front matter, naming the repository or project. Never repeat the H1 lower down and never open with `##`.
 - **Never skip heading levels**: `#` → `##` → `###` in order. Skipping breaks document outline extraction and MD001.
@@ -27,6 +27,7 @@ Apply to the repository root `README.md` and to every project `README.md`:
 - **Descriptive link text**: Never `click here`, and never a bare URL where a phrase reads better.
 - **Alt text on every image** describing the content rather than the file (`![Service dependency graph](…)`, not `![diagram](…)`).
 - **Unique headings within a file** so generated anchors resolve predictably.
+- **Front matter does not replace the H1**: GitHub renders YAML front matter as a table, not a heading, so a `title:` key alone leaves the page with no `<h1>`. Keep the front matter and add the explicit H1. The repository's `.markdownlint.json` sets `MD025.front_matter_title` to an empty string so the explicit H1 is not reported as a duplicate title.
 
 ## Mermaid Diagrams
 

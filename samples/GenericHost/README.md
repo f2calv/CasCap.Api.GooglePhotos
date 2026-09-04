@@ -3,6 +3,8 @@ title: Generic Host Sample
 description: Run CasCap.Api.GooglePhotos with standard .NET configuration and dependency injection.
 ---
 
+# Generic Host Sample
+
 ## Purpose
 
 This sample uses `Host.CreateApplicationBuilder`, `AddGooglePhotos`, options validation, dependency injection, and a `BackgroundService`. It creates an album, uploads one media file, and reports the number of media items in that album.
