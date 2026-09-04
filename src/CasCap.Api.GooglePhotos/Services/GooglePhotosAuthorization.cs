@@ -1,9 +1,7 @@
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Util.Store;
 using System.Collections.Frozen;
-using System.Net.Http.Headers;
 using System.Security.Cryptography;
-using System.Text;
 
 namespace CasCap.Services;
 

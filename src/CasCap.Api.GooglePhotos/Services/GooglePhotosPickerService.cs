@@ -1,8 +1,6 @@
 using CasCap.Common.Services;
-using CasCap.Models.Picker;
 using Microsoft.AspNetCore.WebUtilities;
 using System.Globalization;
-using System.Net.Http.Headers;
 using System.Runtime.CompilerServices;
 
 namespace CasCap.Services;

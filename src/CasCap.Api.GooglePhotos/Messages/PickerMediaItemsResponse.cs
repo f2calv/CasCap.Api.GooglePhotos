@@ -1,5 +1,3 @@
-using CasCap.Models.Picker;
-
 namespace CasCap.Messages;
 
 /// <summary>Represents a page of media selected through a Picker session.</summary>

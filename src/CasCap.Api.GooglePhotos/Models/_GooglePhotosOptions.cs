@@ -1,6 +1,4 @@
-﻿using CasCap.Common.Abstractions;
-using CasCap.Models.Picker;
-using Microsoft.Extensions.Options;
+using CasCap.Common.Abstractions;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
 

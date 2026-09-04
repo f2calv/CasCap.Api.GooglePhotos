@@ -1,4 +1,3 @@
-using CasCap.Messages;
 using System.Text.Json;
 
 namespace CasCap.Tests;

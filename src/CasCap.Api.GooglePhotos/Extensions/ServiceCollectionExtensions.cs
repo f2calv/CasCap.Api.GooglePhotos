@@ -1,8 +1,6 @@
-﻿using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Http.Resilience;
 using Polly;
-using System.Net;
-using System.Net.Http.Headers;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
