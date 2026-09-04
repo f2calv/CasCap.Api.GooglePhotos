@@ -2,11 +2,12 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
+    <TargetFramework>net10.0</TargetFramework>
+    <UserSecretsId>bf9d717e-ecd3-40e4-850d-14010c167289</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Google.Apis.IAMCredentials.v1" />
+    <PackageReference Include="MetadataExtractor" />
     <PackageReference Include="Microsoft.Extensions.Configuration" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" />
     <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" />
@@ -43,7 +44,6 @@
     <None Update="testdata\test8.jpg" CopyToOutputDirectory="Always" />
     <None Update="testdata\test9.jpg" CopyToOutputDirectory="Always" />
     <None Update="testdata\Урок-английского-10.jpg" CopyToOutputDirectory="Always" />
-    <None Update="testdata\test11.jpg" CopyToOutputDirectory="Always" />
   </ItemGroup>
 
 </Project>

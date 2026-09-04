@@ -1,79 +1,118 @@
-﻿string? _user = null;//e.g. "your.email@mydomain.com";
-string? _clientId = null;//e.g. "012345678901-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.apps.googleusercontent.com";
-string? _clientSecret = null;//e.g. "abcabcabcabcabcabcabcabc";
-const string _testFolder = "c:/temp/GooglePhotos/";//local folder of test media files
+//This sample wires the library up by hand, without dependency injection, so that each moving part is
+//visible. See the GenericHost sample for the shorter, more typical AddGooglePhotos registration.
 
-if (new[] { _user, _clientId, _clientSecret }.Any(string.IsNullOrWhiteSpace))
+//1) Read the media file to upload from the command line.
+if (args.Length != 1)
 {
-    Console.WriteLine("Please populate authentication details to continue...");
-    Debugger.Break();
-    return;
-}
-if (!Directory.Exists(_testFolder))
-{
-    Console.WriteLine($"Cannot find folder '{_testFolder}'");
-    Debugger.Break();
-    return;
+    Console.Error.WriteLine("Usage: dotnet run --project samples/ConsoleApp -- <media-file>");
+    return 1;
 }
 
-//1) new-up some basic logging (if using appsettings.json you could load logging configuration from there)
-//var configuration = new ConfigurationBuilder().Build();
-var loggerFactory = LoggerFactory.Create(builder =>
+var mediaPath = Path.GetFullPath(args[0]);
+if (!File.Exists(mediaPath))
 {
-    //builder.AddConfiguration(configuration.GetSection("Logging")).AddDebug().AddConsole();
-});
-var logger = loggerFactory.CreateLogger<GooglePhotosService>();
+    Console.Error.WriteLine($"Cannot find media file '{mediaPath}'.");
+    return 1;
+}
 
-//2) create a configuration object
+//2) Cancel cleanly on Ctrl+C. Every library call takes a CancellationToken, including the uploads.
+using var cancellationTokenSource = new CancellationTokenSource();
+Console.CancelKeyPress += (_, eventArgs) =>
+{
+    if (!cancellationTokenSource.IsCancellationRequested)
+    {
+        eventArgs.Cancel = true;
+        cancellationTokenSource.Cancel();
+    }
+};
+var cancellationToken = cancellationTokenSource.Token;
+
+//3) The library only ever depends on ILogger<T>, so any logging provider will do.
+using var loggerFactory = LoggerFactory.Create(builder => builder.AddSimpleConsole());
+
+//4) Build the options by hand. Credentials come from environment variables here; set them in
+//   Properties/launchSettings.json when debugging. The GenericHost sample uses User Secrets instead.
+//   Request only the scopes the application needs: AppendOnly to upload, ReadOnlyAppCreatedData to read
+//   back what this OAuth client created, and EditAppCreatedData to organise it.
 var options = new GooglePhotosOptions
 {
-    User = _user!,
-    ClientId = _clientId!,
-    ClientSecret = _clientSecret!,
-    //FileDataStoreFullPathOverride = _testFolder,
-    Scopes = [GooglePhotosScope.Access, GooglePhotosScope.Sharing],//Access+Sharing == full access
+    User = GetRequiredEnvironmentVariable("GOOGLE_PHOTOS_USER"),
+    ClientId = GetRequiredEnvironmentVariable("GOOGLE_PHOTOS_CLIENT_ID"),
+    ClientSecret = GetRequiredEnvironmentVariable("GOOGLE_PHOTOS_CLIENT_SECRET"),
+    Scopes =
+    [
+        GooglePhotosScope.AppendOnly,
+        GooglePhotosScope.ReadOnlyAppCreatedData,
+        GooglePhotosScope.EditAppCreatedData
+    ]
 };
 
-//3) (Optional) display local OAuth 2.0 JSON file(s);
-var path = options.FileDataStoreFullPathOverride is null ? GooglePhotosOptions.FileDataStoreFullPathDefault : options.FileDataStoreFullPathOverride;
-Console.WriteLine($"{nameof(options.FileDataStoreFullPathOverride)}:\t{path}");
-var files = Directory.GetFiles(path);
-if (files.Length == 0)
-    Console.WriteLine($"\t- n/a this is probably the first time we have authenticated...");
-else
+//5) Google's auth library caches the OAuth grant on disk. Knowing where it lives explains why the browser
+//   only opens on the first run, and where to clear a stale grant when the requested scopes change.
+var tokenCacheFolder = options.FileDataStoreFullPathOverride ?? GooglePhotosOptions.FileDataStoreFullPathDefault;
+var cachedGrantCount = Directory.Exists(tokenCacheFolder) ? Directory.GetFiles(tokenCacheFolder).Length : 0;
+Console.WriteLine($"OAuth token cache: {tokenCacheFolder}");
+Console.WriteLine(cachedGrantCount == 0
+    ? "  no cached grant yet, so a browser will open for consent"
+    : $"  {cachedGrantCount} cached file(s), so consent should be skipped");
+
+//6) One HttpClient is created and reused for every call. AddGooglePhotos normally builds this handler
+//   chain; by hand it is authorization handler -> decompression handler -> network.
+using var handler = new HttpClientHandler
 {
-    Console.WriteLine($"Files;");
-    foreach (var file in files)
-        Console.WriteLine($"\t- {Path.GetFileName(file)}");
+    AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
+};
+
+//7) The credential provider holds the OAuth grant and refreshes the access token. The handler it creates
+//   applies that token per request, so a long-running process never sends an expired one.
+var credentialProvider = new GooglePhotosCredentialProvider(
+    loggerFactory.CreateLogger<GooglePhotosCredentialProvider>(),
+    Options.Create(options));
+using var authorizationHandler = credentialProvider.CreateAuthorizationHandler(handler);
+using var client = new HttpClient(authorizationHandler) { BaseAddress = new Uri(options.BaseAddress) };
+
+//8) Construct the service from the pieces above, in lieu of dependency injection. Note that this
+//   hand-built client has no resilience pipeline and no write rate limiting.
+var googlePhotosSvc = new GooglePhotosService(
+    loggerFactory.CreateLogger<GooglePhotosService>(),
+    Options.Create(options),
+    credentialProvider,
+    client);
+
+//9) Authenticate. The first run opens the system browser; later runs reuse the cached grant from step 5.
+if (!await googlePhotosSvc.LoginAsync(cancellationToken))
+    throw new GooglePhotosException("Google Photos login failed.");
+
+//10) Find or create an album. Since the March 2025 API change this only sees albums that this OAuth
+//    client created, never the rest of the user's library.
+var albumTitle = $"sample-{DateTime.UtcNow:yyyyMMdd-HHmmss}";
+var album = await googlePhotosSvc.GetOrCreateAlbumAsync(albumTitle, cancellationToken: cancellationToken)
+    ?? throw new GooglePhotosException("Album creation failed.");
+
+Console.WriteLine($"{nameof(album)} '{album.Title}' id is '{album.Id}'");
+
+//11) Upload. Google splits this into two steps, uploading the bytes for a token and then creating the
+//    media item from that token; UploadSingleAsync does both.
+var mediaItem = await googlePhotosSvc.UploadSingleAsync(mediaPath, album.Id, cancellationToken: cancellationToken)
+    ?? throw new GooglePhotosException("Media item upload failed.");
+
+Console.WriteLine($"{nameof(mediaItem)} '{mediaItem.MediaItem.Filename}' id is '{mediaItem.MediaItem.Id}'");
+
+//12) Read the album back. Results stream as an IAsyncEnumerable, so paging is handled for you.
+var itemCount = 0;
+await foreach (var item in googlePhotosSvc.GetMediaItemsByAlbumAsync(album.Id, cancellationToken: cancellationToken))
+{
+    itemCount++;
+    Console.WriteLine($"{itemCount}\t{item.Filename}\t{item.MediaMetadata.Width}x{item.MediaMetadata.Height}");
 }
 
-//4) create a single HttpClient which will be pooled and re-used by GooglePhotosService
-var handler = new HttpClientHandler { AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate };
-var client = new HttpClient(handler) { BaseAddress = new Uri(options.BaseAddress) };
+return itemCount > 0 ? 0 : 1;
 
-//5) new-up the GooglePhotosService passing in the previous references (in lieu of dependency injection)
-var _googlePhotosSvc = new GooglePhotosService(logger, Options.Create(options), client);
-
-//6) log-in
-if (!await _googlePhotosSvc.LoginAsync())
-    throw new GooglePhotosException($"login failed!");
-
-//get existing/create new album
-var albumTitle = $"{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}-{Guid.NewGuid()}";//make-up a random title
-var album = await _googlePhotosSvc.GetOrCreateAlbumAsync(albumTitle) ?? throw new GooglePhotosException("album creation failed!");
-
-Console.WriteLine($"{nameof(album)} '{album.title}' id is '{album.id}'");
-
-//upload single media item and assign to album
-var mediaItem = await _googlePhotosSvc.UploadSingle($"{_testFolder}test1.jpg", album.id) ?? throw new GooglePhotosException("media item upload failed!");
-
-Console.WriteLine($"{nameof(mediaItem)} '{mediaItem.mediaItem.filename}' id is '{mediaItem.mediaItem.id}'");
-
-//retrieve all media items in the album
-var i = 0;
-await foreach (var item in _googlePhotosSvc.GetMediaItemsByAlbumAsync(album.id))
+//Treats an empty value as missing, so the blank placeholders in launchSettings.json fail clearly.
+static string GetRequiredEnvironmentVariable(string name)
 {
-    i++;
-    Console.WriteLine($"{i}\t{item.filename}\t{item.mediaMetadata.width}x{item.mediaMetadata.height}");
+    var value = Environment.GetEnvironmentVariable(name);
+    return string.IsNullOrWhiteSpace(value)
+        ? throw new InvalidOperationException($"Set the {name} environment variable before running the sample.")
+        : value;
 }
-if (i == 0) throw new GooglePhotosException("retrieve media items by album id failed!");

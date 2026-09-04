@@ -2,8 +2,11 @@
   "profiles": {
     "ConsoleApp": {
       "commandName": "Project",
+      "commandLineArgs": "\"C:\\\\media\\\\photo.jpg\"",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "GOOGLE_PHOTOS_USER": "",
+        "GOOGLE_PHOTOS_CLIENT_ID": "",
+        "GOOGLE_PHOTOS_CLIENT_SECRET": ""
       }
     }
   }

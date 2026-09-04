@@ -1,17 +1,18 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
-    <!--<GenerateDocumentationFile>true</GenerateDocumentationFile>-->
+    <TargetFramework>net10.0</TargetFramework>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <IsPackable>true</IsPackable>
   </PropertyGroup>
 
   <PropertyGroup>
-    <Description>Fully featured .NET library/wrapper for the Google Photos REST API.</Description>
+    <Description>.NET client library for the Google Photos Library and Picker APIs.</Description>
     <PackageDescription>
       $(Description)
 
-      This *unofficial* library enables programmatic access to the media items and albums of a Google Photos account.
+      This unofficial library manages application-created media and albums through the Library API and accesses
+      user-selected existing media through the Picker API.
 
       The library leverages the authentication in the official Google.Apis.Auth library and builds on that
       by encapsulating all REST API calls in an efficient wrapper returning strongly-typed objects.
@@ -21,25 +22,25 @@
       For usage examples see the docs on github, https://github.com/f2calv/CasCap.Api.GooglePhotos
     </PackageDescription>
     <PackageTags>google, photos, rest, api, wrapper</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Google.Apis.Auth" />
-    <PackageReference Include="MimeTypeMapOfficial" />
-    <PackageReference Include="Microsoft.Extensions.Http.Resilience" />
-    <PackageReference Include="System.Text.Json" />
+    <None Include="README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net8.0' ">
-    <PackageReference Include="Microsoft.AspNetCore.WebUtilities" VersionOverride="8.0.22" />
-	<PackageReference Include="System.Linq.Async" />
-  </ItemGroup>
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net9.0' ">
-    <PackageReference Include="Microsoft.AspNetCore.WebUtilities" VersionOverride="9.0.11" />
-	<PackageReference Include="System.Linq.Async" />
-  </ItemGroup>
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net10.0' ">
+  <ItemGroup>
+    <PackageReference Include="Google.Apis.Auth" />
     <PackageReference Include="Microsoft.AspNetCore.WebUtilities" />
+    <PackageReference Include="Microsoft.Extensions.Http.Resilience" />
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" />
+    <PackageReference Include="Microsoft.Extensions.Options.DataAnnotations" />
+    <PackageReference Include="MimeTypeMapOfficial" />
+    <PackageReference Include="System.Threading.RateLimiting" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="CasCap.Api.GooglePhotos.Tests" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)'=='Debug'">

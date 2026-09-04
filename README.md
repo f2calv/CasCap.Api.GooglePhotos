@@ -1,285 +1,242 @@
 # CasCap.Api.GooglePhotos
 
-## _Unofficial_ Google Photos Library API wrapper library for .NET applications
+CasCap.Api.GooglePhotos is an unofficial .NET 10 client for the Google Photos Library API and Picker API.
 
 [CasCap.Api.GooglePhotos-badge]: https://img.shields.io/nuget/v/CasCap.Api.GooglePhotos?color=blue
 [CasCap.Api.GooglePhotos-url]: https://nuget.org/packages/CasCap.Api.GooglePhotos
 
-![CI](https://github.com/f2calv/CasCap.Api.GooglePhotos/actions/workflows/ci.yml/badge.svg) [![Coverage Status](https://coveralls.io/repos/github/f2calv/CasCap.Api.GooglePhotos/badge.svg?branch=main)](https://coveralls.io/github/f2calv/CasCap.Api.GooglePhotos?branch=main) [![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=f2calv_CasCap.Api.GooglePhotos&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=f2calv_CasCap.Api.GooglePhotos) [![Nuget][CasCap.Api.GooglePhotos-badge]][CasCap.Api.GooglePhotos-url]
+![CI](https://github.com/f2calv/CasCap.Api.GooglePhotos/actions/workflows/ci.yml/badge.svg) [![NuGet][CasCap.Api.GooglePhotos-badge]][CasCap.Api.GooglePhotos-url]
 
-> Want to save yourself some coding? See the _preview_ release of [GooglePhotosCli](https://github.com/f2calv/CasCap.GooglePhotosCli) using this library...
+## Important: Google changed the Photos APIs on 31 March 2025
 
-This is an _unofficial_ Google Photos REST API library targeting .NET 8.0.
+Google fundamentally reduced what any third-party application can do with a user's Google Photos library. This is not a limitation of this library; it applies to every client of the Photos APIs:
 
-Note: Older projects that require .NET Standard 2.0 please use version 1.x of this library.
+* The Library API can manage **only albums and media items created by your own application**. Everything already in the user's account is invisible to it.
+* Reading an entire library, and therefore whole-library search, backup or duplicate detection, is no longer possible.
+* Library API sharing and shared-album operations were withdrawn entirely, along with their scopes.
+* Existing user media can only be reached through the Picker API, which requires the user to select items interactively, one session at a time.
 
-If you find this library of use then please give it a thumbs-up by giving this repository a :star: ... :wink:
+Applications that previously listed a user's complete library must migrate that workflow to the Picker API. See [Google's API update](https://developers.google.com/photos/support/updates) and issue [#208](https://github.com/f2calv/CasCap.Api.GooglePhotos/issues/208).
 
-If you wish to interact with your Google Photos media items/albums then there are official [PHP and Java Client Libraries](https://developers.google.com/photos/library/guides/client-libraries). However if you're looking for a comprehensive .NET library then you were out of luck... until now :)
+The [`googlephotos` CLI](https://github.com/f2calv/CasCap.GooglePhotosCli) built on this library is constrained in exactly the same way.
 
-The _CasCap.Api.GooglePhotos_ library wraps up all the available functionality of the Google Photos REST API in easy to use methods.
+## Migrating to v4
 
-Note: Before you jump in and use this library you should be aware that the [Google Photos Library API](https://developers.google.com/photos/library/reference/rest) has some key limitations. The biggest of these is that the API only allows the upload/addition of images/videos to the library, no edits or deletion are possible and have to be done manually via [https://photos.google.com](https://photos.google.com).
+Version 4 is a breaking release:
 
-## Google Photos API Set-up
+* The library targets .NET 10 only.
+* Public DTO properties and enum members use PascalCase while preserving Google's JSON wire names.
+* Removed Google sharing APIs and scopes are no longer exposed. `ShareInfo`, `SharedAlbumOptions` and `ContributorInfo`, along with `Album.ShareInfo` and `MediaItem.ContributorInfo`, are gone because no remaining scope can populate them.
+* Library API operations now apply only to content created by the configured OAuth client.
+* `UploadSingle`, `UploadMultiple` and `DownloadBytes` are renamed to `UploadSingleAsync`, `UploadMultipleAsync` and `DownloadBytesAsync`.
+* OAuth cache entries are isolated by local user, OAuth client ID, and requested scopes.
+* Authorization moved to the shared `GooglePhotosCredentialProvider` and is applied per request. The `LoginAsync` overloads that took OAuth settings or a `GooglePhotosOptions` instance are removed; configure options through `AddGooglePhotos` and call `LoginAsync(cancellationToken)`.
 
-When you create your photos application, you must first create an OAuth login details using the [Google API Console](https://console.developers.google.com/) and retrieve a Client ID and a Client Secret.
+Applications that need existing user media must use `GooglePhotosPickerService`. Recompile consumers and update renamed DTO members before upgrading.
 
-Using your Google Account the steps are\*;
+## Installation
 
-1. Visit [Google API Console](https://console.developers.google.com/)
-2. Select 'Library' on the main menu;
-   - Search for 'Photos Library API', select it from the results and hit the Enable button.
-3. Select 'Credentials' on the main menu;
-   - Select 'Create Credentials' on the sub menu and pick 'OAuth client ID'
-   - Select 'Desktop' as the application type.
-   - Enter a suitable application name and hit the Create button.
-   - Copy/save the Client ID and Client Secret which are then displayed you will use these to authenticate with the GooglePhotosService.
+```powershell
+dotnet package add CasCap.Api.GooglePhotos
+dotnet package add Microsoft.Extensions.Hosting
+```
 
-\*Note: the above instructions are correct as of 2022-04-06.
+## Quick Start
 
-## Library Configuration/Usage
+### Configure Google Cloud
 
-Install the package into your project using NuGet ([see details here](https://www.nuget.org/packages/CasCap.Api.GooglePhotos/)).
+1. Create or select a project in the [Google Cloud Console](https://console.cloud.google.com/).
+2. Open **APIs & Services > Library**, search for "Photos", and enable **Google Photos Library API** if the application creates or manages app-created media and albums.
+3. Enable **Google Photos Picker API** if the application lets users select existing media. Do not enable **Google Picker API** by mistake; it is a different product.
+4. Open **Google Auth Platform**, configure the consent screen, select an audience, and declare the required Photos scopes under **Data Access**.
+5. If the app has an external audience and remains in testing, add each Google account that will run it as a test user.
+6. Open **APIs & Services > Credentials**, create an **OAuth client ID**, and choose **Desktop app**. This library uses Google's installed-application loopback flow.
+7. Record the client ID and client secret in a secret store. Never place them in source control or tracked configuration.
 
-For .NET Core applications using dependency injection the primary API usage is to call IServiceCollection.AddGooglePhotos in the Startup.cs ConfigureServices method.
+The Google Photos APIs require an authenticated Google user and do not support service accounts. Public applications must also complete Google's OAuth verification process. Keep the OAuth client ID stable because Google associates API-created resources with the client that created them.
+
+### Configure the application
+
+Register the clients through standard .NET configuration and dependency injection:
 
 ```csharp
-//Startup.cs
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services.AddGooglePhotos();
-    }
-}
+var builder = Host.CreateApplicationBuilder(args);
+
+builder.Services.AddGooglePhotos(builder.Configuration);
+
+await builder.Build().RunAsync();
 ```
 
-There are 4 mandatory configuration options that must be passed;
+For local development, initialize User Secrets in the consuming application project and store credentials there:
 
-- User (your email address)
-- Google Client ID
-- Google Client Secret
-- Authorisation Scopes
-
-There are 5 possible [authorisation scopes](https://developers.google.com/photos/library/guides/authorization) which designate the level of access you wish to give, these scopes can be combined if required;
-
-- ReadOnly
-- AppendOnly
-- AppCreatedData
-- Access
-- Sharing
-
-Best practise is to assign the lowest access level possible to meet your requirements. If you wish to go against best practise and give your application unfettered access to your media collection then use Access and Sharing scopes combined.
-
-The recommended method of setting these mandatory options is via the appsettings.json file;
-
-```json5
-// appsettings.json
-{
-    ...
-    "CasCap": {
-        "GooglePhotosOptions": {
-            // This is the email address of the Google Account.
-            "User": "your.email@mydomain.com",
-
-            // There are 5 security scopes, which can be combined.
-            "Scopes": [
-                "ReadOnly"
-                //"AppendOnly",
-                //"AppCreatedData",
-                //"Access",
-                //"Sharing"
-                ],
-
-            // The ClientId and ClientSecret are provided by the Google Console after you register your own application.
-            "ClientId": "012345678901-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.apps.googleusercontent.com",
-
-            "ClientSecret": "abcabcabcabcabcabcabcabc",
-        }
-    }
-    ...
-}
-```
-
-Alternatively you can pass the options into the AddGooglePhotos method;
-
-```csharp
-//Startup.cs
-using Microsoft.Extensions.DependencyInjection;
-
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services.AddGooglePhotos(options =>
-        {
-            options.User = "your.email@mydomain.com";//replace with **your** info
-            options.ClientId = "012345678901-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.apps.googleusercontent.com";//replace with **your** info
-            options.ClientSecret = "abcabcabcabcabcabcabcabc";//replace with **your** info
-            options.Scopes = new[] { GooglePhotosScope.ReadOnly };
-        });
-    }
-}
-```
-
-Using appsettings.json is generally the best option however remember the Client ID & Client Secret should be stored securely outside of source control via [Azure KeyVault](https://azure.microsoft.com/en-us/services/key-vault/) (or [.NET Secret Manager](https://docs.microsoft.com/en-us/aspnet/core/security/app-secrets?view=aspnetcore-3.1&tabs=windows#secret-manager) as shown below).
-
-```pwsh
+```powershell
+$env:DOTNET_ENVIRONMENT = "Development"
 dotnet user-secrets init
-dotnet user-secrets set "CasCap:GooglePhotosOptions:User" "your.email@mydomain.com" #replace with **your** info
-dotnet user-secrets set "CasCap:GooglePhotosOptions:ClientId" "012345678901-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.apps.googleusercontent.com" #replace with **your** info
-dotnet user-secrets set "CasCap:GooglePhotosOptions:ClientSecret" "abcabcabcabcabcabcabcabc" #replace with **your** info
+dotnet user-secrets set "CasCap:GooglePhotosOptions:User" "local-user"
+dotnet user-secrets set "CasCap:GooglePhotosOptions:ClientId" "your-client-id"
+dotnet user-secrets set "CasCap:GooglePhotosOptions:ClientSecret" "your-client-secret"
 ```
 
-After calling AddGooglePhotos in the ConfigureServices method of Startup.cs you can then call upon the GooglePhotosService within your own services shown below.
+`User` is a local token-cache key. It identifies the cached grant on this machine and does not need to be the Google account's email address.
 
-```csharp
-using Microsoft.Extensions.Logging;
-using System;
-using System.Threading.Tasks;
-namespace CasCap.Services;
+The first call to `LoginAsync` opens the system browser for consent. Cached grants are separated by user and requested scope set. If a user declines a required scope, revoke or remove that cached grant and authenticate again. For an external consent screen in testing, Google can expire refresh tokens after seven days, so repeated authentication during development is expected.
 
-public class MyPhotoService
+`AddGooglePhotos` registers a singleton `GooglePhotosCredentialProvider`. Authorizing through either client stores the grant there, so one `LoginAsync` call covers the Library API client, the Picker API client, and every later resolution of them. A delegating handler reads the provider on each request, so an expiring access token is refreshed automatically rather than being captured once at login.
+
+## OAuth Scopes
+
+| Enum value                       | Google scope                                       | Capability                                        |
+| -------------------------------- | -------------------------------------------------- | ------------------------------------------------- |
+| `AppendOnly`                     | `photoslibrary.appendonly`                         | Create media, albums, and enrichments             |
+| `ReadOnlyAppCreatedData`         | `photoslibrary.readonly.appcreateddata`            | Read media and albums created by the application  |
+| `EditAppCreatedData`             | `photoslibrary.edit.appcreateddata`                | Edit and organize application-created content     |
+| `PickerMediaItemsReadOnly`       | `photospicker.mediaitems.readonly`                 | Create Picker sessions and read selected media    |
+
+Request only the scopes needed by the application. The library creates a separate cached grant when the requested scope set changes.
+
+## Configuration
+
+Tracked settings must contain placeholders only. Store credentials with .NET User Secrets locally and environment variables or secret-backed providers in deployed environments. A complete configuration that enables both APIs is shown below; remove scopes your application does not use.
+
+```json
 {
-    private readonly ILogger _logger;
-    private readonly GooglePhotosService _googlePhotosSvc;
-
-    public MyPhotoService(ILogger<MyPhotoService> logger, GooglePhotosService googlePhotosSvc)
-    {
-        _logger = logger;
-        _googlePhotosSvc = googlePhotosSvc;
+  "CasCap": {
+    "GooglePhotosOptions": {
+      "User": null,
+      "Scopes": [
+        "AppendOnly",
+        "ReadOnlyAppCreatedData",
+        "EditAppCreatedData",
+        "PickerMediaItemsReadOnly"
+      ],
+      "FileDataStoreFullPathOverride": null,
+      "WriteRateLimit": {
+        "Enabled": false,
+        "PermitLimit": 8,
+        "QueueLimit": 100,
+        "SegmentsPerWindow": 6,
+        "WindowSeconds": 60
+      },
+      "RequestTimeoutSeconds": 90,
+      "UploadTimeoutSeconds": 3600,
+      "UploadRetryLimit": 10,
+      "ClientId": null,
+      "ClientSecret": null
     }
-
-    public async Task Login_And_List_Albums()
-    {
-        if (!await _googlePhotosSvc.LoginAsync())
-            throw new Exception($"login failed");
-
-        var albums = await _googlePhotosSvc.GetAlbums();
-        foreach (var album in albums)
-        {
-            _logger.LogInfo($"{album.id}\t{album.title}");
-        }
-    }
+  }
 }
 ```
 
-If you don't use dependency injection you can new-up the GooglePhotosService manually and pass the mandatory configuration options, logger and HttpClient via the service constructor;
+Environment variables use the standard double-underscore form, for example `CasCap__GooglePhotosOptions__ClientId`.
+
+`RequestTimeoutSeconds` bounds a single Library or Picker API request. `UploadTimeoutSeconds` bounds a single media upload request, which streams whole files or large chunks and can legitimately run far longer; raise it when uploading large videos over a slow link. `UploadRetryLimit` caps how many times a resumable upload re-sends a chunk before abandoning the upload.
+
+`WriteRateLimit` optionally queues mutating Library API requests through an oldest-first sliding window. It is disabled by default because Google quota values can vary. Configure the limits for the quota assigned to your project. The limiter is local to one process and does not coordinate multiple application instances. Reads and Picker API requests bypass it.
+
+## Library API
+
+`GooglePhotosService` uploads and manages content created by the application. List, get, and search operations do not expose unrelated existing content from the user's library.
+
+For uploads, enable the Library API and request `AppendOnly`. Add `ReadOnlyAppCreatedData` when retrieving app-created content, including the get-or-create example below, and `EditAppCreatedData` when organizing it. Google performs an upload in two steps: upload bytes to obtain a token, then create the media item. `UploadSingleAsync` handles both steps.
 
 ```csharp
-//MyPhotosClass.cs
-using CasCap.Models;
 using CasCap.Services;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using System;
-using System.Net;
-using System.Net.Http;
-using System.Threading.Tasks;
 
-public class MyPhotosClass
+public sealed class PhotoImportService(GooglePhotosService googlePhotosSvc)
 {
-    public async Task Login_And_List_Albums()
+    public async Task UploadAsync(string path, CancellationToken cancellationToken)
     {
-        //new-up logging
-        var logger = new LoggerFactory().CreateLogger<GooglePhotosService>();
+        if (!await googlePhotosSvc.LoginAsync(cancellationToken))
+            throw new InvalidOperationException("Google Photos authentication failed.");
 
-        //new-up configuration options
-        var options = new GooglePhotosOptions
-        {
-            User = "your.email@mydomain.com",//replace with **your** info
-            ClientId = "012345678901-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.apps.googleusercontent.com",//replace with **your** info
-            ClientSecret = "abcabcabcabcabcabcabcabc",//replace with **your** info
-            Scopes = new[] { GooglePhotosScope.ReadOnly },
-        };
+        var album = await googlePhotosSvc.GetOrCreateAlbumAsync(
+            "Application uploads",
+            cancellationToken: cancellationToken);
+        if (album is null)
+            throw new InvalidOperationException("Album creation failed.");
 
-        //new-up a single HttpClient
-        var handler = new HttpClientHandler { AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate };
-        var client = new HttpClient(handler) { BaseAddress = new Uri(options.BaseAddress) };
-
-        //new-up the GooglePhotosService and pass in the logger, options and HttpClient
-        var googlePhotosSvc = new GooglePhotosService(logger, Options.Create(options), client);
-
-        //attempt to log-in
-        if (!await googlePhotosSvc.LoginAsync())
-            throw new Exception($"login failed!");
-
-        //get and list all albums
-        var albums = await googlePhotosSvc.GetAlbums();
-        foreach (var album in albums)
-        {
-            Console.WriteLine(album.title);
-        }
+        await googlePhotosSvc.UploadSingleAsync(
+            path,
+            album.Id,
+            cancellationToken: cancellationToken);
     }
 }
 ```
 
-## Misc
+Uploads are streamed. Resumable multipart uploads use bounded pooled buffers rather than loading complete media files into memory.
 
-### Changing Users/Scopes
+## Picker API
 
-The [Google.Apis.Auth](https://www.nuget.org/packages/Google.Apis.Auth/) library will cache the OAuth 2.0 login information in a local JSON file which it will then read tokens from (and renew if necessary) on subsequent logins. The JSON file(s) are stored on a per-User basis in the Environment.SpecialFolder.ApplicationData folder. On Windows 10 this folder is located at;
+`GooglePhotosPickerService` provides the user-mediated flow for existing photos and videos:
 
-- %UserProfile%\AppData\Roaming\Google.Apis.Auth
+1. Authenticate and create a picking session.
+2. Present `PickerUri` to the user outside an iframe and in a browser signed into the Google Account that owns the session.
+3. Poll `GetSessionAsync` using Google's returned polling configuration.
+4. List selected media after `MediaItemsSet` becomes `true`.
+5. Stream selected media bytes and delete the session when finished.
 
-If you change the authentication scopes for a User you must delete the JSON file and allow the [Google.Apis.Auth](https://www.nuget.org/packages/Google.Apis.Auth/) library to re-auth and re-create a new JSON file with the new scopes.
-
-You can change the location where these JSON token files are stored at using the FileDataStoreFullPathOverride property in the configuration options;
+Enable the Google Photos Picker API and request only `PickerMediaItemsReadOnly` for a Picker-only application. Open `PickerUri` in a browser or native browser surface signed into the same Google Account, never in an iframe. Respect `PollingConfig.PollInterval` and `PollingConfig.TimeoutIn` when polling, and always delete the session after downloading the selected media.
 
 ```csharp
-//Startup.cs
-using Microsoft.Extensions.DependencyInjection;
+using CasCap.Models.Picker;
+using CasCap.Services;
 
-public class Startup
+public sealed class PhotoPickerService(GooglePhotosPickerService pickerSvc)
 {
-    public void ConfigureServices(IServiceCollection services)
+    public async Task<PickingSession> StartAsync(CancellationToken cancellationToken)
     {
-        services.AddGooglePhotos(options =>
-        {
-            options.User = "your.email@mydomain.com";
-            options.Scopes = new[] { GooglePhotosScope.ReadOnly };
-            options.ClientId = "012345678901-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.apps.googleusercontent.com";
-            options.ClientSecret = "abcabcabcabcabcabcabcabc";
-            //change FileDataStoreFullPathOverride
-            options.FileDataStoreFullPathOverride = "c:/temp/GooglePhotos/"
-        });
+        if (!await pickerSvc.LoginAsync(cancellationToken))
+            throw new InvalidOperationException("Google Photos authentication failed.");
+
+        return await pickerSvc.CreateSessionAsync(
+            maxItemCount: 25,
+            cancellationToken: cancellationToken);
     }
+
+    public IAsyncEnumerable<PickedMediaItem> GetSelectedAsync(
+        string sessionId,
+        CancellationToken cancellationToken)
+        => pickerSvc.GetMediaItemsAsync(sessionId, cancellationToken: cancellationToken);
+
+    public Task DeleteSessionAsync(
+      string sessionId,
+      CancellationToken cancellationToken)
+      => pickerSvc.DeleteSessionAsync(sessionId, cancellationToken);
 }
 ```
 
-### Sample Projects
+Picked-media base URLs expire and downloads require the OAuth bearer token. Use `DownloadPhotoAsync` or `DownloadVideoAsync` to stream bytes through the authenticated client.
 
-All API functions are exposed by the GooglePhotosService class. There are several sample .NET Core applications which show the basics on how to set-up/config/use the library;
+## Samples and Tests
 
-- [Console App](https://github.com/f2calv/CasCap.Api.GooglePhotos/tree/master/samples/ConsoleApp) with no dependency injection.
-- [Console App](https://github.com/f2calv/CasCap.Api.GooglePhotos/tree/master/samples/GenericHost) using configuration, logging and dependency injection via the [.NET Generic Host](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/host/generic-host?view=aspnetcore-3.1).
-- [Integration Test App](https://github.com/f2calv/CasCap.Api.GooglePhotos/blob/master/src/CasCap.Api.GooglePhotos.Tests/Tests/Tests.cs) has the majority of the commented examples of various interactions.
+* [ConsoleApp](samples/ConsoleApp) demonstrates direct Library API construction without dependency injection.
+* [GenericHost](samples/GenericHost) demonstrates configuration, logging, and dependency injection.
+* [Integration tests](src/CasCap.Api.GooglePhotos.Tests) cover authentication and API behavior against a dedicated test account.
 
-### Core Dependencies
+Integration tests require credentials and can create albums or upload media. Review the test README and obtain explicit approval before running them.
 
-- [Google.Apis.Auth](https://www.nuget.org/packages/Google.Apis.Auth/) handles the [OAuth 2.0 authentication](https://developers.google.com/identity/protocols/oauth2), see the [project site](https://github.com/googleapis/google-api-dotnet-client).
-- [Polly](https://www.nuget.org/packages/Polly/) is a .NET resilience and transient-fault-handling library that handles retry, see [project site](https://github.com/App-vNext/Polly).
-- [CasCap.Common.Extensions](https://www.nuget.org/packages/CasCap.Common.Extensions/) and [CasCap.Common.Net](https://www.nuget.org/packages/CasCap.Common.Net/) contains a variety of extension methods and abstract classes to make my life easier :)
+## Dependencies
 
-### Misc Tips
+| Package                                | Purpose                                           |
+| -------------------------------------- | ------------------------------------------------- |
+| `Google.Apis.Auth`                     | OAuth authentication and cached token grants      |
+| `Microsoft.Extensions.Http.Resilience` | HTTP timeouts, circuit breaking, and safe retries |
+| `Microsoft.AspNetCore.WebUtilities`    | Query-string construction                         |
+| `System.Threading.RateLimiting`        | Optional temporal Library API write limiting      |
+| `MimeTypeMapOfficial`                  | Upload MIME-type detection                        |
+| `CasCap.Common.Net`                    | Shared HTTP and serialization infrastructure      |
 
-- The [NuGet package](https://www.nuget.org/packages/CasCap.Api.GooglePhotos/) includes [SourceLink](https://github.com/dotnet/sourcelink) which enables you to jump inside the library and debug the API yourself. By default Visual Studio 2017/2019 does not allow this and will pop up an message "You are debugging a Release build of...", to disable this message go into the Visual Studio debugging options and un-check the 'Just My Code' option (menu path, Tools > Options > Debugging).
+## Resources
 
-### Resources
+* [Google Photos API overview](https://developers.google.com/photos/overview/about)
+* [Library API reference](https://developers.google.com/photos/library/reference/rest)
+* [Picker API guide](https://developers.google.com/photos/picker/guides/get-started-picker)
+* [Authorization scopes](https://developers.google.com/photos/overview/authorization)
+* [Issue tracker](https://github.com/f2calv/CasCap.Api.GooglePhotos/issues)
 
-- <https://developers.google.com/photos>
-- <https://console.developers.google.com>
-- [Google Photos Library API](https://developers.google.com/photos)
-- [Google Photos Library API REST Reference](https://developers.google.com/photos/library/reference/rest)
-- [Google Photos Library API Authorisation Scopes](https://developers.google.com/photos/library/guides/authorization)
+## License
 
-### Feedback/Issues
-
-Please post any issues or feedback [here](https://github.com/f2calv/CasCap.Api.GooglePhotos/issues).
-
-### License
-
-CasCap.Api.GooglePhotos is Copyright &copy; 2020 [Alex Vincent](https://github.com/f2calv) under the [MIT license](LICENSE).
+CasCap.Api.GooglePhotos is provided under the [MIT license](LICENSE).

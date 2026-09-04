@@ -7,10 +7,33 @@
             "type": "process",
             "args": [
                 "build",
-                "${workspaceFolder}/samples/ConsoleApp/ConsoleApp.csproj",
+                "${workspaceFolder}/CasCap.Api.GooglePhotos.Debug.slnx",
+                "--configuration",
+                "Debug",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "test",
+            "detail": "Runs the credential-free tests, matching CI.",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "test",
+                "${workspaceFolder}/src/CasCap.Api.GooglePhotos.Tests/CasCap.Api.GooglePhotos.Tests.csproj",
+                "--filter-not-trait",
+                "Category=Integration"
+            ],
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            },
             "problemMatcher": "$msCompile"
         },
         {
@@ -19,7 +42,7 @@
             "type": "process",
             "args": [
                 "publish",
-                "${workspaceFolder}/samples/ConsoleApp/ConsoleApp.csproj",
+                "${workspaceFolder}/samples/GenericHost/GenericHost.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],
@@ -27,12 +50,14 @@
         },
         {
             "label": "watch",
+            "detail": "The ConsoleApp sample requires a media path argument, so GenericHost is watched instead.",
             "command": "dotnet",
             "type": "process",
             "args": [
                 "watch",
                 "run",
-                "${workspaceFolder}/samples/ConsoleApp/ConsoleApp.csproj",
+                "--project",
+                "${workspaceFolder}/samples/GenericHost/GenericHost.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],

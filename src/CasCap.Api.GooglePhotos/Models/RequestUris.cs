@@ -1,7 +1,11 @@
 ﻿namespace CasCap.Models;
 
+/// <summary>Provides relative request URI constants for the Google Photos Library API.</summary>
+//TODO: request URIs are constants, not models. Move this and PickerRequestUris to a Constants folder once the
+//namespace change can be taken, since CasCap.Models.RequestUris is public.
 public static class RequestUris
 {
+    /// <summary>The base address of the Google Photos Library API.</summary>
     public const string BaseAddress = "https://photoslibrary.googleapis.com/v1/";
 
     /// <summary>
@@ -20,12 +24,12 @@ public static class RequestUris
     public const string POST_albums_batchRemoveMediaItems = "albums/{0}:batchRemoveMediaItems";
 
     /// <summary>
-    /// POST Creates an album in a user's Google Photos library.
+    /// GET Lists albums created by this application.
     /// </summary>
     public const string GET_albums = "albums";
 
     /// <summary>
-    /// GET Lists all albums shown to a user in the Albums tab of the Google Photos app.
+    /// POST Creates an album in a user's Google Photos library.
     /// </summary>
     public const string POST_albums = "albums";
 
@@ -34,23 +38,18 @@ public static class RequestUris
     /// </summary>
     public const string GET_album = "albums/{0}";
 
-    /// <summary>
-    /// Marks an album as shared and accessible to other users.
-    /// </summary>
-    public const string POST_share = "albums/{0}:share";
-
-    /// <summary>
-    /// Marks a previously shared album as private.
-    /// </summary>
-    public const string POST_unshare = "albums/{0}:unshare";
-
+    /// <summary>The relative URI used to upload media bytes.</summary>
     public const string uploads = nameof(uploads);
+
+    /// <summary>The relative URI used to list or retrieve media items.</summary>
     public const string GET_mediaItems = "mediaItems";
+
+    /// <summary>The relative URI used to search for media items.</summary>
     public const string POST_mediaItems_search = "mediaItems:search";
+
+    /// <summary>The relative URI used to create media items in a batch.</summary>
     public const string POST_mediaItems_batchCreate = "mediaItems:batchCreate";
+
+    /// <summary>The relative URI used to retrieve media items in a batch.</summary>
     public const string GET_mediaItems_batchGet = "mediaItems:batchGet";
-    public const string GET_sharedAlbums = "sharedAlbums";
-    public const string GET_sharedAlbum = "sharedAlbums/{0}";
-    public const string POST_sharedAlbums_join = "sharedAlbums:join";
-    public const string POST_sharedAlbums_leave = "sharedAlbums:leave";
 }

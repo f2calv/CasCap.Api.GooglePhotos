@@ -2,14 +2,14 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": ".NET Core Launch (console)",
+            "name": "Launch Console sample",
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
-            "program": "${workspaceFolder}/samples/ConsoleApp/bin/Debug/netcoreapp3.1/ConsoleApp.dll",
-            "args": [],
-            "cwd": "${workspaceFolder}/samples/ConsoleApp",
-            "console": "externalTerminal",
+            "program": "${workspaceFolder}/samples/ConsoleApp/bin/Release/net10.0/ConsoleApp.dll",
+            "args": ["${input:mediaPath}"],
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
             "stopAtEntry": false,
             "logging": {
                 "moduleLoad": false,
@@ -21,6 +21,13 @@
             "type": "coreclr",
             "request": "attach",
             "processId": "${command:pickProcess}"
+        }
+    ],
+    "inputs": [
+        {
+            "id": "mediaPath",
+            "type": "promptString",
+            "description": "Path to a photo or video to upload"
         }
     ]
 }
