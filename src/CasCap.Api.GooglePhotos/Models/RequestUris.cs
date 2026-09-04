@@ -1,6 +1,8 @@
 ﻿namespace CasCap.Models;
 
 /// <summary>Provides relative request URI constants for the Google Photos Library API.</summary>
+//TODO: request URIs are constants, not models. Move this and PickerRequestUris to a Constants folder once the
+//namespace change can be taken, since CasCap.Models.RequestUris is public.
 public static class RequestUris
 {
     /// <summary>The base address of the Google Photos Library API.</summary>

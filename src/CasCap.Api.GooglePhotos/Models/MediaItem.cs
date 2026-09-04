@@ -21,6 +21,7 @@ public sealed class MediaItem
     public string BaseUrl { get; set; } = default!;
 
     /// <summary>Gets the time at which this representation was synchronized.</summary>
+    //TODO: a client-side clock reading on a wire DTO. Either drop it or move it to a wrapper the caller owns.
     [JsonIgnore]
     public DateTime SyncDate { get; } = DateTime.UtcNow;
 

@@ -3,6 +3,8 @@
 /// <summary>
 /// This class chains together the inherited GooglePhotosServiceBase REST methods into more useful combos/actions.
 /// </summary>
+//TODO: the abstract base has exactly one sealed derived type, so the split buys nothing. Merge them, or give
+//the base a second implementation that justifies it.
 //https://developers.google.com/photos/library/guides/get-started
 //https://developers.google.com/photos/library/guides/authentication-authorization
 public sealed class GooglePhotosService(
@@ -85,7 +87,7 @@ public sealed class GooglePhotosService(
             var uploadToken = await UploadMediaAsync(filePath, uploadMethod, cancellationToken: cancellationToken).ConfigureAwait(false);
             if (!string.IsNullOrWhiteSpace(uploadToken))
                 uploadItems.Add(new UploadItem(uploadToken!, filePath));
-            //todo: raise photo uploaded event here
+            //TODO: raise a per-file uploaded event so callers can track progress across a multi-file upload.
         }
         return await AddMediaItemsAsync(uploadItems, albumId, cancellationToken: cancellationToken).ConfigureAwait(false);
     }
@@ -105,6 +107,8 @@ public sealed class GooglePhotosService(
     public Task<byte[]?> DownloadBytesAsync(MediaItem mediaItem, int? maxWidth = null, int? maxHeight = null, bool crop = false, bool includeExifMetadata = false, bool downloadVideoBytes = false, CancellationToken cancellationToken = default)
         => DownloadBytesAsync(mediaItem.BaseUrl, maxWidth, maxHeight, crop, includeExifMetadata: mediaItem.IsPhoto && includeExifMetadata, downloadVideoBytes: mediaItem.IsVideo && downloadVideoBytes, cancellationToken: cancellationToken);
 
+    //TODO: this buffers the whole item into memory, unlike GooglePhotosPickerService which streams to a caller
+    //supplied Stream. Add a DownloadAsync(MediaItem, Stream, ...) overload so large videos need not be buffered.
     //https://developers.google.com/photos/library/guides/access-media-items#image-base-urls
     //https://developers.google.com/photos/library/guides/access-media-items#video-base-urls
     private async Task<byte[]?> DownloadBytesAsync(string baseUrl, int? maxWidth = null, int? maxHeight = null, bool crop = false, bool includeExifMetadata = false, bool downloadVideoBytes = false, CancellationToken cancellationToken = default)

@@ -157,7 +157,8 @@ public abstract partial class GooglePhotosServiceBase : HttpClientBase
     public Task<List<Album>> GetAlbumsAsync(int pageSize = defaultPageSizeAlbums, CancellationToken cancellationToken = default)
         => GetAlbumsPagedAsync(RequestUris.GET_albums, pageSize, cancellationToken);
 
-    //todo: add IPagable interface and merge with similar
+    //TODO: GetAlbumsPagedAsync, GetMediaItemsPagedAsync and SearchMediaItemsPagedAsync each repeat the same
+    //continuation-token walk. Give the paged responses a shared IPagingToken-based abstraction and write it once.
     private async Task<List<Album>> GetAlbumsPagedAsync(string requestUri, int pageSize, CancellationToken cancellationToken)
     {
         if (pageSize < minPageSizeAlbums || pageSize > maxPageSizeAlbums)
@@ -287,8 +288,7 @@ public abstract partial class GooglePhotosServiceBase : HttpClientBase
     #endregion
 
     #region https://photoslibrary.googleapis.com/v1/mediaItems
-    //todo: find a neater way to merge GetMediaItemsPagedAsync & SearchMediaItemsPagedAsync - practically the same - pass an Action?
-    //todo: add IPagable interface and merge with similar
+    //TODO: identical to SearchMediaItemsPagedAsync apart from the GET/POST request; see the paging note above.
     private async IAsyncEnumerable<MediaItem> GetMediaItemsPagedAsync(int pageSize, int maxPageCount, string requestUri, [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         if (pageSize < minPageSizeMediaItems || pageSize > maxPageSizeMediaItems)
@@ -331,7 +331,7 @@ public abstract partial class GooglePhotosServiceBase : HttpClientBase
         }
     }
 
-    //todo: add IPagable interface and merge with similar
+    //TODO: see the paging note above.
     private async IAsyncEnumerable<MediaItem> SearchMediaItemsPagedAsync(string? albumId, int pageSize, int maxPageCount, Filter? filters, string requestUri, [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         if (pageSize < minPageSizeMediaItems || pageSize > maxPageSizeMediaItems)
@@ -664,7 +664,8 @@ public abstract partial class GooglePhotosServiceBase : HttpClientBase
     private const string X_Goog_Upload_Chunk_Granularity = UploadHeaders.ChunkGranularity;
     private const string X_Goog_Upload_Size_Received = UploadHeaders.SizeReceived;
 
-    //todo: refactor this method when time, it's a bit of a mess :/
+    //TODO: this runs all three upload protocols through one method with shared mutable state, which makes it the
+    //least readable code in the library. Split it per GooglePhotosUploadMethod behind a common return contract.
     //https://developers.google.com/photos/library/guides/upload-media
     //https://developers.google.com/photos/library/guides/upload-media#uploading-bytes
     //https://developers.google.com/photos/library/guides/resumable-uploads

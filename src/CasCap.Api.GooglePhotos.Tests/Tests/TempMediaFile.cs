@@ -1,6 +1,8 @@
 namespace CasCap.Tests;
 
 /// <summary>Creates a uniquely named media file under the temporary folder and deletes it on dispose.</summary>
+//TODO: superseded by CasCap.Common.Xunit.TempFile. Delete this once Directory.Packages.props moves to a
+//CasCap.Common.Testing version that contains it; the Release build resolves that from NuGet.
 internal sealed class TempMediaFile : IDisposable
 {
     private TempMediaFile(string path) => Path = path;

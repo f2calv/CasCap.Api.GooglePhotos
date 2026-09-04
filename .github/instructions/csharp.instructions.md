@@ -29,6 +29,7 @@ applyTo: '**/*.cs'
 - Separate public property declarations with blank lines. Keep private backing fields together without blank lines.
 - Use state-oriented boolean names, such as `AuthenticationEnabled`, rather than imperative names such as `EnableAuthentication`.
 - Avoid repeated magic strings. Extract well-known keys and identifiers to constants, using `nameof()` when the serialized value should track the symbol.
+- Keep REST request URIs, header names, and other wire constants in a dedicated static class under a `Constants` folder and namespace, not alongside the DTOs in `Models`. Group them per API surface, such as `RequestUris` and `PickerRequestUris`.
 - Use enums for closed sets contained within the library. Prefer string constants for values that cross configuration, JSON, REST, or package boundaries.
 - Apply suitable data-annotation validation to options bound from configuration, including `[Required]`, `[Url]`, `[EmailAddress]`, `[MinLength]`, and `[Range]`.
 
