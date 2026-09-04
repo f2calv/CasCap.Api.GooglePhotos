@@ -24,6 +24,11 @@ internal static partial class GooglePhotosAuthorization
     {
         if (string.IsNullOrWhiteSpace(options.User)) throw new GooglePhotosException($"{nameof(GooglePhotosOptions)}.{nameof(options.User)} cannot be null!");
         if (string.IsNullOrWhiteSpace(options.ClientId)) throw new GooglePhotosException($"{nameof(GooglePhotosOptions)}.{nameof(options.ClientId)} cannot be null!");
+        //TODO: make ClientSecret optional so a distributed desktop app, which cannot keep a secret, can authorize
+        //with PKCE using only a ClientId. GoogleWebAuthorizationBroker.AuthorizeAsync already defaults usePkce to
+        //true and accepts a ClientSecrets carrying only a ClientId, so this guard and the [Required] attribute on
+        //GooglePhotosOptions.ClientSecret are what block it.
+        //See https://github.com/f2calv/CasCap.Api.GooglePhotos/issues/170
         if (string.IsNullOrWhiteSpace(options.ClientSecret)) throw new GooglePhotosException($"{nameof(GooglePhotosOptions)}.{nameof(options.ClientSecret)} cannot be null!");
         if (options.Scopes.IsNullOrEmpty()) throw new GooglePhotosException($"{nameof(GooglePhotosOptions)}.{nameof(options.Scopes)} cannot be null/empty!");
 

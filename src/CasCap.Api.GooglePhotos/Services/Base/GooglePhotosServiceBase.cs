@@ -922,6 +922,11 @@ public abstract partial class GooglePhotosServiceBase : HttpClientBase
             return new UploadResponse(responseBody, null, response.StatusCode, responseHeaders);
 
         LogUploadFailed(_logger, nameof(GooglePhotosServiceBase), response.StatusCode);
+        //TODO: a 401 on the upload endpoint is almost always a missing or insufficient OAuth scope rather than a
+        //transport failure, and Google returns the opaque code 16 "Authentication session is not defined." Enrich
+        //the returned Error with a scope hint so callers are not left guessing, and cover the externally supplied
+        //token path from GooglePhotosCredentialProvider.SetAuthorization, which bypasses the granted-scope check.
+        //See https://github.com/f2calv/CasCap.Api.GooglePhotos/issues/200
         if (responseBody.TryFromJson<Error>(out var error) && error?.ErrorStatus is not null)
             return new UploadResponse(null, error, response.StatusCode, responseHeaders);
 

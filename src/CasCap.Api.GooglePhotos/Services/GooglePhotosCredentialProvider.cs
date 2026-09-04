@@ -62,6 +62,9 @@ public sealed class GooglePhotosCredentialProvider : IDisposable
     /// <summary>Gets the authorization header to apply to an outgoing request.</summary>
     /// <param name="cancellationToken">A token that can cancel a token refresh.</param>
     /// <returns>The authorization header, or <see langword="null" /> when the application has not authorized.</returns>
+    //TODO: expose the access token expiry so a long-running caller can observe it. Refresh itself is already handled
+    //per request below, which resolves the original report, but there is still no way to read the remaining lifetime.
+    //See https://github.com/f2calv/CasCap.Api.GooglePhotos/issues/119
     public async ValueTask<AuthenticationHeaderValue?> GetAuthorizationAsync(CancellationToken cancellationToken = default)
     {
         if (_suppliedAuthorization is not null)
