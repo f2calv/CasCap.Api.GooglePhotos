@@ -21,6 +21,7 @@ This project exercises the Google Photos client against a dedicated test account
 | `FilterMediaItems`                             | 1            | 1               | Integration   |
 | `AddEnrichments`                               | 1            | 1               | Integration   |
 | `DownloadBytes`                                | 1            | 1               | Integration   |
+| `DownloadBytes_IncludesExifMetadataOnRequest`  | 1            | 1               | Integration   |
 | `CreateSession_RejectsInvalidItemCount`        | 1            | 2               | Picker        |
 | `CreateSession_RejectsNonVersionFourRequestId` | 1            | 1               | Picker        |
 | `DeleteSession_EscapesSessionId`               | 1            | 1               | Picker        |
@@ -140,6 +141,7 @@ CasCap.Api.GooglePhotos.Tests/
 | `xunit.v3`                                  | Test framework and MTP integration    |
 | `Microsoft.Testing.Extensions.CodeCoverage` | Code coverage collection              |
 | `Microsoft.Extensions.Configuration.*`      | JSON, User Secrets, and environment   |
+| `MetadataExtractor`                         | Reads EXIF from downloaded photos     |
 | `CasCap.Common.Testing`                     | xUnit logging and test infrastructure |
 
 | Project reference               | Purpose                          |

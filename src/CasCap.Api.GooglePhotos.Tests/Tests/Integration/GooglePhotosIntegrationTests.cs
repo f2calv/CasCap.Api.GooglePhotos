@@ -1,3 +1,6 @@
+using MetadataExtractor;
+using MetadataExtractor.Formats.Exif;
+
 namespace CasCap.Tests;
 
 /// <summary>
@@ -259,5 +262,39 @@ public sealed class GooglePhotosIntegrationTests(ITestOutputHelper output) : Tes
         var bytes = await _googlePhotosSvc.DownloadBytesAsync(mediaItem, cancellationToken: TestContext.Current.CancellationToken);
         Assert.NotNull(bytes);
         Assert.NotEmpty(bytes);
+    }
+
+    /// <summary>
+    /// Google strips EXIF metadata from downloaded photo bytes unless the 'd' base-URL parameter is
+    /// requested, so the round trip is asserted against the metadata actually present in the bytes.
+    /// </summary>
+    [Fact]
+    public async Task DownloadBytes_IncludesExifMetadataOnRequest()
+    {
+        var loginResult = await LoginAsync(TestContext.Current.CancellationToken);
+        Assert.True(loginResult);
+
+        var sourcePath = Path.Combine(_testFolder, "test0.jpg");
+        Assert.NotEmpty(ReadExifTags(await File.ReadAllBytesAsync(sourcePath, TestContext.Current.CancellationToken)));
+
+        var mediaItem = await CreateMediaItemAsync("test0.jpg", TestContext.Current.CancellationToken);
+
+        var withExif = await _googlePhotosSvc.DownloadBytesAsync(
+            mediaItem, includeExifMetadata: true, cancellationToken: TestContext.Current.CancellationToken);
+        Assert.NotNull(withExif);
+        Assert.NotEmpty(ReadExifTags(withExif));
+
+        var withoutExif = await _googlePhotosSvc.DownloadBytesAsync(
+            mediaItem, cancellationToken: TestContext.Current.CancellationToken);
+        Assert.NotNull(withoutExif);
+        Assert.Empty(ReadExifTags(withoutExif));
+    }
+
+    private static List<Tag> ReadExifTags(byte[] bytes)
+    {
+        using var stream = new MemoryStream(bytes);
+        return [.. ImageMetadataReader.ReadMetadata(stream)
+            .OfType<ExifSubIfdDirectory>()
+            .SelectMany(directory => directory.Tags)];
     }
 }
