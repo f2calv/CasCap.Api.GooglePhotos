@@ -118,15 +118,13 @@ CasCap.Api.GooglePhotos.Tests/
 |   |-- Integration/
 |   |   |-- GooglePhotosIntegrationTests.cs
 |   |   `-- TestBase.cs
-|   |-- Unit/
-|   |   |-- GooglePhotosAuthorizationTests.cs
-|   |   |-- GooglePhotosPickerServiceTests.cs
-|   |   |-- GooglePhotosServiceTests.cs
-|   |   |-- GooglePhotosWriteRateLimitingHandlerTests.cs
-|   |   |-- ModelSerializationTests.cs
-|   |   `-- ServiceCollectionExtensionsTests.cs
-|   |-- StubHttpMessageHandler.cs
-|   `-- TempMediaFile.cs
+|   `-- Unit/
+|       |-- GooglePhotosAuthorizationTests.cs
+|       |-- GooglePhotosPickerServiceTests.cs
+|       |-- GooglePhotosServiceTests.cs
+|       |-- GooglePhotosWriteRateLimitingHandlerTests.cs
+|       |-- ModelSerializationTests.cs
+|       `-- ServiceCollectionExtensionsTests.cs
 |-- testdata/
 |-- appsettings.Test.json
 |-- GlobalUsings.cs

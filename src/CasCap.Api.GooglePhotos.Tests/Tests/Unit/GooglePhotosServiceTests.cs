@@ -467,7 +467,7 @@ public sealed class GooglePhotosServiceTests
     {
         var requestCount = 0;
         var uploadOffsets = new List<string?>();
-        using var media = await TempMediaFile.CreateAsync([1, 2, 3, 4], TestContext.Current.CancellationToken);
+        using var media = await TempFile.CreateAsync([1, 2, 3, 4], TestContext.Current.CancellationToken, ".jpg");
         using var client = CreateClient(async (request, cancellationToken) =>
         {
             requestCount++;
@@ -513,7 +513,7 @@ public sealed class GooglePhotosServiceTests
     public async Task UploadMedia_RecoversFromAcceptedFinalChunk()
     {
         var requestCount = 0;
-        using var media = await TempMediaFile.CreateAsync([1], TestContext.Current.CancellationToken);
+        using var media = await TempFile.CreateAsync([1], TestContext.Current.CancellationToken, ".jpg");
         using var client = CreateClient((request, _) =>
         {
             requestCount++;
@@ -556,7 +556,7 @@ public sealed class GooglePhotosServiceTests
     public async Task UploadMedia_RecoversResumableSingle()
     {
         var requestCount = 0;
-        using var media = await TempMediaFile.CreateAsync([1, 2], TestContext.Current.CancellationToken);
+        using var media = await TempFile.CreateAsync([1, 2], TestContext.Current.CancellationToken, ".jpg");
         using var client = CreateClient((request, _) =>
         {
             requestCount++;
@@ -600,7 +600,7 @@ public sealed class GooglePhotosServiceTests
     [InlineData(GooglePhotosUploadMethod.ResumableMultipart)]
     public async Task UploadMedia_WrapsMalformedError(GooglePhotosUploadMethod uploadMethod)
     {
-        using var media = await TempMediaFile.CreateAsync([1], TestContext.Current.CancellationToken);
+        using var media = await TempFile.CreateAsync([1], TestContext.Current.CancellationToken, ".jpg");
         using var client = CreateClient((_, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.BadGateway)
         {
             Content = new StringContent("not-json", Encoding.UTF8, "text/plain")
