@@ -1,8 +1,3 @@
----
-title: Generic Host Sample
-description: Run CasCap.Api.GooglePhotos with standard .NET configuration and dependency injection.
----
-
 # Generic Host Sample
 
 ## Purpose

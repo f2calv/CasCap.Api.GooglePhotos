@@ -27,7 +27,7 @@ Apply to every file named `README.md`, wherever it lives — repository root, pr
 - **Descriptive link text**: Never `click here`, and never a bare URL where a phrase reads better.
 - **Alt text on every image** describing the content rather than the file (`![Service dependency graph](…)`, not `![diagram](…)`).
 - **Unique headings within a file** so generated anchors resolve predictably.
-- **Front matter does not replace the H1**: GitHub renders YAML front matter as a table, not a heading, so a `title:` key alone leaves the page with no `<h1>`. Keep the front matter and add the explicit H1. The repository's `.markdownlint.json` sets `MD025.front_matter_title` to an empty string so the explicit H1 is not reported as a duplicate title.
+- **No YAML front matter**: Front matter belongs only to Copilot customisation files (`*.instructions.md`, `*.prompt.md`, `*.agent.md`) and to GitHub issue and pull request templates, which require it. Never add a `title:` / `description:` block to a `README.md` or to any other documentation Markdown; GitHub renders it as a table above the content rather than as a heading. The `# H1` and the summary sentence beneath it already carry the title and the description.
 
 ## Mermaid Diagrams
 

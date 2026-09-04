@@ -1,8 +1,3 @@
----
-title: Direct Console Sample
-description: Run CasCap.Api.GooglePhotos through direct service construction without dependency injection.
----
-
 # Direct Console Sample
 
 ## Purpose

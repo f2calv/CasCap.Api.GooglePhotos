@@ -1,8 +1,3 @@
----
-title: CasCap.Api.GooglePhotos Tests
-description: Integration test structure, authentication requirements, and execution commands.
----
-
 # CasCap.Api.GooglePhotos Tests
 
 ## Purpose

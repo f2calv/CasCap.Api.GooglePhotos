@@ -1,8 +1,3 @@
----
-title: CasCap.Api.GooglePhotos
-description: Unofficial .NET client library for the Google Photos Library and Picker APIs.
----
-
 # CasCap.Api.GooglePhotos
 
 CasCap.Api.GooglePhotos is an unofficial .NET 10 client for the Google Photos Library API and Picker API.
