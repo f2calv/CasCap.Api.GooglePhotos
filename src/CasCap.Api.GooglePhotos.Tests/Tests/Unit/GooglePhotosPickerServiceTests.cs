@@ -10,7 +10,7 @@ public sealed class GooglePhotosPickerServiceTests
     [Theory]
     [InlineData(-1)]
     [InlineData(2001)]
-    public async Task CreateSessionRejectsInvalidItemCount(int maxItemCount)
+    public async Task CreateSession_RejectsInvalidItemCount(int maxItemCount)
     {
         using var client = CreateClient(_ => new HttpResponseMessage(HttpStatusCode.OK));
         var service = CreateService(client);
@@ -20,7 +20,7 @@ public sealed class GooglePhotosPickerServiceTests
     }
 
     [Fact]
-    public async Task CreateSessionRejectsNonVersionFourRequestId()
+    public async Task CreateSession_RejectsNonVersionFourRequestId()
     {
         using var client = CreateClient(_ => new HttpResponseMessage(HttpStatusCode.OK));
         var service = CreateService(client);
@@ -30,7 +30,7 @@ public sealed class GooglePhotosPickerServiceTests
     }
 
     [Fact]
-    public async Task DeleteSessionWrapsMalformedError()
+    public async Task DeleteSession_WrapsMalformedError()
     {
         using var client = CreateClient(_ => new HttpResponseMessage(HttpStatusCode.BadGateway)
         {
@@ -45,7 +45,7 @@ public sealed class GooglePhotosPickerServiceTests
     }
 
     [Fact]
-    public async Task DeleteSessionEscapesSessionId()
+    public async Task DeleteSession_EscapesSessionId()
     {
         HttpRequestMessage? observed = null;
         using var client = CreateClient(request =>
@@ -62,7 +62,7 @@ public sealed class GooglePhotosPickerServiceTests
     }
 
     [Fact]
-    public async Task GetSessionReturnsSession()
+    public async Task GetSession_ReturnsSession()
     {
         Uri? requestUri = null;
         using var client = CreateClient(request =>
@@ -86,7 +86,7 @@ public sealed class GooglePhotosPickerServiceTests
     }
 
     [Fact]
-    public async Task DownloadVideoRequestsRawBytes()
+    public async Task DownloadVideo_RequestsRawBytes()
     {
         Uri? requestUri = null;
         using var client = CreateClient(request =>
@@ -113,7 +113,7 @@ public sealed class GooglePhotosPickerServiceTests
     [InlineData(16384, 100)]
     [InlineData(100, 0)]
     [InlineData(100, 16384)]
-    public async Task DownloadPhotoRejectsInvalidDimensions(int maxWidth, int maxHeight)
+    public async Task DownloadPhoto_RejectsInvalidDimensions(int maxWidth, int maxHeight)
     {
         using var client = CreateClient(_ => new HttpResponseMessage(HttpStatusCode.OK));
         var service = CreateService(client);
@@ -135,7 +135,7 @@ public sealed class GooglePhotosPickerServiceTests
     [Theory]
     [InlineData(0)]
     [InlineData(101)]
-    public async Task GetMediaItemsRejectsInvalidPageSize(int pageSize)
+    public async Task GetMediaItems_RejectsInvalidPageSize(int pageSize)
     {
         using var client = CreateClient(_ => new HttpResponseMessage(HttpStatusCode.OK));
         var service = CreateService(client);
@@ -146,7 +146,7 @@ public sealed class GooglePhotosPickerServiceTests
     }
 
     [Fact]
-    public async Task DownloadPhotoIncludesDimensionsAndExif()
+    public async Task DownloadPhoto_IncludesDimensionsAndExif()
     {
         Uri? requestUri = null;
         using var client = CreateClient(request =>
@@ -178,7 +178,7 @@ public sealed class GooglePhotosPickerServiceTests
     }
 
     [Fact]
-    public async Task DownloadPhotoWrapsMalformedError()
+    public async Task DownloadPhoto_WrapsMalformedError()
     {
         using var client = CreateClient(_ => new HttpResponseMessage(HttpStatusCode.Gone)
         {
@@ -203,7 +203,7 @@ public sealed class GooglePhotosPickerServiceTests
     }
 
     [Fact]
-    public async Task GetMediaItemsFollowsPageToken()
+    public async Task GetMediaItems_FollowsPageToken()
     {
         var requests = new List<Uri>();
         using var client = CreateClient(request =>

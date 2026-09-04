@@ -9,7 +9,7 @@ namespace CasCap.Tests;
 public sealed class GooglePhotosServiceTests
 {
     [Fact]
-    public async Task AddMediaItemsBatchesCreationRequests()
+    public async Task AddMediaItems_BatchesCreationRequests()
     {
         var batchSizes = new List<int>();
         using var client = CreateClient(async (request, cancellationToken) =>
@@ -33,7 +33,7 @@ public sealed class GooglePhotosServiceTests
     }
 
     [Fact]
-    public async Task GetAlbumWrapsApiError()
+    public async Task GetAlbum_WrapsApiError()
     {
         using var client = CreateClient((_, _) => Task.FromResult(CreateJsonResponse(
             """{"error":{"code":403,"message":"forbidden","status":"PERMISSION_DENIED"}}""",
@@ -51,7 +51,7 @@ public sealed class GooglePhotosServiceTests
     }
 
     [Fact]
-    public async Task AddMediaItemsToAlbumDeduplicatesAndBatches()
+    public async Task AddMediaItemsToAlbum_DeduplicatesAndBatches()
     {
         var batches = new List<string[]>();
         using var client = CreateClient(async (request, cancellationToken) =>
@@ -83,7 +83,7 @@ public sealed class GooglePhotosServiceTests
     }
 
     [Fact]
-    public async Task AddMediaItemsToAlbumHonorsCancellation()
+    public async Task AddMediaItemsToAlbum_HonorsCancellation()
     {
         var requestCount = 0;
         using var cancellationTokenSource = new CancellationTokenSource();
@@ -107,7 +107,7 @@ public sealed class GooglePhotosServiceTests
     }
 
     [Fact]
-    public async Task AddMediaItemsToAlbumWrapsApiError()
+    public async Task AddMediaItemsToAlbum_WrapsApiError()
     {
         using var client = CreateClient((_, _) => Task.FromResult(CreateJsonResponse(
             """{"error":{"code":400,"message":"invalid media IDs","status":"INVALID_ARGUMENT"}}""",
@@ -126,7 +126,7 @@ public sealed class GooglePhotosServiceTests
     [InlineData(GooglePhotosPositionType.FirstInAlbum, null, null, null)]
     [InlineData(GooglePhotosPositionType.AfterMediaItem, "album-id", null, null)]
     [InlineData(GooglePhotosPositionType.AfterMediaItem, "album-id", "media-id", "enrichment-id")]
-    public async Task AddMediaItemRejectsInvalidAlbumPosition(
+    public async Task AddMediaItem_RejectsInvalidAlbumPosition(
         GooglePhotosPositionType positionType,
         string? albumId,
         string? relativeMediaItemId,
@@ -145,7 +145,7 @@ public sealed class GooglePhotosServiceTests
     }
 
     [Fact]
-    public async Task DownloadBytesBuildsPhotoParameters()
+    public async Task DownloadBytes_BuildsPhotoParameters()
     {
         Uri? requestUri = null;
         using var client = CreateClient((request, _) =>
@@ -177,7 +177,7 @@ public sealed class GooglePhotosServiceTests
     }
 
     [Fact]
-    public async Task DownloadBytesBuildsVideoParameters()
+    public async Task DownloadBytes_BuildsVideoParameters()
     {
         Uri? requestUri = null;
         using var client = CreateClient((request, _) =>
@@ -206,7 +206,7 @@ public sealed class GooglePhotosServiceTests
     }
 
     [Fact]
-    public async Task DownloadBytesWrapsApiError()
+    public async Task DownloadBytes_WrapsApiError()
     {
         using var client = CreateClient((_, _) => Task.FromResult(CreateJsonResponse(
             """{"error":{"code":410,"message":"base URL expired","status":"FAILED_PRECONDITION"}}""",
@@ -228,7 +228,7 @@ public sealed class GooglePhotosServiceTests
     [Theory]
     [InlineData(0)]
     [InlineData(51)]
-    public async Task GetAlbumsRejectsInvalidPageSize(int pageSize)
+    public async Task GetAlbums_RejectsInvalidPageSize(int pageSize)
     {
         using var client = CreateClient((_, _) => Task.FromResult(CreateJsonResponse("{}")));
         var service = CreateService(client);
@@ -238,7 +238,7 @@ public sealed class GooglePhotosServiceTests
     }
 
     [Fact]
-    public async Task GetMediaItemsDeduplicatesAcrossPages()
+    public async Task GetMediaItems_DeduplicatesAcrossPages()
     {
         var requests = new List<Uri>();
         var pagingEvents = new List<PagingEventArgs>();
@@ -265,7 +265,7 @@ public sealed class GooglePhotosServiceTests
     }
 
     [Fact]
-    public async Task GetMediaItemsByFilterRemovesEmptyFilters()
+    public async Task GetMediaItemsByFilter_RemovesEmptyFilters()
     {
         JsonElement? sentFilter = null;
         using var client = CreateClient(async (request, cancellationToken) =>
@@ -303,7 +303,7 @@ public sealed class GooglePhotosServiceTests
     [Theory]
     [InlineData(0)]
     [InlineData(101)]
-    public async Task GetMediaItemsRejectsInvalidPageSize(int pageSize)
+    public async Task GetMediaItems_RejectsInvalidPageSize(int pageSize)
     {
         using var client = CreateClient((_, _) => Task.FromResult(CreateJsonResponse("{}")));
         var service = CreateService(client);
@@ -317,7 +317,7 @@ public sealed class GooglePhotosServiceTests
     [InlineData(1)]
     [InlineData(50)]
     [InlineData(100)]
-    public async Task GetMediaItemsSendsRequestedPageSize(int pageSize)
+    public async Task GetMediaItems_SendsRequestedPageSize(int pageSize)
     {
         Uri? requestUri = null;
         using var client = CreateClient((request, _) =>
@@ -337,7 +337,7 @@ public sealed class GooglePhotosServiceTests
     [InlineData(1)]
     [InlineData(25)]
     [InlineData(50)]
-    public async Task GetAlbumsSendsRequestedPageSize(int pageSize)
+    public async Task GetAlbums_SendsRequestedPageSize(int pageSize)
     {
         Uri? requestUri = null;
         using var client = CreateClient((request, _) =>
@@ -357,7 +357,7 @@ public sealed class GooglePhotosServiceTests
     [InlineData("X-Goog-Upload-Protocol", true)]
     [InlineData("X-Goog-Upload-Content-Type", true)]
     [InlineData("X-Goog-Api-Client", false)]
-    public void UploadRequestDetectionMatchesProtocolHeaders(string headerName, bool expected)
+    public void IsUploadRequest_MatchesProtocolHeaders(string headerName, bool expected)
     {
         using var request = new HttpRequestMessage(HttpMethod.Post, RequestUris.BaseAddress);
         request.Headers.Add(headerName, "value");
@@ -368,7 +368,7 @@ public sealed class GooglePhotosServiceTests
     }
 
     [Fact]
-    public async Task GetOrCreateAlbumCreatesMissingAlbum()
+    public async Task GetOrCreateAlbum_CreatesMissingAlbum()
     {
         var requestCount = 0;
         using var client = CreateClient(async (request, cancellationToken) =>
@@ -399,7 +399,7 @@ public sealed class GooglePhotosServiceTests
     }
 
     [Fact]
-    public async Task GetOrCreateAlbumReturnsExistingAlbum()
+    public async Task GetOrCreateAlbum_ReturnsExistingAlbum()
     {
         var requestCount = 0;
         using var client = CreateClient((request, _) =>
@@ -425,7 +425,7 @@ public sealed class GooglePhotosServiceTests
     [InlineData(".png", true)]
     [InlineData(".mp4", true)]
     [InlineData(".txt", false)]
-    public void IsFileUploadableByExtensionClassifiesTypes(string extension, bool expected)
+    public void IsFileUploadableByExtension_ClassifiesTypes(string extension, bool expected)
     {
         var actual = GooglePhotosService.IsFileUploadableByExtension(extension);
 
@@ -433,7 +433,7 @@ public sealed class GooglePhotosServiceTests
     }
 
     [Fact]
-    public async Task LoginRejectsUndefinedScope()
+    public async Task Login_RejectsUndefinedScope()
     {
         using var client = CreateClient((_, _) => Task.FromResult(CreateJsonResponse("{}")));
         var service = CreateService(client, new GooglePhotosOptions
@@ -451,7 +451,7 @@ public sealed class GooglePhotosServiceTests
     }
 
     [Fact]
-    public void OAuthCacheKeyIncludesClientId()
+    public void GetTokenStoreKey_IncludesClientId()
     {
         var scopes = new[] { "scope-b", "scope-a" };
 
@@ -464,192 +464,160 @@ public sealed class GooglePhotosServiceTests
     }
 
     [Fact]
-    public async Task UploadMediaRecoversFromAcceptedChunk()
+    public async Task UploadMedia_RecoversFromAcceptedChunk()
     {
         var requestCount = 0;
         var uploadOffsets = new List<string?>();
-        var path = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid():N}.jpg");
-        await File.WriteAllBytesAsync(path, [1, 2, 3, 4], TestContext.Current.CancellationToken);
-        try
+        using var media = await TempMediaFile.CreateAsync([1, 2, 3, 4], TestContext.Current.CancellationToken);
+        using var client = CreateClient(async (request, cancellationToken) =>
         {
-            using var client = CreateClient(async (request, cancellationToken) =>
+            requestCount++;
+            if (requestCount == 1)
             {
-                requestCount++;
-                if (requestCount == 1)
-                {
-                    var response = CreateJsonResponse(string.Empty);
-                    response.Headers.Add("X-Goog-Upload-URL", "https://upload.example.test/session");
-                    response.Headers.Add("X-Goog-Upload-Chunk-Granularity", "2");
-                    response.Headers.Add("X-Goog-Upload-Status", "active");
-                    return response;
-                }
+                var response = CreateJsonResponse(string.Empty);
+                response.Headers.Add("X-Goog-Upload-URL", "https://upload.example.test/session");
+                response.Headers.Add("X-Goog-Upload-Chunk-Granularity", "2");
+                response.Headers.Add("X-Goog-Upload-Status", "active");
+                return response;
+            }
 
-                var command = request.Headers.GetValues("X-Goog-Upload-Command").Single();
-                if (command == "query")
-                {
-                    var response = CreateJsonResponse(string.Empty);
-                    response.Headers.Add("X-Goog-Upload-Status", "active");
-                    response.Headers.Add("X-Goog-Upload-Size-Received", "2");
-                    return response;
-                }
+            var command = request.Headers.GetValues("X-Goog-Upload-Command").Single();
+            if (command == "query")
+            {
+                var response = CreateJsonResponse(string.Empty);
+                response.Headers.Add("X-Goog-Upload-Status", "active");
+                response.Headers.Add("X-Goog-Upload-Size-Received", "2");
+                return response;
+            }
 
-                uploadOffsets.Add(request.Headers.GetValues("X-Goog-Upload-Offset").SingleOrDefault());
-                _ = await request.Content!.ReadAsByteArrayAsync(cancellationToken);
-                return requestCount == 2
-                    ? CreateJsonResponse(
-                        """{"error":{"code":500,"message":"lost response","status":"INTERNAL"}}""",
-                        HttpStatusCode.InternalServerError)
-                    : CreateJsonResponse("upload-token");
-            });
-            var service = CreateService(client);
+            uploadOffsets.Add(request.Headers.GetValues("X-Goog-Upload-Offset").SingleOrDefault());
+            _ = await request.Content!.ReadAsByteArrayAsync(cancellationToken);
+            return requestCount == 2
+                ? CreateJsonResponse(
+                    """{"error":{"code":500,"message":"lost response","status":"INTERNAL"}}""",
+                    HttpStatusCode.InternalServerError)
+                : CreateJsonResponse("upload-token");
+        });
+        var service = CreateService(client);
 
-            var uploadToken = await service.UploadMediaAsync(
-                path,
-                GooglePhotosUploadMethod.ResumableMultipart,
-                cancellationToken: TestContext.Current.CancellationToken);
+        var uploadToken = await service.UploadMediaAsync(
+            media.Path,
+            GooglePhotosUploadMethod.ResumableMultipart,
+            cancellationToken: TestContext.Current.CancellationToken);
 
-            Assert.Equal("upload-token", uploadToken);
-            Assert.Equal(["0", "2"], uploadOffsets);
-            Assert.Equal(4, requestCount);
-        }
-        finally
-        {
-            File.Delete(path);
-        }
+        Assert.Equal("upload-token", uploadToken);
+        Assert.Equal(["0", "2"], uploadOffsets);
+        Assert.Equal(4, requestCount);
     }
 
     [Fact]
-    public async Task UploadMediaRecoversFromAcceptedFinalChunk()
+    public async Task UploadMedia_RecoversFromAcceptedFinalChunk()
     {
         var requestCount = 0;
-        var path = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid():N}.jpg");
-        await File.WriteAllBytesAsync(path, [1], TestContext.Current.CancellationToken);
-        try
+        using var media = await TempMediaFile.CreateAsync([1], TestContext.Current.CancellationToken);
+        using var client = CreateClient((request, _) =>
         {
-            using var client = CreateClient((request, _) =>
+            requestCount++;
+            if (requestCount == 1)
             {
-                requestCount++;
-                if (requestCount == 1)
-                {
-                    var response = CreateJsonResponse(string.Empty);
-                    response.Headers.Add("X-Goog-Upload-URL", "https://upload.example.test/session");
-                    response.Headers.Add("X-Goog-Upload-Chunk-Granularity", "2");
-                    response.Headers.Add("X-Goog-Upload-Status", "active");
-                    return Task.FromResult(response);
-                }
+                var response = CreateJsonResponse(string.Empty);
+                response.Headers.Add("X-Goog-Upload-URL", "https://upload.example.test/session");
+                response.Headers.Add("X-Goog-Upload-Chunk-Granularity", "2");
+                response.Headers.Add("X-Goog-Upload-Status", "active");
+                return Task.FromResult(response);
+            }
 
-                var command = request.Headers.GetValues("X-Goog-Upload-Command").Single();
-                if (command == "query")
-                {
-                    var response = CreateJsonResponse(string.Empty);
-                    response.Headers.Add("X-Goog-Upload-Status", "active");
-                    response.Headers.Add("X-Goog-Upload-Size-Received", "1");
-                    return Task.FromResult(response);
-                }
+            var command = request.Headers.GetValues("X-Goog-Upload-Command").Single();
+            if (command == "query")
+            {
+                var response = CreateJsonResponse(string.Empty);
+                response.Headers.Add("X-Goog-Upload-Status", "active");
+                response.Headers.Add("X-Goog-Upload-Size-Received", "1");
+                return Task.FromResult(response);
+            }
 
-                return Task.FromResult(requestCount == 2
-                    ? CreateJsonResponse(
-                        """{"error":{"code":500,"message":"lost response","status":"INTERNAL"}}""",
-                        HttpStatusCode.InternalServerError)
-                    : CreateJsonResponse("upload-token"));
-            });
-            var service = CreateService(client);
+            return Task.FromResult(requestCount == 2
+                ? CreateJsonResponse(
+                    """{"error":{"code":500,"message":"lost response","status":"INTERNAL"}}""",
+                    HttpStatusCode.InternalServerError)
+                : CreateJsonResponse("upload-token"));
+        });
+        var service = CreateService(client);
 
-            var uploadToken = await service.UploadMediaAsync(
-                path,
-                GooglePhotosUploadMethod.ResumableMultipart,
-                cancellationToken: TestContext.Current.CancellationToken);
+        var uploadToken = await service.UploadMediaAsync(
+            media.Path,
+            GooglePhotosUploadMethod.ResumableMultipart,
+            cancellationToken: TestContext.Current.CancellationToken);
 
-            Assert.Equal("upload-token", uploadToken);
-            Assert.Equal(4, requestCount);
-        }
-        finally
-        {
-            File.Delete(path);
-        }
+        Assert.Equal("upload-token", uploadToken);
+        Assert.Equal(4, requestCount);
     }
 
     [Fact]
-    public async Task UploadMediaRecoversResumableSingle()
+    public async Task UploadMedia_RecoversResumableSingle()
     {
         var requestCount = 0;
-        var path = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid():N}.jpg");
-        await File.WriteAllBytesAsync(path, [1, 2], TestContext.Current.CancellationToken);
-        try
+        using var media = await TempMediaFile.CreateAsync([1, 2], TestContext.Current.CancellationToken);
+        using var client = CreateClient((request, _) =>
         {
-            using var client = CreateClient((request, _) =>
+            requestCount++;
+            if (requestCount == 1)
             {
-                requestCount++;
-                if (requestCount == 1)
-                {
-                    var response = CreateJsonResponse(string.Empty);
-                    response.Headers.Add("X-Goog-Upload-URL", "https://upload.example.test/session");
-                    response.Headers.Add("X-Goog-Upload-Status", "active");
-                    return Task.FromResult(response);
-                }
+                var response = CreateJsonResponse(string.Empty);
+                response.Headers.Add("X-Goog-Upload-URL", "https://upload.example.test/session");
+                response.Headers.Add("X-Goog-Upload-Status", "active");
+                return Task.FromResult(response);
+            }
 
-                var command = request.Headers.GetValues("X-Goog-Upload-Command").Single();
-                if (command == "query")
-                {
-                    var response = CreateJsonResponse(string.Empty);
-                    response.Headers.Add("X-Goog-Upload-Status", "active");
-                    response.Headers.Add("X-Goog-Upload-Size-Received", "2");
-                    return Task.FromResult(response);
-                }
+            var command = request.Headers.GetValues("X-Goog-Upload-Command").Single();
+            if (command == "query")
+            {
+                var response = CreateJsonResponse(string.Empty);
+                response.Headers.Add("X-Goog-Upload-Status", "active");
+                response.Headers.Add("X-Goog-Upload-Size-Received", "2");
+                return Task.FromResult(response);
+            }
 
-                return Task.FromResult(requestCount == 2
-                    ? CreateJsonResponse(
-                        """{"error":{"code":500,"message":"lost response","status":"INTERNAL"}}""",
-                        HttpStatusCode.InternalServerError)
-                    : CreateJsonResponse("upload-token"));
-            });
-            var service = CreateService(client);
+            return Task.FromResult(requestCount == 2
+                ? CreateJsonResponse(
+                    """{"error":{"code":500,"message":"lost response","status":"INTERNAL"}}""",
+                    HttpStatusCode.InternalServerError)
+                : CreateJsonResponse("upload-token"));
+        });
+        var service = CreateService(client);
 
-            var uploadToken = await service.UploadMediaAsync(
-                path,
-                GooglePhotosUploadMethod.ResumableSingle,
-                cancellationToken: TestContext.Current.CancellationToken);
+        var uploadToken = await service.UploadMediaAsync(
+            media.Path,
+            GooglePhotosUploadMethod.ResumableSingle,
+            cancellationToken: TestContext.Current.CancellationToken);
 
-            Assert.Equal("upload-token", uploadToken);
-            Assert.Equal(4, requestCount);
-        }
-        finally
-        {
-            File.Delete(path);
-        }
+        Assert.Equal("upload-token", uploadToken);
+        Assert.Equal(4, requestCount);
     }
 
     [Theory]
     [InlineData(GooglePhotosUploadMethod.Simple)]
     [InlineData(GooglePhotosUploadMethod.ResumableSingle)]
     [InlineData(GooglePhotosUploadMethod.ResumableMultipart)]
-    public async Task UploadMediaWrapsMalformedError(GooglePhotosUploadMethod uploadMethod)
+    public async Task UploadMedia_WrapsMalformedError(GooglePhotosUploadMethod uploadMethod)
     {
-        var path = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid():N}.jpg");
-        await File.WriteAllBytesAsync(path, [1], TestContext.Current.CancellationToken);
-        try
+        using var media = await TempMediaFile.CreateAsync([1], TestContext.Current.CancellationToken);
+        using var client = CreateClient((_, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.BadGateway)
         {
-            using var client = CreateClient((_, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.BadGateway)
-            {
-                Content = new StringContent("not-json", Encoding.UTF8, "text/plain")
-            }));
-            var service = CreateService(client);
+            Content = new StringContent("not-json", Encoding.UTF8, "text/plain")
+        }));
+        var service = CreateService(client);
 
-            var exception = await Assert.ThrowsAsync<GooglePhotosException>(() => service.UploadMediaAsync(
-                path,
-                uploadMethod,
-                cancellationToken: TestContext.Current.CancellationToken));
+        var exception = await Assert.ThrowsAsync<GooglePhotosException>(() => service.UploadMediaAsync(
+            media.Path,
+            uploadMethod,
+            cancellationToken: TestContext.Current.CancellationToken));
 
-            Assert.Equal("Upload failed with HTTP 502.", exception.Message);
-        }
-        finally
-        {
-            File.Delete(path);
-        }
+        Assert.Equal("Upload failed with HTTP 502.", exception.Message);
     }
 
     [Fact]
-    public async Task AddEnrichmentToAlbumReturnsCreatedItem()
+    public async Task AddEnrichmentToAlbum_ReturnsCreatedItem()
     {
         string? requestJson = null;
         using var client = CreateClient(async (request, cancellationToken) =>
@@ -676,7 +644,7 @@ public sealed class GooglePhotosServiceTests
     }
 
     [Fact]
-    public async Task RemoveMediaItemsFromAlbumBatchesRequests()
+    public async Task RemoveMediaItemsFromAlbum_BatchesRequests()
     {
         var batchSizes = new List<int>();
         using var client = CreateClient(async (request, cancellationToken) =>
@@ -700,7 +668,7 @@ public sealed class GooglePhotosServiceTests
     }
 
     [Fact]
-    public async Task GetMediaItemsByIdsSkipsFailedResults()
+    public async Task GetMediaItemsByIds_SkipsFailedResults()
     {
         var requests = new List<Uri>();
         using var client = CreateClient((request, _) =>
@@ -727,7 +695,7 @@ public sealed class GooglePhotosServiceTests
     }
 
     [Fact]
-    public async Task GetMediaItemByIdWrapsApiError()
+    public async Task GetMediaItemById_WrapsApiError()
     {
         using var client = CreateClient((_, _) => Task.FromResult(CreateJsonResponse(
             """{"error":{"code":404,"message":"not found","status":"NOT_FOUND"}}""",

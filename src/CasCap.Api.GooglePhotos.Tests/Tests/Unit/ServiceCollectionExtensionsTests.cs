@@ -8,7 +8,7 @@ namespace CasCap.Tests;
 public sealed class ServiceCollectionExtensionsTests
 {
     [Fact]
-    public void RegistrationResolvesTypedClients()
+    public void Registration_ResolvesTypedClients()
     {
         var services = new ServiceCollection();
         services.AddGooglePhotos(CreateValidOptions());
@@ -23,7 +23,7 @@ public sealed class ServiceCollectionExtensionsTests
     }
 
     [Fact]
-    public void RegistrationIsIdempotent()
+    public void Registration_IsIdempotent()
     {
         var services = new ServiceCollection();
         services.AddGooglePhotos(CreateValidOptions());
@@ -37,7 +37,7 @@ public sealed class ServiceCollectionExtensionsTests
     }
 
     [Fact]
-    public void RegistrationCopiesEveryOption()
+    public void Registration_CopiesEveryOption()
     {
         var supplied = new GooglePhotosOptions
         {
@@ -85,7 +85,7 @@ public sealed class ServiceCollectionExtensionsTests
     [Theory]
     [InlineData(0)]
     [InlineData(-1)]
-    public void RegistrationRejectsInvalidRequestTimeout(int requestTimeoutSeconds)
+    public void Registration_RejectsInvalidRequestTimeout(int requestTimeoutSeconds)
     {
         var options = CreateValidOptions();
         options.RequestTimeoutSeconds = requestTimeoutSeconds;
@@ -100,7 +100,7 @@ public sealed class ServiceCollectionExtensionsTests
     [Theory]
     [InlineData(0)]
     [InlineData(-1)]
-    public void RegistrationRejectsInvalidUploadTimeout(int uploadTimeoutSeconds)
+    public void Registration_RejectsInvalidUploadTimeout(int uploadTimeoutSeconds)
     {
         var options = CreateValidOptions();
         options.UploadTimeoutSeconds = uploadTimeoutSeconds;
@@ -113,7 +113,7 @@ public sealed class ServiceCollectionExtensionsTests
     }
 
     [Fact]
-    public void RegistrationIsolatesScopes()
+    public void Registration_IsolatesScopes()
     {
         GooglePhotosScope[] scopes = [GooglePhotosScope.AppendOnly];
         var options = CreateValidOptions();
@@ -129,7 +129,7 @@ public sealed class ServiceCollectionExtensionsTests
     }
 
     [Fact]
-    public void RegistrationIsolatesRateLimitOptions()
+    public void Registration_IsolatesRateLimitOptions()
     {
         var writeRateLimit = new GooglePhotosWriteRateLimitOptions { Enabled = true, PermitLimit = 1 };
         var options = CreateValidOptions();
@@ -145,7 +145,7 @@ public sealed class ServiceCollectionExtensionsTests
     }
 
     [Fact]
-    public void RegistrationRejectsEmptyScopes()
+    public void Registration_RejectsEmptyScopes()
     {
         var options = CreateValidOptions();
         options.Scopes = [];
@@ -154,7 +154,7 @@ public sealed class ServiceCollectionExtensionsTests
     }
 
     [Fact]
-    public void RegistrationRejectsNullScopes()
+    public void Registration_RejectsNullScopes()
     {
         var options = CreateValidOptions();
         options.Scopes = null!;
@@ -163,7 +163,7 @@ public sealed class ServiceCollectionExtensionsTests
     }
 
     [Fact]
-    public void RegistrationRejectsNullRateLimit()
+    public void Registration_RejectsNullRateLimit()
     {
         var options = CreateValidOptions();
         options.WriteRateLimit = null!;
@@ -172,7 +172,7 @@ public sealed class ServiceCollectionExtensionsTests
     }
 
     [Fact]
-    public void RegistrationRejectsInvalidRateLimit()
+    public void Registration_RejectsInvalidRateLimit()
     {
         var options = CreateValidOptions();
         options.WriteRateLimit = new GooglePhotosWriteRateLimitOptions

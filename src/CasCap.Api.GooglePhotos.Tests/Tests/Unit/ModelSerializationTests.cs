@@ -8,7 +8,7 @@ namespace CasCap.Tests;
 public sealed class ModelSerializationTests
 {
     [Fact]
-    public void FilterUsesGoogleWireNames()
+    public void Filter_UsesGoogleWireNames()
     {
         var filter = new Filter
         {
@@ -34,7 +34,7 @@ public sealed class ModelSerializationTests
     }
 
     [Fact]
-    public void MediaItemMapsGoogleWireNames()
+    public void MediaItem_MapsGoogleWireNames()
     {
         const string json = """
             {
@@ -67,7 +67,7 @@ public sealed class ModelSerializationTests
     }
 
     [Fact]
-    public void ResponsesMapGoogleWireNames()
+    public void Responses_MapGoogleWireNames()
     {
         const string json = """
             {

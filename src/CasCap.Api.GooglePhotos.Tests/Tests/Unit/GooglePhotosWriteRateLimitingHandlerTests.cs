@@ -8,7 +8,7 @@ namespace CasCap.Tests;
 public sealed class GooglePhotosWriteRateLimitingHandlerTests
 {
     [Fact]
-    public async Task DisabledLimiterBypassesUnsafeRequests()
+    public async Task DisabledLimiter_BypassesUnsafeRequests()
     {
         var requestCount = 0;
         using var handler = CreateHandler(
@@ -29,7 +29,7 @@ public sealed class GooglePhotosWriteRateLimitingHandlerTests
     }
 
     [Fact]
-    public async Task QueuedWriteHonorsCancellation()
+    public async Task QueuedWrite_HonorsCancellation()
     {
         var requestCount = 0;
         using var handler = CreateHandler(
@@ -51,7 +51,7 @@ public sealed class GooglePhotosWriteRateLimitingHandlerTests
     }
 
     [Fact]
-    public async Task ReadOnlySearchBypassesLimiter()
+    public async Task ReadOnlySearch_BypassesLimiter()
     {
         var requestCount = 0;
         using var handler = CreateHandler(
@@ -76,7 +76,7 @@ public sealed class GooglePhotosWriteRateLimitingHandlerTests
     [InlineData("HEAD")]
     [InlineData("OPTIONS")]
     [InlineData("TRACE")]
-    public async Task SafeMethodBypassesLimiter(string method)
+    public async Task SafeMethod_BypassesLimiter(string method)
     {
         var requestCount = 0;
         using var handler = CreateHandler(
@@ -102,7 +102,7 @@ public sealed class GooglePhotosWriteRateLimitingHandlerTests
     [InlineData("PUT")]
     [InlineData("PATCH")]
     [InlineData("DELETE")]
-    public async Task UnsafeMethodConsumesPermit(string method)
+    public async Task UnsafeMethod_ConsumesPermit(string method)
     {
         var requestCount = 0;
         using var handler = CreateHandler(

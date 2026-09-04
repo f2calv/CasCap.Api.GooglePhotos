@@ -8,7 +8,7 @@ namespace CasCap.Tests;
 public sealed class GooglePhotosAuthorizationTests
 {
     [Fact]
-    public async Task HandlerAppliesSuppliedAuthorization()
+    public async Task Handler_AppliesSuppliedAuthorization()
     {
         using var credentialProvider = CreateProvider();
         credentialProvider.SetAuthorization("Bearer", "token-value");
@@ -22,7 +22,7 @@ public sealed class GooglePhotosAuthorizationTests
     }
 
     [Fact]
-    public async Task HandlerSendsNoAuthorizationBeforeLogin()
+    public async Task Handler_SendsNoAuthorizationBeforeLogin()
     {
         using var credentialProvider = CreateProvider();
         AuthenticationHeaderValue? observed = null;
@@ -34,7 +34,7 @@ public sealed class GooglePhotosAuthorizationTests
     }
 
     [Fact]
-    public async Task HandlerKeepsCallerSuppliedAuthorization()
+    public async Task Handler_KeepsCallerSuppliedAuthorization()
     {
         using var credentialProvider = CreateProvider();
         credentialProvider.SetAuthorization("Bearer", "provider-token");
@@ -51,7 +51,7 @@ public sealed class GooglePhotosAuthorizationTests
     }
 
     [Fact]
-    public async Task AuthorizationIsSharedByEveryResolvedClient()
+    public async Task Authorization_IsSharedByEveryResolvedClient()
     {
         var services = new ServiceCollection();
         services.AddGooglePhotos(new GooglePhotosOptions
