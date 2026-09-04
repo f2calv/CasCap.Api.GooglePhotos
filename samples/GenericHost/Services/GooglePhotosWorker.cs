@@ -1,4 +1,4 @@
-﻿namespace CasCap.Services;
+namespace CasCap.Services;
 
 /// <summary>Uploads one configured media file into a new album and reports the album contents.</summary>
 public sealed class GooglePhotosWorker(
@@ -24,7 +24,7 @@ public sealed class GooglePhotosWorker(
                 ?? throw new GooglePhotosException("Album creation failed.");
             logger.LogInformation("{ClassName} created album", nameof(GooglePhotosWorker));
 
-            _ = await googlePhotosSvc.UploadSingle(mediaPath, album.Id, cancellationToken: stoppingToken)
+            _ = await googlePhotosSvc.UploadSingleAsync(mediaPath, album.Id, cancellationToken: stoppingToken)
                 ?? throw new GooglePhotosException("Media item upload failed.");
 
             var albumMediaItems = await googlePhotosSvc.GetMediaItemsByAlbumAsync(album.Id, cancellationToken: stoppingToken).ToListAsync(stoppingToken);

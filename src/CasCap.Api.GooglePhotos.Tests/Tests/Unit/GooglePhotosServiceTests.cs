@@ -161,7 +161,7 @@ public sealed class GooglePhotosServiceTests
             MediaMetadata = new MediaMetadata { Photo = new Photo() }
         };
 
-        var bytes = await service.DownloadBytes(
+        var bytes = await service.DownloadBytesAsync(
             mediaItem,
             maxWidth: 100,
             maxHeight: 200,
@@ -193,7 +193,7 @@ public sealed class GooglePhotosServiceTests
             MediaMetadata = new MediaMetadata { Video = new Video() }
         };
 
-        var bytes = await service.DownloadBytes(
+        var bytes = await service.DownloadBytesAsync(
             mediaItem,
             downloadVideoBytes: true,
             cancellationToken: TestContext.Current.CancellationToken);
@@ -215,7 +215,7 @@ public sealed class GooglePhotosServiceTests
             MediaMetadata = new MediaMetadata { Photo = new Photo() }
         };
 
-        var exception = await Assert.ThrowsAsync<GooglePhotosException>(() => service.DownloadBytes(
+        var exception = await Assert.ThrowsAsync<GooglePhotosException>(() => service.DownloadBytesAsync(
             mediaItem,
             cancellationToken: TestContext.Current.CancellationToken));
 

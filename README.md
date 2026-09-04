@@ -28,6 +28,7 @@ Version 4 is a breaking release:
 * Public DTO properties and enum members use PascalCase while preserving Google's JSON wire names.
 * Removed Google sharing APIs and scopes are no longer exposed. `ShareInfo`, `SharedAlbumOptions` and `ContributorInfo`, along with `Album.ShareInfo` and `MediaItem.ContributorInfo`, are gone because no remaining scope can populate them.
 * Library API operations now apply only to content created by the configured OAuth client.
+* `UploadSingle`, `UploadMultiple` and `DownloadBytes` are renamed to `UploadSingleAsync`, `UploadMultipleAsync` and `DownloadBytesAsync`.
 * OAuth cache entries are isolated by local user, OAuth client ID, and requested scopes.
 * Authorization moved to the shared `GooglePhotosCredentialProvider` and is applied per request. The `LoginAsync` overloads that took OAuth settings or a `GooglePhotosOptions` instance are removed; configure options through `AddGooglePhotos` and call `LoginAsync(cancellationToken)`.
 
@@ -138,7 +139,7 @@ Environment variables use the standard double-underscore form, for example `CasC
 
 `GooglePhotosService` uploads and manages content created by the application. List, get, and search operations do not expose unrelated existing content from the user's library.
 
-For uploads, enable the Library API and request `AppendOnly`. Add `ReadOnlyAppCreatedData` when retrieving app-created content, including the get-or-create example below, and `EditAppCreatedData` when organizing it. Google performs an upload in two steps: upload bytes to obtain a token, then create the media item. `UploadSingle` handles both steps.
+For uploads, enable the Library API and request `AppendOnly`. Add `ReadOnlyAppCreatedData` when retrieving app-created content, including the get-or-create example below, and `EditAppCreatedData` when organizing it. Google performs an upload in two steps: upload bytes to obtain a token, then create the media item. `UploadSingleAsync` handles both steps.
 
 ```csharp
 using CasCap.Services;
@@ -156,7 +157,7 @@ public sealed class PhotoImportService(GooglePhotosService googlePhotosSvc)
         if (album is null)
             throw new InvalidOperationException("Album creation failed.");
 
-        await googlePhotosSvc.UploadSingle(
+        await googlePhotosSvc.UploadSingleAsync(
             path,
             album.Id,
             cancellationToken: cancellationToken);

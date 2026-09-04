@@ -153,10 +153,10 @@ public abstract partial class GooglePhotosServiceBase : HttpClientBase
     /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="pageSize" /> is outside the supported range.</exception>
     /// <exception cref="GooglePhotosException">Thrown when the API returns an error.</exception>
     public Task<List<Album>> GetAlbumsAsync(int pageSize = defaultPageSizeAlbums, CancellationToken cancellationToken = default)
-        => _GetAlbumsAsync(RequestUris.GET_albums, pageSize, cancellationToken);
+        => GetAlbumsPagedAsync(RequestUris.GET_albums, pageSize, cancellationToken);
 
     //todo: add IPagable interface and merge with similar
-    private async Task<List<Album>> _GetAlbumsAsync(string requestUri, int pageSize, CancellationToken cancellationToken)
+    private async Task<List<Album>> GetAlbumsPagedAsync(string requestUri, int pageSize, CancellationToken cancellationToken)
     {
         if (pageSize < minPageSizeAlbums || pageSize > maxPageSizeAlbums)
             throw new ArgumentOutOfRangeException($"{nameof(pageSize)} must be between {minPageSizeAlbums} and {maxPageSizeAlbums}!");
@@ -285,9 +285,9 @@ public abstract partial class GooglePhotosServiceBase : HttpClientBase
     #endregion
 
     #region https://photoslibrary.googleapis.com/v1/mediaItems
-    //todo: find a neater way to merge _GetMediaItemsAsync & _GetMediaItemsViaPOSTAsync - practically the same - pass an Action?
+    //todo: find a neater way to merge GetMediaItemsPagedAsync & SearchMediaItemsPagedAsync - practically the same - pass an Action?
     //todo: add IPagable interface and merge with similar
-    private async IAsyncEnumerable<MediaItem> _GetMediaItemsAsync(int pageSize, int maxPageCount, string requestUri, [EnumeratorCancellation] CancellationToken cancellationToken)
+    private async IAsyncEnumerable<MediaItem> GetMediaItemsPagedAsync(int pageSize, int maxPageCount, string requestUri, [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         if (pageSize < minPageSizeMediaItems || pageSize > maxPageSizeMediaItems)
             throw new ArgumentOutOfRangeException($"{nameof(pageSize)} must be between {minPageSizeMediaItems} and {maxPageSizeMediaItems}!");
@@ -330,7 +330,7 @@ public abstract partial class GooglePhotosServiceBase : HttpClientBase
     }
 
     //todo: add IPagable interface and merge with similar
-    private async IAsyncEnumerable<MediaItem> _GetMediaItemsViaPOSTAsync(string? albumId, int pageSize, int maxPageCount, Filter? filters, string requestUri, [EnumeratorCancellation] CancellationToken cancellationToken)
+    private async IAsyncEnumerable<MediaItem> SearchMediaItemsPagedAsync(string? albumId, int pageSize, int maxPageCount, Filter? filters, string requestUri, [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         if (pageSize < minPageSizeMediaItems || pageSize > maxPageSizeMediaItems)
             throw new ArgumentOutOfRangeException($"{nameof(pageSize)} must be between {minPageSizeMediaItems} and {maxPageSizeMediaItems}!");
@@ -375,7 +375,7 @@ public abstract partial class GooglePhotosServiceBase : HttpClientBase
     /// <param name="cancellationToken">A token that can cancel enumeration.</param>
     /// <returns>An asynchronous sequence of unique media items.</returns>
     public IAsyncEnumerable<MediaItem> GetMediaItemsAsync(int pageSize = defaultPageSizeMediaItems, int maxPageCount = int.MaxValue, CancellationToken cancellationToken = default)
-        => _GetMediaItemsAsync(pageSize, maxPageCount, RequestUris.GET_mediaItems, cancellationToken);
+        => GetMediaItemsPagedAsync(pageSize, maxPageCount, RequestUris.GET_mediaItems, cancellationToken);
 
     /// <summary>Streams media items contained in an album.</summary>
     /// <param name="albumId">The album identifier.</param>
@@ -384,7 +384,7 @@ public abstract partial class GooglePhotosServiceBase : HttpClientBase
     /// <param name="cancellationToken">A token that can cancel enumeration.</param>
     /// <returns>An asynchronous sequence of unique media items.</returns>
     public IAsyncEnumerable<MediaItem> GetMediaItemsByAlbumAsync(string albumId, int pageSize = defaultPageSizeMediaItems, int maxPageCount = int.MaxValue, CancellationToken cancellationToken = default)
-        => _GetMediaItemsViaPOSTAsync(albumId, pageSize, maxPageCount, null, RequestUris.POST_mediaItems_search, cancellationToken);
+        => SearchMediaItemsPagedAsync(albumId, pageSize, maxPageCount, null, RequestUris.POST_mediaItems_search, cancellationToken);
 
     //https://photoslibrary.googleapis.com/v1/mediaItems/media-item-id
     /// <summary>Retrieves a media item by its identifier.</summary>
@@ -495,9 +495,9 @@ public abstract partial class GooglePhotosServiceBase : HttpClientBase
     /// <param name="cancellationToken">A token that can cancel enumeration.</param>
     /// <returns>An asynchronous sequence of matching media items.</returns>
     public IAsyncEnumerable<MediaItem> GetMediaItemsByFilterAsync(Filter filter, int maxPageCount = int.MaxValue, CancellationToken cancellationToken = default)
-        => _GetMediaItemsByFilterAsync(filter, maxPageCount, cancellationToken);
+        => SearchMediaItemsByFilterAsync(filter, maxPageCount, cancellationToken);
 
-    private IAsyncEnumerable<MediaItem> _GetMediaItemsByFilterAsync(Filter filter, int maxPageCount, CancellationToken cancellationToken)
+    private IAsyncEnumerable<MediaItem> SearchMediaItemsByFilterAsync(Filter filter, int maxPageCount, CancellationToken cancellationToken)
     {
         //validate/tidy outgoing filter object
         var contentFilter = filter.ContentFilter;
@@ -537,7 +537,7 @@ public abstract partial class GooglePhotosServiceBase : HttpClientBase
             filter.FeatureFilter = null;
         }
 
-        return _GetMediaItemsViaPOSTAsync(null, defaultPageSizeMediaItems, maxPageCount, filter, RequestUris.POST_mediaItems_search, cancellationToken);
+        return SearchMediaItemsPagedAsync(null, defaultPageSizeMediaItems, maxPageCount, filter, RequestUris.POST_mediaItems_search, cancellationToken);
     }
 
     //would need renaming if made public

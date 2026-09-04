@@ -1,4 +1,4 @@
-﻿if (args.Length != 1)
+if (args.Length != 1)
 {
     Console.Error.WriteLine("Usage: dotnet run --project samples/ConsoleApp -- <media-file>");
     return 1;
@@ -61,7 +61,7 @@ var album = await googlePhotosSvc.GetOrCreateAlbumAsync(albumTitle, cancellation
 
 Console.WriteLine($"{nameof(album)} '{album.Title}' id is '{album.Id}'");
 
-var mediaItem = await googlePhotosSvc.UploadSingle(mediaPath, album.Id, cancellationToken: cancellationToken)
+var mediaItem = await googlePhotosSvc.UploadSingleAsync(mediaPath, album.Id, cancellationToken: cancellationToken)
     ?? throw new GooglePhotosException("Media item upload failed.");
 
 Console.WriteLine($"{nameof(mediaItem)} '{mediaItem.MediaItem.Filename}' id is '{mediaItem.MediaItem.Id}'");

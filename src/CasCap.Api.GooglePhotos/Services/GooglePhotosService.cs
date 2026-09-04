@@ -44,14 +44,13 @@ public sealed class GooglePhotosService(
     /// <param name="uploadMethod">The upload protocol to use.</param>
     /// <param name="cancellationToken">A token that can cancel the operation.</param>
     /// <returns>The media item creation result when successful; otherwise, <see langword="null" />.</returns>
-    public async Task<NewMediaItemResult?> UploadSingle(string path, string? albumId = null, string? description = null,
+    public async Task<NewMediaItemResult?> UploadSingleAsync(string path, string? albumId = null, string? description = null,
         GooglePhotosUploadMethod uploadMethod = GooglePhotosUploadMethod.ResumableMultipart, CancellationToken cancellationToken = default)
     {
         var uploadToken = await UploadMediaAsync(path, uploadMethod, cancellationToken: cancellationToken).ConfigureAwait(false);
         if (!string.IsNullOrWhiteSpace(uploadToken))
             return await AddMediaItemAsync(uploadToken!, path, description, albumId, cancellationToken: cancellationToken).ConfigureAwait(false);
-        return null;
-    }
+        return null;    }
 
     /// <summary>Uploads multiple media files and creates their Google Photos media items.</summary>
     /// <param name="filePaths">The local paths of the media files.</param>
@@ -59,9 +58,9 @@ public sealed class GooglePhotosService(
     /// <param name="uploadMethod">The upload protocol to use.</param>
     /// <param name="cancellationToken">A token that can cancel the operation.</param>
     /// <returns>The batch creation response when available; otherwise, <see langword="null" />.</returns>
-    public Task<MediaItemsCreateResponse?> UploadMultiple(string[] filePaths, string? albumId = null,
+    public Task<MediaItemsCreateResponse?> UploadMultipleAsync(string[] filePaths, string? albumId = null,
         GooglePhotosUploadMethod uploadMethod = GooglePhotosUploadMethod.ResumableMultipart, CancellationToken cancellationToken = default)
-        => _UploadMultiple(filePaths, albumId, uploadMethod, cancellationToken: cancellationToken);
+        => UploadFilesAsync(filePaths, albumId, uploadMethod, cancellationToken: cancellationToken);
 
     /// <summary>Uploads media files from a folder and creates their Google Photos media items.</summary>
     /// <param name="folderPath">The folder containing the media files.</param>
@@ -70,14 +69,14 @@ public sealed class GooglePhotosService(
     /// <param name="uploadMethod">The upload protocol to use.</param>
     /// <param name="cancellationToken">A token that can cancel the operation.</param>
     /// <returns>The batch creation response when available; otherwise, <see langword="null" />.</returns>
-    public Task<MediaItemsCreateResponse?> UploadMultiple(string folderPath, string? searchPattern = null, string? albumId = null,
+    public Task<MediaItemsCreateResponse?> UploadMultipleAsync(string folderPath, string? searchPattern = null, string? albumId = null,
         GooglePhotosUploadMethod uploadMethod = GooglePhotosUploadMethod.ResumableMultipart, CancellationToken cancellationToken = default)
     {
         var filePaths = searchPattern is not null ? Directory.GetFiles(folderPath, searchPattern) : Directory.GetFiles(folderPath);
-        return _UploadMultiple(filePaths, albumId, uploadMethod, cancellationToken: cancellationToken);
+        return UploadFilesAsync(filePaths, albumId, uploadMethod, cancellationToken: cancellationToken);
     }
 
-    private async Task<MediaItemsCreateResponse?> _UploadMultiple(string[] filePaths, string? albumId = null,
+    private async Task<MediaItemsCreateResponse?> UploadFilesAsync(string[] filePaths, string? albumId = null,
         GooglePhotosUploadMethod uploadMethod = GooglePhotosUploadMethod.ResumableMultipart, CancellationToken cancellationToken = default)
     {
         var uploadItems = new List<UploadItem>(filePaths.Length);
@@ -103,12 +102,12 @@ public sealed class GooglePhotosService(
     /// <param name="cancellationToken">A token that can cancel the download.</param>
     /// <returns>The downloaded bytes when available; otherwise, <see langword="null" />.</returns>
     /// <exception cref="GooglePhotosException">Thrown when the API returns an error.</exception>
-    public Task<byte[]?> DownloadBytes(MediaItem mediaItem, int? maxWidth = null, int? maxHeight = null, bool crop = false, bool includeExifMetadata = false, bool downloadVideoBytes = false, CancellationToken cancellationToken = default)
-        => DownloadBytes(mediaItem.BaseUrl, maxWidth, maxHeight, crop, includeExifMetadata: mediaItem.IsPhoto && includeExifMetadata, downloadVideoBytes: mediaItem.IsVideo && downloadVideoBytes, cancellationToken: cancellationToken);
+    public Task<byte[]?> DownloadBytesAsync(MediaItem mediaItem, int? maxWidth = null, int? maxHeight = null, bool crop = false, bool includeExifMetadata = false, bool downloadVideoBytes = false, CancellationToken cancellationToken = default)
+        => DownloadBytesAsync(mediaItem.BaseUrl, maxWidth, maxHeight, crop, includeExifMetadata: mediaItem.IsPhoto && includeExifMetadata, downloadVideoBytes: mediaItem.IsVideo && downloadVideoBytes, cancellationToken: cancellationToken);
 
     //https://developers.google.com/photos/library/guides/access-media-items#image-base-urls
     //https://developers.google.com/photos/library/guides/access-media-items#video-base-urls
-    private async Task<byte[]?> DownloadBytes(string baseUrl, int? maxWidth = null, int? maxHeight = null, bool crop = false, bool includeExifMetadata = false, bool downloadVideoBytes = false, CancellationToken cancellationToken = default)
+    private async Task<byte[]?> DownloadBytesAsync(string baseUrl, int? maxWidth = null, int? maxHeight = null, bool crop = false, bool includeExifMetadata = false, bool downloadVideoBytes = false, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(baseUrl)) throw new ArgumentNullException(nameof(baseUrl), $"baseUrl is expected!");
         var qs = new List<string>();
