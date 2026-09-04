@@ -60,3 +60,7 @@ Every f2calv repository follows a consistent layout, regardless of language:
 ### Repository Purpose
 
 This repository is a .NET client library for the Google Photos APIs, with console and Generic Host samples. Authentication configuration and cached OAuth tokens are sensitive and must never be committed.
+
+### Google Photos Logging Redaction
+
+Beyond the general secret-redaction rule in `csharp.instructions.md`, never log OAuth client secrets, access tokens, refresh tokens, cached token file contents, Google account identifiers, or personally identifying media filenames.
