@@ -83,3 +83,39 @@ Use these consistent heading patterns before Mermaid diagrams:
 - When renaming services, update corresponding diagram nodes
 - When adding/removing dependencies, update dependency graphs
 - Review all `README.md` diagrams before creating PRs
+
+## Markdown Linting
+
+The `lint` job in CI, which runs `pre-commit`, is the authoritative gate. Reproduce it locally before pushing rather than discovering failures in CI.
+
+- **Prefer native `pre-commit`** when Python is available: `pre-commit run --all-files`, or `pre-commit run markdownlint --all-files` to scope to Markdown.
+- **No local Python? Run `pre-commit` in a container.** Build once with `pre-commit` and Node baked in, then mount the repository. Pin the `pre-commit` version to the one CI uses, and pass the repository through a named cache volume so hook environments survive between runs:
+
+  ```bash
+  docker build -t pre-commit-runner:local - <<'EOF'
+  FROM python:3.12-slim
+  RUN apt-get update \
+      && apt-get install -y --no-install-recommends git nodejs npm \
+      && rm -rf /var/lib/apt/lists/*
+  RUN pip install --no-cache-dir pre-commit==3.7.1
+  WORKDIR /src
+  EOF
+
+  docker run --rm \
+      -v "$PWD:/src" \
+      -v pre-commit-cache:/root/.cache/pre-commit \
+      pre-commit-runner:local \
+      sh -c 'git config --global --add safe.directory /src && pre-commit run --all-files'
+  ```
+
+  The `safe.directory` line is required because the mounted repository is owned by a different UID inside the container.
+
+- **If the image build fails on `pip install` with an SSL handshake error**, the network is blocking `files.pythonhosted.org`, the PyPI package CDN. `pypi.org` itself may still resolve, so the index is reachable while no package can be downloaded. Neither `--trusted-host` nor a different index fixes this; it is a middlebox rejecting the CDN's TLS. Fall back to invoking the underlying linter directly.
+- **Direct linter fallback** — read the version and arguments from the repository's own `.pre-commit-config.yaml` rather than assuming, because they differ between repositories. For a hook pinned at `v0.49.1` with `--disable MD013 --disable MD034`:
+
+  ```bash
+  npx --yes markdownlint-cli@0.49.1 --disable MD013 --disable MD034 -- "**/*.md"
+  ```
+
+- **Run from the repository root** so `.markdownlint.json` is auto-discovered. Passing files from a parent directory silently skips that config and produces false MD025 failures.
+- **Honour `exclude:` blocks manually.** Invoking the linter directly bypasses any `exclude:` regex in `.pre-commit-config.yaml`, so generated or vendored files that the real gate skips will report failures. Check for an `exclude:` before treating a direct-invocation failure as real.
