@@ -122,6 +122,7 @@ Tracked settings must contain placeholders only. Store credentials with .NET Use
       },
       "RequestTimeoutSeconds": 90,
       "UploadTimeoutSeconds": 3600,
+      "UploadRetryLimit": 10,
       "ClientId": null,
       "ClientSecret": null
     }
@@ -131,7 +132,7 @@ Tracked settings must contain placeholders only. Store credentials with .NET Use
 
 Environment variables use the standard double-underscore form, for example `CasCap__GooglePhotosOptions__ClientId`.
 
-`RequestTimeoutSeconds` bounds a single Library or Picker API request. `UploadTimeoutSeconds` bounds a single media upload request, which streams whole files or large chunks and can legitimately run far longer; raise it when uploading large videos over a slow link.
+`RequestTimeoutSeconds` bounds a single Library or Picker API request. `UploadTimeoutSeconds` bounds a single media upload request, which streams whole files or large chunks and can legitimately run far longer; raise it when uploading large videos over a slow link. `UploadRetryLimit` caps how many times a resumable upload re-sends a chunk before abandoning the upload.
 
 `WriteRateLimit` optionally queues mutating Library API requests through an oldest-first sliding window. It is disabled by default because Google quota values can vary. Configure the limits for the quota assigned to your project. The limiter is local to one process and does not coordinate multiple application instances. Reads and Picker API requests bypass it.
 

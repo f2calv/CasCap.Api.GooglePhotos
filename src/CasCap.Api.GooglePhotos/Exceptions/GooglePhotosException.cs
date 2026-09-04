@@ -17,6 +17,13 @@ public sealed class GooglePhotosException : Exception
 
     /// <summary>Initializes a new instance of the <see cref="GooglePhotosException" /> class from an API error response.</summary>
     /// <param name="error">The error returned by the Google Photos API.</param>
-    public GooglePhotosException(Error error)
-        : base(error is not null && error.ErrorStatus is not null && error.ErrorStatus.Message is not null ? error.ErrorStatus.Message : "unknown") { }
+    public GooglePhotosException(Error error) : base(error?.ErrorStatus?.Message ?? "unknown")
+        => Status = error?.ErrorStatus;
+
+    /// <summary>Gets the status returned by the API, when the response carried one.</summary>
+    /// <remarks>
+    /// Use <see cref="Models.Status.StatusName" /> to branch on a canonical reason such as <c>RESOURCE_EXHAUSTED</c>
+    /// or <c>PERMISSION_DENIED</c> rather than matching on <see cref="Exception.Message" />.
+    /// </remarks>
+    public Status? Status { get; }
 }

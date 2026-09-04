@@ -50,6 +50,7 @@ public sealed class ServiceCollectionExtensionsTests
             FileDataStoreFullPathOverride = Path.Combine(Path.GetTempPath(), "token-cache"),
             RequestTimeoutSeconds = 11,
             UploadTimeoutSeconds = 22,
+            UploadRetryLimit = 33,
             WriteRateLimit = new GooglePhotosWriteRateLimitOptions
             {
                 Enabled = true,

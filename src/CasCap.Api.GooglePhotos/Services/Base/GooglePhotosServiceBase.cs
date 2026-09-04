@@ -29,6 +29,7 @@ public abstract partial class GooglePhotosServiceBase : HttpClientBase
     private const int defaultBatchSizeMediaItems = 50;
 
     private readonly GooglePhotosCredentialProvider _credentialProvider;
+    private readonly IOptions<GooglePhotosOptions> _options;
 
     /// <summary>Initializes a new instance of the <see cref="GooglePhotosServiceBase" /> class.</summary>
     /// <param name="logger">The logger used for request diagnostics.</param>
@@ -43,6 +44,7 @@ public abstract partial class GooglePhotosServiceBase : HttpClientBase
         HttpClient client)
     {
         _logger = logger;
+        _options = options ?? throw new ArgumentNullException(nameof(options));
         _credentialProvider = credentialProvider ?? throw new ArgumentNullException(nameof(credentialProvider));
         Client = client ?? throw new ArgumentNullException(nameof(client), $"{nameof(HttpClient)} cannot be null!");
     }
@@ -774,7 +776,7 @@ public abstract partial class GooglePhotosServiceBase : HttpClientBase
             {
                 var offset = 0L;
                 var attemptCount = 0;
-                const int retryLimit = 10;
+                var retryLimit = _options.Value.UploadRetryLimit;
                 var batchIndex = 0;
                 if (Upload_Chunk_Granularity <= 0)
                     throw new GooglePhotosException($"missing or invalid {X_Goog_Upload_Chunk_Granularity}!");

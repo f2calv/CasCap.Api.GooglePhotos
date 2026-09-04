@@ -72,6 +72,10 @@ public sealed record GooglePhotosOptions : IAppConfig
     [Range(1, int.MaxValue)]
     public int UploadTimeoutSeconds { get; set; } = 3600;
 
+    /// <summary>Gets or sets how many times a resumable upload may re-send a chunk before it is abandoned.</summary>
+    [Range(1, int.MaxValue)]
+    public int UploadRetryLimit { get; set; } = 10;
+
     /// <summary>Gets or sets the optional client-side limiter for mutating Library API requests.</summary>
     [Required, ValidateObjectMembers]
     public GooglePhotosWriteRateLimitOptions WriteRateLimit { get; set; } = new();

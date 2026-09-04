@@ -45,6 +45,9 @@ public sealed class GooglePhotosServiceTests
             TestContext.Current.CancellationToken));
 
         Assert.Equal("forbidden", exception.Message);
+        //The canonical reason must survive so callers can branch without matching on the message.
+        Assert.Equal(403, exception.Status?.Code);
+        Assert.Equal("PERMISSION_DENIED", exception.Status?.StatusName);
     }
 
     [Fact]

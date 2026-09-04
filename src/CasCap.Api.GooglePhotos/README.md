@@ -77,6 +77,7 @@ Complete configuration:
       "FileDataStoreFullPathOverride": null,
       "RequestTimeoutSeconds": 90,
       "UploadTimeoutSeconds": 3600,
+      "UploadRetryLimit": 10,
       "WriteRateLimit": {
         "Enabled": false,
         "PermitLimit": 8,
@@ -101,6 +102,7 @@ Complete configuration:
 | `FileDataStoreFullPathOverride` | Optional directory for the cached OAuth grant |
 | `RequestTimeoutSeconds` | Timeout for a single non-upload API request |
 | `UploadTimeoutSeconds` | Timeout for a single media upload request |
+| `UploadRetryLimit` | Chunk re-send attempts before a resumable upload is abandoned |
 | `WriteRateLimit` | Optional client-side sliding-window limiter for mutating Library API requests |
 
 `ClientId`, `ClientSecret` and `User` are sensitive. Store them in .NET User Secrets locally and in environment variables or a secret-backed configuration provider elsewhere. Never commit them, and never place them in a file that is packaged into an application.

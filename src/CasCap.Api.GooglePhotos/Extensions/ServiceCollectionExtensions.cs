@@ -58,6 +58,7 @@ public static class ServiceCollectionExtensions
                 options.FileDataStoreFullPathOverride = googlePhotosOptions.FileDataStoreFullPathOverride;
                 options.RequestTimeoutSeconds = googlePhotosOptions.RequestTimeoutSeconds;
                 options.UploadTimeoutSeconds = googlePhotosOptions.UploadTimeoutSeconds;
+                options.UploadRetryLimit = googlePhotosOptions.UploadRetryLimit;
                 options.WriteRateLimit = googlePhotosOptions.WriteRateLimit is null
                     ? null!
                     : googlePhotosOptions.WriteRateLimit with { };
