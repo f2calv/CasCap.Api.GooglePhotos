@@ -1,4 +1,5 @@
-﻿using CasCap.Models.Picker;
+﻿using CasCap.Common.Abstractions;
+using CasCap.Models.Picker;
 using Microsoft.Extensions.Options;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
@@ -6,12 +7,10 @@ using System.Diagnostics.CodeAnalysis;
 namespace CasCap.Models;
 
 /// <summary>Configures Google Photos API endpoints, OAuth credentials, scopes, and client-side request behavior.</summary>
-public sealed record GooglePhotosOptions
+public sealed record GooglePhotosOptions : IAppConfig
 {
-    /// <summary>
-    /// Configuration sub-section locator key.
-    /// </summary>
-    public const string ConfigurationSectionName = $"{nameof(CasCap)}:{nameof(GooglePhotosOptions)}";
+    /// <inheritdoc/>
+    public static string ConfigurationSectionName => $"{nameof(CasCap)}:{nameof(GooglePhotosOptions)}";
 
     /// <summary>Initializes a new instance of the <see cref="GooglePhotosOptions" /> class with default endpoints.</summary>
     [SetsRequiredMembers]
