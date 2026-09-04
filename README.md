@@ -5,22 +5,25 @@ description: Unofficial .NET client library for the Google Photos Library and Pi
 
 # CasCap.Api.GooglePhotos
 
-## Overview
+CasCap.Api.GooglePhotos is an unofficial .NET 10 client for the Google Photos Library API and Picker API.
 
 [CasCap.Api.GooglePhotos-badge]: https://img.shields.io/nuget/v/CasCap.Api.GooglePhotos?color=blue
 [CasCap.Api.GooglePhotos-url]: https://nuget.org/packages/CasCap.Api.GooglePhotos
 
 ![CI](https://github.com/f2calv/CasCap.Api.GooglePhotos/actions/workflows/ci.yml/badge.svg) [![NuGet][CasCap.Api.GooglePhotos-badge]][CasCap.Api.GooglePhotos-url]
 
-CasCap.Api.GooglePhotos is an unofficial .NET 10 client for the Google Photos Library API and Picker API.
+## Important: Google changed the Photos APIs on 31 March 2025
 
-Google changed the Photos APIs on March 31, 2025:
+Google fundamentally reduced what any third-party application can do with a user's Google Photos library. This is not a limitation of this library; it applies to every client of the Photos APIs:
 
-* The Library API can manage only albums and media items created by your application.
-* The Picker API lets a user explicitly select existing photos and videos for your application.
-* Library API sharing and shared-album operations are no longer available.
+* The Library API can manage **only albums and media items created by your own application**. Everything already in the user's account is invisible to it.
+* Reading an entire library, and therefore whole-library search, backup or duplicate detection, is no longer possible.
+* Library API sharing and shared-album operations were withdrawn entirely, along with their scopes.
+* Existing user media can only be reached through the Picker API, which requires the user to select items interactively, one session at a time.
 
 Applications that previously listed a user's complete library must migrate that workflow to the Picker API. See [Google's API update](https://developers.google.com/photos/support/updates) and issue [#208](https://github.com/f2calv/CasCap.Api.GooglePhotos/issues/208).
+
+The [`googlephotos` CLI](https://github.com/f2calv/CasCap.GooglePhotosCli) built on this library is constrained in exactly the same way.
 
 ## Migrating to v4
 
