@@ -49,7 +49,7 @@ applyTo: '**/*.cs'
 
 ## Suppressed Warnings
 
-Configured in `Directory.Build.props`: `IDE1006`, `IDE0079`, `IDE0042`, `CS0162`, `CS1574`, `S125`, `NETSDK1233`, `NU1901`, `NU1902`, `NU1903`
+Configured in `Directory.Build.props`: `IDE1006`, `IDE0042`, `NETSDK1233`
 
 ## XML Documentation
 
