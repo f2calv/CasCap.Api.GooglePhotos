@@ -22,12 +22,7 @@
       For usage examples see the docs on github, https://github.com/f2calv/CasCap.Api.GooglePhotos
     </PackageDescription>
     <PackageTags>google, photos, rest, api, wrapper</PackageTags>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
-
-  <ItemGroup>
-    <None Include="README.md" Pack="true" PackagePath="\" />
-  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Google.Apis.Auth" />
