@@ -52,7 +52,8 @@ public sealed class GooglePhotosService(
         var uploadToken = await UploadMediaAsync(path, uploadMethod, cancellationToken: cancellationToken).ConfigureAwait(false);
         if (!string.IsNullOrWhiteSpace(uploadToken))
             return await AddMediaItemAsync(uploadToken!, path, description, albumId, cancellationToken: cancellationToken).ConfigureAwait(false);
-        return null;    }
+        return null;
+    }
 
     /// <summary>Uploads multiple media files and creates their Google Photos media items.</summary>
     /// <param name="filePaths">The local paths of the media files.</param>
