@@ -239,4 +239,4 @@ Integration tests require credentials and can create albums or upload media. Rev
 
 ## License
 
-CasCap.Api.GooglePhotos is provided under the [MIT license](LICENSE).
+This project is released under [The Unlicense](LICENSE). See the [LICENSE](LICENSE) file for details.

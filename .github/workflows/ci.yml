@@ -8,22 +8,19 @@ on:
         description: Push a pre-release NuGet package from a non-default branch?
         default: false
   push:
-    branches-ignore:
-      - "preview/**"
-    paths-ignore:
-      - .github/copilot-instructions.md
-      - LICENSE
-      - README.md
+    branches: [main]
   pull_request:
     branches: [main]
-    types: [opened, synchronize, reopened]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 #Deny all by default; each job grants only the scopes it needs.
 permissions: {}
 
 jobs:
   lint:
-    if: github.ref != format('refs/heads/{0}', github.event.repository.default_branch)
     permissions:
       contents: read #checkout
     uses: f2calv/gha-workflows/.github/workflows/lint.yml@v1
@@ -60,7 +57,7 @@ jobs:
           dotnet-test-args: --filter-not-trait Category=Integration
 
   release:
-    needs: [versioning, build]
+    needs: [lint, versioning, build]
     if: needs.versioning.outputs.release-exists == 'false'
       && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
     uses: f2calv/gha-workflows/.github/workflows/gha-release-versioning.yml@v1
