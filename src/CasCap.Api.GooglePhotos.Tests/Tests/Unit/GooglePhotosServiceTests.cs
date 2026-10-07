@@ -7,6 +7,10 @@ namespace CasCap.Tests;
 [Trait("Category", "Library")]
 public sealed class GooglePhotosServiceTests
 {
+    private static readonly string[] SingleMediaItemId = ["media-id"];
+
+    private static readonly string[] MediaItemLookupIds = ["good", "bad", "good"];
+
     [Fact]
     public async Task AddMediaItems_BatchesCreationRequests()
     {
@@ -115,7 +119,7 @@ public sealed class GooglePhotosServiceTests
 
         var exception = await Assert.ThrowsAsync<GooglePhotosException>(() => service.AddMediaItemsToAlbumAsync(
             "album-id",
-            new[] { "media-id" },
+            SingleMediaItemId,
             TestContext.Current.CancellationToken));
 
         Assert.Equal("invalid media IDs", exception.Message);
@@ -685,7 +689,7 @@ public sealed class GooglePhotosServiceTests
         var service = CreateService(client);
 
         var mediaItems = await service.GetMediaItemsByIdsAsync(
-            new[] { "good", "bad", "good" },
+            MediaItemLookupIds,
             TestContext.Current.CancellationToken)
             .ToListAsync(TestContext.Current.CancellationToken);
 
