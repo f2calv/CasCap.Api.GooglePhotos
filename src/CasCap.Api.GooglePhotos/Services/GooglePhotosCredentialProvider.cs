@@ -7,22 +7,18 @@ namespace CasCap.Services;
 /// Registered as a singleton so that authorizing once applies to every resolved client, and so that
 /// an expiring access token is refreshed for each outgoing request rather than being captured at login.
 /// </remarks>
-public sealed class GooglePhotosCredentialProvider : IDisposable
+/// <param name="logger">The logger used for authorization diagnostics.</param>
+/// <param name="options">The configured Google Photos options.</param>
+public sealed class GooglePhotosCredentialProvider(
+    ILogger<GooglePhotosCredentialProvider> logger,
+    IOptions<GooglePhotosOptions> options)
+    : IDisposable
 {
     private readonly SemaphoreSlim _gate = new(1, 1);
-    private readonly ILogger<GooglePhotosCredentialProvider> _logger;
-    private readonly IOptions<GooglePhotosOptions> _options;
+    private readonly ILogger<GooglePhotosCredentialProvider> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    private readonly IOptions<GooglePhotosOptions> _options = options ?? throw new ArgumentNullException(nameof(options));
     private UserCredential? _credential;
     private AuthenticationHeaderValue? _suppliedAuthorization;
-
-    /// <summary>Initializes a new instance of the <see cref="GooglePhotosCredentialProvider" /> class.</summary>
-    /// <param name="logger">The logger used for authorization diagnostics.</param>
-    /// <param name="options">The configured Google Photos options.</param>
-    public GooglePhotosCredentialProvider(ILogger<GooglePhotosCredentialProvider> logger, IOptions<GooglePhotosOptions> options)
-    {
-        _logger = logger;
-        _options = options;
-    }
 
     /// <summary>Authorizes the configured user, opening the system browser when no cached grant is usable.</summary>
     /// <param name="cancellationToken">A token that can cancel authorization.</param>

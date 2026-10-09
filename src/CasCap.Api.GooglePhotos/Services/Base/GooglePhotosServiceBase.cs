@@ -10,7 +10,17 @@ using System.Web;
 namespace CasCap.Services;
 
 /// <summary>Provides authentication, album, media item, enrichment, and upload operations for the Google Photos Library API.</summary>
-public abstract partial class GooglePhotosServiceBase : HttpClientBase
+/// <param name="logger">The logger used for request diagnostics.</param>
+/// <param name="options">The configured Google Photos options.</param>
+/// <param name="credentialProvider">The authorization shared by every Google Photos client.</param>
+/// <param name="client">The HTTP client used to send API requests.</param>
+/// <exception cref="ArgumentNullException">Thrown when a required dependency is <see langword="null" />.</exception>
+public abstract partial class GooglePhotosServiceBase(
+    ILogger<GooglePhotosServiceBase> logger,
+    IOptions<GooglePhotosOptions> options,
+    GooglePhotosCredentialProvider credentialProvider,
+    HttpClient client)
+    : HttpClientBase(logger, client)
 {
     private const int maxSizeImageBytes = 1024 * 1024 * 200;
     private const long maxSizeVideoBytes = 1024 * 1024 * 1024 * 20L;
@@ -25,26 +35,8 @@ public abstract partial class GooglePhotosServiceBase : HttpClientBase
 
     private const int defaultBatchSizeMediaItems = 50;
 
-    private readonly GooglePhotosCredentialProvider _credentialProvider;
-    private readonly IOptions<GooglePhotosOptions> _options;
-
-    /// <summary>Initializes a new instance of the <see cref="GooglePhotosServiceBase" /> class.</summary>
-    /// <param name="logger">The logger used for request diagnostics.</param>
-    /// <param name="options">The configured Google Photos options.</param>
-    /// <param name="credentialProvider">The authorization shared by every Google Photos client.</param>
-    /// <param name="client">The HTTP client used to send API requests.</param>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="client" /> is <see langword="null" />.</exception>
-    protected GooglePhotosServiceBase(
-        ILogger<GooglePhotosServiceBase> logger,
-        IOptions<GooglePhotosOptions> options,
-        GooglePhotosCredentialProvider credentialProvider,
-        HttpClient client)
-    {
-        _logger = logger;
-        _options = options ?? throw new ArgumentNullException(nameof(options));
-        _credentialProvider = credentialProvider ?? throw new ArgumentNullException(nameof(credentialProvider));
-        Client = client ?? throw new ArgumentNullException(nameof(client), $"{nameof(HttpClient)} cannot be null!");
-    }
+    private readonly IOptions<GooglePhotosOptions> _options = options ?? throw new ArgumentNullException(nameof(options));
+    private readonly GooglePhotosCredentialProvider _credentialProvider = credentialProvider ?? throw new ArgumentNullException(nameof(credentialProvider));
 
     /// <summary>Raises <see cref="PagingEvent" /> after a page of results is processed.</summary>
     /// <param name="args">The page progress information.</param>

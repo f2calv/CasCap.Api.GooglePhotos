@@ -6,32 +6,26 @@ using System.Runtime.CompilerServices;
 namespace CasCap.Services;
 
 /// <summary>Provides access to Google Photos Picker sessions and user-selected media.</summary>
-public sealed class GooglePhotosPickerService : HttpClientBase
+/// <param name="logger">The logger used for request diagnostics.</param>
+/// <param name="credentialProvider">The authorization shared by every Google Photos client.</param>
+/// <param name="client">The HTTP client used to send API requests.</param>
+public sealed class GooglePhotosPickerService(
+    ILogger<GooglePhotosPickerService> logger,
+    GooglePhotosCredentialProvider credentialProvider,
+    HttpClient client)
+    : HttpClientBase(logger, client)
 {
-    private readonly GooglePhotosCredentialProvider _credentialProvider;
-
-    /// <summary>Initializes a new Picker API client.</summary>
-    public GooglePhotosPickerService(
-        ILogger<GooglePhotosPickerService> logger,
-        GooglePhotosCredentialProvider credentialProvider,
-        HttpClient client)
-    {
-        _logger = logger;
-        _credentialProvider = credentialProvider;
-        Client = client;
-    }
-
     /// <summary>Authenticates the configured user for Picker API requests.</summary>
     /// <remarks>
     /// The resulting grant is shared with every other Google Photos client through
     /// <see cref="GooglePhotosCredentialProvider" />, so authenticating once is enough.
     /// </remarks>
     public Task<bool> LoginAsync(CancellationToken cancellationToken = default)
-        => _credentialProvider.LoginAsync(cancellationToken);
+        => credentialProvider.LoginAsync(cancellationToken);
 
     /// <summary>Sets an externally acquired authorization header.</summary>
     public void SetAuth(string tokenType, string accessToken)
-        => _credentialProvider.SetAuthorization(tokenType, accessToken);
+        => credentialProvider.SetAuthorization(tokenType, accessToken);
 
     /// <summary>Creates a session in which the user can select media items.</summary>
     public async Task<PickingSession> CreateSessionAsync(

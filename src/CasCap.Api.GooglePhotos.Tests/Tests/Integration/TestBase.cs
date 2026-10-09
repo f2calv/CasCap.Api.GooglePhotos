@@ -1,44 +1,55 @@
 ﻿namespace CasCap.Tests;
 
 /// <summary>Provides configuration, logging, and Google Photos services for integration tests.</summary>
-public abstract class TestBase : IDisposable
+/// <param name="output">The xUnit output helper used for test diagnostics.</param>
+public abstract class TestBase(ITestOutputHelper output) : IDisposable
 {
-    protected readonly GooglePhotosPickerService _googlePhotosPickerSvc;
-    protected readonly GooglePhotosService _googlePhotosSvc;
-    protected readonly ILogger _logger;
-    protected readonly ITestOutputHelper _output;
+    private readonly (
+        IConfigurationRoot Configuration,
+        ServiceProvider ServiceProvider,
+        GooglePhotosPickerService PickerService,
+        GooglePhotosService GooglePhotosService) _testServices = CreateTestServices(output);
+    protected readonly ILogger _logger = ApplicationLogging.LoggerFactory.CreateLogger<TestBase>();
+    protected readonly ITestOutputHelper _output = output;
     protected readonly string _testFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "testdata");
-    private readonly IConfigurationRoot _configuration;
-    private readonly ServiceProvider _serviceProvider;
+    private IConfigurationRoot Configuration => _testServices.Configuration;
+    private ServiceProvider ServiceProvider => _testServices.ServiceProvider;
+    protected GooglePhotosPickerService GooglePhotosPickerSvc => _testServices.PickerService;
+    protected GooglePhotosService GooglePhotosSvc => _testServices.GooglePhotosService;
 
-    protected TestBase(ITestOutputHelper output)
+    private static (
+        IConfigurationRoot Configuration,
+        ServiceProvider ServiceProvider,
+        GooglePhotosPickerService PickerService,
+        GooglePhotosService GooglePhotosService) CreateTestServices(ITestOutputHelper output)
     {
-        _output = output;
-        _configuration = new ConfigurationBuilder()
+        var configuration = new ConfigurationBuilder()
             .AddJsonFile("appsettings.Test.json", optional: false)
             .AddUserSecrets<TestBase>()
             .AddEnvironmentVariables()
             .Build();
 
         var services = new ServiceCollection()
-            .AddSingleton<IConfiguration>(_configuration)
+            .AddSingleton<IConfiguration>(configuration)
             .AddXUnitLogging(output);
 
-        _logger = ApplicationLogging.LoggerFactory.CreateLogger<TestBase>();
-        services.AddGooglePhotos(_configuration);
-        _serviceProvider = services.BuildServiceProvider(new ServiceProviderOptions
+        services.AddGooglePhotos(configuration);
+        var serviceProvider = services.BuildServiceProvider(new ServiceProviderOptions
         {
             ValidateScopes = true
         });
-        _googlePhotosPickerSvc = _serviceProvider.GetRequiredService<GooglePhotosPickerService>();
-        _googlePhotosSvc = _serviceProvider.GetRequiredService<GooglePhotosService>();
+        return (
+            configuration,
+            serviceProvider,
+            serviceProvider.GetRequiredService<GooglePhotosPickerService>(),
+            serviceProvider.GetRequiredService<GooglePhotosService>());
     }
 
     /// <inheritdoc/>
     public void Dispose()
     {
-        _serviceProvider.Dispose();
-        (_configuration as IDisposable)?.Dispose();
+        ServiceProvider.Dispose();
+        (Configuration as IDisposable)?.Dispose();
         GC.SuppressFinalize(this);
     }
 }
