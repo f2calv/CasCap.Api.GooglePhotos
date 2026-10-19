@@ -1,5 +1,7 @@
 {
   "recommendations": [
+    "editorconfig.editorconfig",
+    "esbenp.prettier-vscode",
     "DavidAnson.vscode-markdownlint",
     "ms-dotnettools.csdevkit",
     "ms-vscode.powershell",
