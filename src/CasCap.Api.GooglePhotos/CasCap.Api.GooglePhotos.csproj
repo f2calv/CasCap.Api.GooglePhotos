@@ -43,6 +43,7 @@
   </ItemGroup>
   <ItemGroup Condition="'$(Configuration)'=='Release'">
     <PackageReference Include="CasCap.Common.Net" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" />
   </ItemGroup>
 
 </Project>
