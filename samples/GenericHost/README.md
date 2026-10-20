@@ -1,34 +1,58 @@
-# Generic Host Sample
+# GenericHost
 
-## Purpose
+A .NET 10 Google Photos sample using `Host.CreateApplicationBuilder`, `AddGooglePhotos`, validated
+options, dependency injection and a one-shot `BackgroundService`. It creates an album, uploads one
+configured file, counts the album's items and stops the host.
 
-This sample uses `Host.CreateApplicationBuilder`, `AddGooglePhotos`, options validation, dependency injection, and a `BackgroundService`. It creates an album, uploads one media file, and reports the number of media items in that album.
+## Prerequisites
 
-## Configuration
+Use a stable .NET 10 SDK and enable the Google Photos Library API with a Desktop OAuth client.
+Complete the [Google Cloud setup](../../README.md#quick-start). The sample requests `AppendOnly` and
+`ReadOnlyAppCreatedData`, so it can read back content created by its own OAuth client, not the entire
+Google Photos library.
 
-Enable the Google Photos Library API and create a Desktop app OAuth client in Google Cloud.
+Release consumes published shared dependencies. Debug additionally requires an adjacent
+[CasCap.Common checkout](https://github.com/f2calv/CasCap.Common).
 
-Store local values with .NET User Secrets:
+## Configuration Examples
+
+From the repository root, store credentials and an existing media path in User Secrets:
 
 ```powershell
-dotnet user-secrets set "CasCap:GooglePhotosOptions:User" "user@example.com" --project samples/GenericHost
-dotnet user-secrets set "CasCap:GooglePhotosOptions:ClientId" "your-client-id" --project samples/GenericHost
-dotnet user-secrets set "CasCap:GooglePhotosOptions:ClientSecret" "your-client-secret" --project samples/GenericHost
-dotnet user-secrets set "Sample:MediaPath" "C:\media\photo.jpg" --project samples/GenericHost
+dotnet user-secrets set "CasCap:GooglePhotosOptions:User" "local-user" --project .\samples\GenericHost
+dotnet user-secrets set "CasCap:GooglePhotosOptions:ClientId" "your-client-id" --project .\samples\GenericHost
+dotnet user-secrets set "CasCap:GooglePhotosOptions:ClientSecret" "your-client-secret" --project .\samples\GenericHost
+dotnet user-secrets set "Sample:MediaPath" "C:\media\photo.jpg" --project .\samples\GenericHost
 ```
 
-Unlike the ConsoleApp sample, the credentials are deliberately not listed in [Properties/launchSettings.json](Properties/launchSettings.json). Environment variables are loaded after User Secrets, so a blank placeholder there would override a secret you had already set and the sample would fail to authenticate.
+`User` is a local cache key and need not be an email address. Replace the placeholders privately;
+do not put credentials in tracked settings or launch profiles. The sample's Development launch
+profile enables the host's User Secrets provider.
 
-To use environment variables anyway, supply the whole value in the standard double-underscore form, for example `CasCap__GooglePhotosOptions__ClientId`.
+The host loads JSON configuration, Development user secrets, environment variables and command-line
+configuration in its standard order. Environment variables override user secrets, for example
+`CasCap__GooglePhotosOptions__ClientId` or `Sample__MediaPath`.
 
-## Walkthrough
-
-[Program.cs](Program.cs) registers the library and a `BackgroundService`. [Services/GooglePhotosWorker.cs](Services/GooglePhotosWorker.cs) does the work in five numbered steps: read the configured media path, authenticate, find or create an album, upload, then read the album back.
+The [package configuration examples](../../src/CasCap.Api.GooglePhotos/README.md#configuration-examples)
+describe the remaining options and defaults. The sample and test project currently share a User
+Secrets store, so changing credentials for either affects both.
 
 ## Run
 
 ```powershell
-dotnet run --project samples/GenericHost
+dotnet run --project .\samples\GenericHost --configuration Release
 ```
 
-The first run opens a browser for Google OAuth consent.
+Initial authentication opens a browser. The worker creates remote media and an album and does not
+remove them; use a dedicated account and synthetic media. Its logs include created album identifiers
+and titles, so keep output private. The worker stops the host after success or failure and sets a
+nonzero exit code on failure.
+
+## Walkthrough
+
+[Program.cs](Program.cs) registers configuration, clients and the worker.
+[GooglePhotosWorker](Services/GooglePhotosWorker.cs) reads the media path, authenticates, finds or
+creates the album, uploads and reads the paged album contents.
+
+See the [direct ConsoleApp sample](../ConsoleApp/README.md) for explicit HTTP construction and the
+[root README](../../README.md) for Google's API access limits.
