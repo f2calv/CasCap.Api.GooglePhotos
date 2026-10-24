@@ -29,11 +29,7 @@ public sealed class GooglePhotosWorker(
             var album = await googlePhotosSvc.GetOrCreateAlbumAsync(albumTitle, cancellationToken: stoppingToken)
                 ?? throw new GooglePhotosException("Album creation failed.");
             if (logger.IsEnabled(LogLevel.Information))
-                logger.LogInformation(
-                    "{ClassName} created album {AlbumId} with title {AlbumTitle}",
-                    nameof(GooglePhotosWorker),
-                    album.Id,
-                    albumTitle);
+                logger.LogInformation("{ClassName} created album", nameof(GooglePhotosWorker));
 
             //4) Upload the bytes and create the media item in the album, in one call.
             _ = await googlePhotosSvc.UploadSingleAsync(mediaPath, album.Id, cancellationToken: stoppingToken)
@@ -42,11 +38,7 @@ public sealed class GooglePhotosWorker(
             //5) Read the album back. Paging is handled by the returned IAsyncEnumerable.
             var albumMediaItems = await googlePhotosSvc.GetMediaItemsByAlbumAsync(album.Id, cancellationToken: stoppingToken).ToListAsync(stoppingToken);
             if (logger.IsEnabled(LogLevel.Information))
-                logger.LogInformation(
-                    "{ClassName} retrieved {MediaItemCount} media items from album {AlbumId}",
-                    nameof(GooglePhotosWorker),
-                    albumMediaItems.Count,
-                    album.Id);
+                logger.LogInformation("{ClassName} retrieved {MediaItemCount} media items", nameof(GooglePhotosWorker), albumMediaItems.Count);
         }
         catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
         {

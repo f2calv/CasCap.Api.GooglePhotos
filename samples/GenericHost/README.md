@@ -44,8 +44,8 @@ dotnet run --project .\samples\GenericHost --configuration Release
 ```
 
 Initial authentication opens a browser. The worker creates remote media and an album and does not
-remove them; use a dedicated account and synthetic media. Its logs include created album identifiers
-and titles, so keep output private. The worker stops the host after success or failure and sets a
+remove them; use a dedicated account and synthetic media. Progress logs report completion and item
+counts without album identifiers or titles. The worker stops the host after success or failure and sets a
 nonzero exit code on failure.
 
 ## Walkthrough
