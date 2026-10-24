@@ -5,7 +5,19 @@ CasCap.Api.GooglePhotos is an unofficial .NET 10 client for the Google Photos Li
 [CasCap.Api.GooglePhotos-badge]: https://img.shields.io/nuget/v/CasCap.Api.GooglePhotos?color=blue
 [CasCap.Api.GooglePhotos-url]: https://nuget.org/packages/CasCap.Api.GooglePhotos
 
-![CI](https://github.com/f2calv/CasCap.Api.GooglePhotos/actions/workflows/ci.yml/badge.svg) [![NuGet][CasCap.Api.GooglePhotos-badge]][CasCap.Api.GooglePhotos-url]
+[![CI status](https://github.com/f2calv/CasCap.Api.GooglePhotos/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/f2calv/CasCap.Api.GooglePhotos/actions/workflows/ci.yml)
+
+## Projects
+
+| Documentation | Purpose | Published package |
+| --- | --- | --- |
+| [CasCap.Api.GooglePhotos](src/CasCap.Api.GooglePhotos/README.md) | Library and Picker clients, OAuth and validated options | [![NuGet version][CasCap.Api.GooglePhotos-badge]][CasCap.Api.GooglePhotos-url] |
+| [ConsoleApp](samples/ConsoleApp/README.md) | Direct construction without DI or resilience handlers | Not packaged |
+| [GenericHost](samples/GenericHost/README.md) | Configuration, dependency injection and a one-shot upload worker | Not packaged |
+| [CasCap.Api.GooglePhotos.Tests](src/CasCap.Api.GooglePhotos.Tests/README.md) | Offline unit tests and credentialed integration tests | Not packaged |
+
+Samples and integration tests can create albums and upload media. Review their prerequisites and
+side effects before executing them; use a dedicated account and synthetic media.
 
 ## Important: Google changed the Photos APIs on 31 March 2025
 
@@ -17,6 +29,9 @@ Google fundamentally reduced what any third-party application can do with a user
 * Existing user media can only be reached through the Picker API, which requires the user to select items interactively, one session at a time.
 
 Applications that previously listed a user's complete library must migrate that workflow to the Picker API. See [Google's API update](https://developers.google.com/photos/support/updates) and issue [#208](https://github.com/f2calv/CasCap.Api.GooglePhotos/issues/208).
+
+API access and authorization guidance checked against Google's documentation on **20 October 2026**.
+This is a documentation verification date, not a live-service test result.
 
 The [`googlephotos` CLI](https://github.com/f2calv/CasCap.GooglePhotosCli) built on this library is constrained in exactly the same way.
 
@@ -53,7 +68,11 @@ dotnet package add Microsoft.Extensions.Hosting
 6. Open **APIs & Services > Credentials**, create an **OAuth client ID**, and choose **Desktop app**. This library uses Google's installed-application loopback flow.
 7. Record the client ID and client secret in a secret store. Never place them in source control or tracked configuration.
 
-The Google Photos APIs require an authenticated Google user and do not support service accounts. Public applications must also complete Google's OAuth verification process. Keep the OAuth client ID stable because Google associates API-created resources with the client that created them.
+The Google Photos APIs require an authenticated Google user and do not support service accounts.
+Public applications requesting sensitive Photos scopes must meet Google's
+[OAuth verification requirements](https://developers.google.com/identity/protocols/oauth2/production-readiness/sensitive-scope-verification),
+subject to its documented exceptions. Keep the OAuth client ID stable because Google associates
+API-created resources with the client that created them.
 
 ### Configure the application
 
@@ -67,8 +86,15 @@ var builder = Host.CreateApplicationBuilder(args);
 
 builder.Services.AddGooglePhotos(builder.Configuration);
 
-await builder.Build().RunAsync();
+using var host = builder.Build();
+var photos = host.Services.GetRequiredService<CasCap.Services.GooglePhotosService>();
+if (!await photos.LoginAsync())
+    throw new InvalidOperationException("Google Photos authentication failed.");
 ```
+
+Registration alone does not perform an operation. Use the resolved client with the
+[Library API example](#library-api), or resolve `GooglePhotosPickerService` for the
+[Picker flow](#picker-api).
 
 For local development, initialize User Secrets in the consuming application project and store credentials there:
 
@@ -84,7 +110,7 @@ dotnet user-secrets set "CasCap:GooglePhotosOptions:ClientSecret" "your-client-s
 
 The first call to `LoginAsync` opens the system browser for consent. Cached grants are separated by user and requested scope set. If a user declines a required scope, revoke or remove that cached grant and authenticate again. For an external consent screen in testing, Google can expire refresh tokens after seven days, so repeated authentication during development is expected.
 
-`AddGooglePhotos` registers a singleton `GooglePhotosCredentialProvider`. Authorizing through either client stores the grant there, so one `LoginAsync` call covers the Library API client, the Picker API client, and every later resolution of them. A delegating handler reads the provider on each request, so an expiring access token is refreshed automatically rather than being captured once at login.
+`AddGooglePhotos` registers a singleton [`GooglePhotosCredentialProvider`](https://github.com/f2calv/CasCap.Api.GooglePhotos/blob/ec3cee350804e73cd48461c1a2df063ad14c686e/src/CasCap.Api.GooglePhotos/Services/GooglePhotosCredentialProvider.cs). Authorizing through either client stores the grant there, so one `LoginAsync` call covers the Library API client, the Picker API client, and every later resolution of them. A delegating handler reads the provider on each request, so an expiring access token is refreshed automatically rather than being captured once at login.
 
 ## OAuth Scopes
 
@@ -97,34 +123,20 @@ The first call to `LoginAsync` opens the system browser for consent. Cached gran
 
 Request only the scopes needed by the application. The library creates a separate cached grant when the requested scope set changes.
 
-## Configuration
+## Configuration Examples
 
-Tracked settings must contain placeholders only. Store credentials with .NET User Secrets locally and environment variables or secret-backed providers in deployed environments. A complete configuration that enables both APIs is shown below; remove scopes your application does not use.
+Tracked settings must contain placeholders only. Store credentials with .NET User Secrets locally and
+environment variables or secret-backed providers in deployed environments. For the Library upload
+example, start with:
 
 ```json
 {
   "CasCap": {
     "GooglePhotosOptions": {
-      "User": null,
-      "Scopes": [
-        "AppendOnly",
-        "ReadOnlyAppCreatedData",
-        "EditAppCreatedData",
-        "PickerMediaItemsReadOnly"
-      ],
-      "FileDataStoreFullPathOverride": null,
-      "WriteRateLimit": {
-        "Enabled": false,
-        "PermitLimit": 8,
-        "QueueLimit": 100,
-        "SegmentsPerWindow": 6,
-        "WindowSeconds": 60
-      },
-      "RequestTimeoutSeconds": 90,
-      "UploadTimeoutSeconds": 3600,
-      "UploadRetryLimit": 10,
-      "ClientId": null,
-      "ClientSecret": null
+      "User": "local-user",
+      "Scopes": ["AppendOnly", "ReadOnlyAppCreatedData"],
+      "ClientId": "your-client-id",
+      "ClientSecret": "your-client-secret"
     }
   }
 }
@@ -132,13 +144,25 @@ Tracked settings must contain placeholders only. Store credentials with .NET Use
 
 Environment variables use the standard double-underscore form, for example `CasCap__GooglePhotosOptions__ClientId`.
 
-`RequestTimeoutSeconds` bounds a single Library or Picker API request. `UploadTimeoutSeconds` bounds a single media upload request, which streams whole files or large chunks and can legitimately run far longer; raise it when uploading large videos over a slow link. `UploadRetryLimit` caps how many times a resumable upload re-sends a chunk before abandoning the upload.
+For a Picker-only application, replace `Scopes` with `["PickerMediaItemsReadOnly"]`.
+The [package README](src/CasCap.Api.GooglePhotos/README.md#configuration-examples) includes the
+complete options example and defaults, including endpoints and token-cache configuration.
 
-`WriteRateLimit` optionally queues mutating Library API requests through an oldest-first sliding window. It is disabled by default because Google quota values can vary. Configure the limits for the quota assigned to your project. The limiter is local to one process and does not coordinate multiple application instances. Reads and Picker API requests bypass it.
+`RequestTimeoutSeconds` is the per-attempt Library/Picker API timeout. The resilience pipeline permits
+up to six retries for safe HTTP methods and sets the non-upload total budget to seven times that
+value; it does not automatically retry unsafe HTTP methods. `UploadTimeoutSeconds` defaults to 3600
+seconds and bounds each upload HTTP request (a file or chunk), not the entire multipart upload.
+Raise it for large videos over a slow link. `UploadRetryLimit` bounds resumable multipart chunk
+attempts.
+
+`WriteRateLimit` optionally queues mutating Library API requests through an oldest-first sliding
+window. It is disabled by default because Google quota values can vary. Configure the limits for
+your project's assigned quota. The limiter belongs to the registered handler pipeline; it does not
+coordinate separate containers or application instances. Reads and Picker API requests bypass it.
 
 ## Library API
 
-`GooglePhotosService` uploads and manages content created by the application. List, get, and search operations do not expose unrelated existing content from the user's library.
+[`GooglePhotosService`](https://github.com/f2calv/CasCap.Api.GooglePhotos/blob/ec3cee350804e73cd48461c1a2df063ad14c686e/src/CasCap.Api.GooglePhotos/Services/GooglePhotosService.cs) uploads and manages content created by the application. List, get, and search operations do not expose unrelated existing content from the user's library.
 
 For uploads, enable the Library API and request `AppendOnly`. Add `ReadOnlyAppCreatedData` when retrieving app-created content, including the get-or-create example below, and `EditAppCreatedData` when organizing it. Google performs an upload in two steps: upload bytes to obtain a token, then create the media item. `UploadSingleAsync` handles both steps.
 
@@ -170,7 +194,7 @@ Uploads are streamed. Resumable multipart uploads use bounded pooled buffers rat
 
 ## Picker API
 
-`GooglePhotosPickerService` provides the user-mediated flow for existing photos and videos:
+[`GooglePhotosPickerService`](https://github.com/f2calv/CasCap.Api.GooglePhotos/blob/ec3cee350804e73cd48461c1a2df063ad14c686e/src/CasCap.Api.GooglePhotos/Services/GooglePhotosPickerService.cs) provides the user-mediated flow for existing photos and videos:
 
 1. Authenticate and create a picking session.
 2. Present `PickerUri` to the user outside an iframe and in a browser signed into the Google Account that owns the session.
@@ -208,15 +232,35 @@ public sealed class PhotoPickerService(GooglePhotosPickerService pickerSvc)
 }
 ```
 
-Picked-media base URLs expire and downloads require the OAuth bearer token. Use `DownloadPhotoAsync` or `DownloadVideoAsync` to stream bytes through the authenticated client.
+Picked-media base URLs are normally valid for 60 minutes and can expire sooner if permission is
+revoked. Downloads require the OAuth bearer token. Use `DownloadPhotoAsync` or `DownloadVideoAsync`
+to stream bytes through the authenticated client; see Google's
+[media access guide](https://developers.google.com/photos/picker/guides/media-items).
 
-## Samples and Tests
+## Data Flow
 
-* [ConsoleApp](samples/ConsoleApp) demonstrates direct Library API construction without dependency injection.
-* [GenericHost](samples/GenericHost) demonstrates configuration, logging, and dependency injection.
-* [Integration tests](src/CasCap.Api.GooglePhotos.Tests) cover authentication and API behavior against a dedicated test account.
+The Picker is an interactive selection workflow, not an unattended library enumeration API:
 
-Integration tests require credentials and can create albums or upload media. Review the test README and obtain explicit approval before running them.
+```mermaid
+sequenceDiagram
+    actor User
+    participant App as Your application
+    participant Client as Picker client
+    participant Google as Google Photos
+    App->>Client: LoginAsync and CreateSessionAsync
+    Client->>Google: Authorize user and create session
+    Google-->>App: PickerUri and polling configuration
+    App-->>User: Open PickerUri outside an iframe
+    User->>Google: Select media and finish
+    loop Respect PollInterval and TimeoutIn
+        App->>Client: GetSessionAsync
+        Client->>Google: Read session state
+        Google-->>App: MediaItemsSet
+    end
+    App->>Client: GetMediaItemsAsync and download selected bytes
+    Client->>Google: Authorized media requests
+    App->>Client: DeleteSessionAsync after use
+```
 
 ## Dependencies
 
@@ -239,4 +283,4 @@ Integration tests require credentials and can create albums or upload media. Rev
 
 ## License
 
-This project is released under [The Unlicense](LICENSE). See the [LICENSE](LICENSE) file for details.
+Released under the [MIT License](LICENSE).
