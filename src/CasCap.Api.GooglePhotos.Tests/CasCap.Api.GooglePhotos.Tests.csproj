@@ -30,11 +30,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="appsettings.json" CopyToOutputDirectory="PreserveNewest" />
-    <Content Include="appsettings.Test.json" CopyToOutputDirectory="PreserveNewest" Condition="Exists('appsettings.Test.json')" />
-    <Content Include="appsettings.Local.json" CopyToOutputDirectory="PreserveNewest" Condition="Exists('appsettings.Local.json')" />
-    <Content Include="appsettings.Local.Test.json" CopyToOutputDirectory="PreserveNewest" Condition="Exists('appsettings.Local.Test.json')" />
-    <Content Include="appsettings.Tests.Local.json" CopyToOutputDirectory="PreserveNewest" Condition="Exists('appsettings.Tests.Local.json')" />
+    <None Remove="appsettings.json;appsettings.Test.json;appsettings.Local.json;appsettings.Local.Test.json;appsettings.Tests.Local.json" />
+    <Content Include="appsettings.json" CopyToOutputDirectory="Always" />
+    <Content Include="appsettings.Test.json" CopyToOutputDirectory="Always" Condition="Exists('appsettings.Test.json')" />
+    <Content Include="appsettings.Local.json" CopyToOutputDirectory="Always" Condition="Exists('appsettings.Local.json')" CopyToPublishDirectory="Never" Pack="false" />
+    <Content Include="appsettings.Local.Test.json" CopyToOutputDirectory="Always" Condition="Exists('appsettings.Local.Test.json')" CopyToPublishDirectory="Never" Pack="false" />
+    <Content Include="appsettings.Tests.Local.json" CopyToOutputDirectory="Always" Condition="Exists('appsettings.Tests.Local.json')" CopyToPublishDirectory="Never" Pack="false" />
   </ItemGroup>
 
   <ItemGroup>
