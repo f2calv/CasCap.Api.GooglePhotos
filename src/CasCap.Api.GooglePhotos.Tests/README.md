@@ -45,9 +45,13 @@ requires an adjacent [CasCap.Common checkout](https://github.com/f2calv/CasCap.C
 
 Integration configuration loads, in order:
 
-1. Required `appsettings.Test.json`.
-2. The test project's .NET User Secrets.
-3. Environment variables.
+1. Required `appsettings.json` and optional `appsettings.Test.json`.
+2. Optional `appsettings.Local.json`, `appsettings.Local.Test.json` and `appsettings.Tests.Local.json`.
+3. The test project's .NET User Secrets.
+4. Environment variables.
+
+The shared configuration loader selects the `Test` environment; the Test file may be absent when
+another provider supplies the required values.
 
 Configure `CasCap:GooglePhotosOptions:User`, `ClientId` and `ClientSecret` privately. The tracked
 configuration requests all four supported Photos scopes. Enable both Google Photos APIs and

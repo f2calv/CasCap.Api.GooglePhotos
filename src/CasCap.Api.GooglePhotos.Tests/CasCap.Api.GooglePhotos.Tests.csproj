@@ -17,9 +17,11 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)'=='Debug'">
+    <ProjectReference Include="..\..\..\CasCap.Common\src\CasCap.Common.Configuration\CasCap.Common.Configuration.csproj" />
     <ProjectReference Include="..\..\..\CasCap.Common\src\CasCap.Common.Testing\CasCap.Common.Testing.csproj" />
   </ItemGroup>
   <ItemGroup Condition="'$(Configuration)'=='Release'">
+    <PackageReference Include="CasCap.Common.Configuration" />
     <PackageReference Include="CasCap.Common.Testing" />
   </ItemGroup>
 
@@ -28,7 +30,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="appsettings.Test.json" CopyToOutputDirectory="Always" />
+    <Content Include="appsettings.json" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="appsettings.Test.json" CopyToOutputDirectory="PreserveNewest" Condition="Exists('appsettings.Test.json')" />
+    <Content Include="appsettings.Local.json" CopyToOutputDirectory="PreserveNewest" Condition="Exists('appsettings.Local.json')" />
+    <Content Include="appsettings.Local.Test.json" CopyToOutputDirectory="PreserveNewest" Condition="Exists('appsettings.Local.Test.json')" />
+    <Content Include="appsettings.Tests.Local.json" CopyToOutputDirectory="PreserveNewest" Condition="Exists('appsettings.Tests.Local.json')" />
   </ItemGroup>
 
   <ItemGroup>

@@ -5,29 +5,26 @@
 public abstract class TestBase(ITestOutputHelper output) : IDisposable
 {
     private readonly (
-        IConfigurationRoot Configuration,
+        ConfigurationManager Configuration,
         ServiceProvider ServiceProvider,
         GooglePhotosPickerService PickerService,
         GooglePhotosService GooglePhotosService) _testServices = CreateTestServices(output);
     protected readonly ILogger _logger = ApplicationLogging.LoggerFactory.CreateLogger<TestBase>();
     protected readonly ITestOutputHelper _output = output;
     protected readonly string _testFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "testdata");
-    private IConfigurationRoot Configuration => _testServices.Configuration;
+    private ConfigurationManager Configuration => _testServices.Configuration;
     private ServiceProvider ServiceProvider => _testServices.ServiceProvider;
     protected GooglePhotosPickerService GooglePhotosPickerSvc => _testServices.PickerService;
     protected GooglePhotosService GooglePhotosSvc => _testServices.GooglePhotosService;
 
     private static (
-        IConfigurationRoot Configuration,
+        ConfigurationManager Configuration,
         ServiceProvider ServiceProvider,
         GooglePhotosPickerService PickerService,
         GooglePhotosService GooglePhotosService) CreateTestServices(ITestOutputHelper output)
     {
-        var configuration = new ConfigurationBuilder()
-            .AddJsonFile("appsettings.Test.json", optional: false)
-            .AddUserSecrets<TestBase>()
-            .AddEnvironmentVariables()
-            .Build();
+        var configuration = new ConfigurationManager();
+        configuration.AddStandardConfiguration("Test", typeof(TestBase).Assembly);
 
         var services = new ServiceCollection()
             .AddSingleton<IConfiguration>(configuration)
@@ -49,7 +46,7 @@ public abstract class TestBase(ITestOutputHelper output) : IDisposable
     public void Dispose()
     {
         ServiceProvider.Dispose();
-        (Configuration as IDisposable)?.Dispose();
+        Configuration.Dispose();
         GC.SuppressFinalize(this);
     }
 }
