@@ -8,7 +8,7 @@
     <PackageVersion Include="Google.Apis.Auth" Version="1.77.0" />
     <PackageVersion Include="MetadataExtractor" Version="2.9.3" />
     <PackageVersion Include="Microsoft.AspNetCore.WebUtilities" Version="10.0.13" />
-    <PackageVersion Include="Microsoft.Extensions.Configuration" Version="10.0.13" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration" Version="10.0.14" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="10.0.13" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="10.0.13" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.UserSecrets" Version="10.0.13" />
