@@ -1,10 +1,10 @@
 //This sample wires the library up by hand, without dependency injection, so that each moving part is
-//visible. See the GenericHost sample for the shorter, more typical AddGooglePhotos registration.
+//visible. See the Generic Host SampleApp for the shorter, more typical AddGooglePhotos registration.
 
 //1) Read the media file to upload from the command line.
 if (args.Length != 1)
 {
-    Console.Error.WriteLine("Usage: dotnet run --project samples/ConsoleApp -- <media-file>");
+    Console.Error.WriteLine("Usage: dotnet run --project samples/CasCap.Api.GooglePhotos.Console.SampleApp -- <media-file>");
     return 1;
 }
 
@@ -31,7 +31,7 @@ var cancellationToken = cancellationTokenSource.Token;
 using var loggerFactory = LoggerFactory.Create(builder => builder.AddSimpleConsole());
 
 //4) Build the options by hand. Credentials come from environment variables here; set them in
-//   Properties/launchSettings.json when debugging. The GenericHost sample uses User Secrets instead.
+//   Properties/launchSettings.json when debugging. The Generic Host SampleApp uses User Secrets instead.
 //   Request only the scopes the application needs: AppendOnly to upload, ReadOnlyAppCreatedData to read
 //   back what this OAuth client created, and EditAppCreatedData to organise it.
 var options = new GooglePhotosOptions

@@ -45,7 +45,7 @@
       "type": "process",
       "args": [
         "publish",
-        "${workspaceFolder}/samples/GenericHost/GenericHost.csproj",
+        "${workspaceFolder}/samples/CasCap.Api.GooglePhotos.GenericHost.SampleApp/CasCap.Api.GooglePhotos.GenericHost.SampleApp.csproj",
         "/property:GenerateFullPaths=true",
         "/consoleloggerparameters:NoSummary"
       ],
@@ -53,14 +53,14 @@
     },
     {
       "label": "watch",
-      "detail": "The ConsoleApp sample requires a media path argument, so GenericHost is watched instead.",
+      "detail": "The console SampleApp requires a media path argument, so the Generic Host SampleApp is watched instead.",
       "command": "dotnet",
       "type": "process",
       "args": [
         "watch",
         "run",
         "--project",
-        "${workspaceFolder}/samples/GenericHost/GenericHost.csproj",
+        "${workspaceFolder}/samples/CasCap.Api.GooglePhotos.GenericHost.SampleApp/CasCap.Api.GooglePhotos.GenericHost.SampleApp.csproj",
         "/property:GenerateFullPaths=true",
         "/consoleloggerparameters:NoSummary"
       ],

@@ -1,4 +1,4 @@
-# GenericHost
+# CasCap.Api.GooglePhotos.GenericHost.SampleApp
 
 A .NET 10 Google Photos sample using `Host.CreateApplicationBuilder`, `AddGooglePhotos`, validated
 options, dependency injection and a one-shot `BackgroundService`. It creates an album, uploads one
@@ -19,10 +19,10 @@ Release consumes published shared dependencies. Debug additionally requires an a
 From the repository root, store credentials and an existing media path in User Secrets:
 
 ```powershell
-dotnet user-secrets set "CasCap:GooglePhotosOptions:User" "local-user" --project .\samples\GenericHost
-dotnet user-secrets set "CasCap:GooglePhotosOptions:ClientId" "your-client-id" --project .\samples\GenericHost
-dotnet user-secrets set "CasCap:GooglePhotosOptions:ClientSecret" "your-client-secret" --project .\samples\GenericHost
-dotnet user-secrets set "Sample:MediaPath" "C:\media\photo.jpg" --project .\samples\GenericHost
+dotnet user-secrets set "CasCap:GooglePhotosOptions:User" "local-user" --project .\samples\CasCap.Api.GooglePhotos.GenericHost.SampleApp
+dotnet user-secrets set "CasCap:GooglePhotosOptions:ClientId" "your-client-id" --project .\samples\CasCap.Api.GooglePhotos.GenericHost.SampleApp
+dotnet user-secrets set "CasCap:GooglePhotosOptions:ClientSecret" "your-client-secret" --project .\samples\CasCap.Api.GooglePhotos.GenericHost.SampleApp
+dotnet user-secrets set "Sample:MediaPath" "C:\media\photo.jpg" --project .\samples\CasCap.Api.GooglePhotos.GenericHost.SampleApp
 ```
 
 `User` is a local cache key and need not be an email address. Replace the placeholders privately;
@@ -40,7 +40,7 @@ Secrets store, so changing credentials for either affects both.
 ## Run
 
 ```powershell
-dotnet run --project .\samples\GenericHost --configuration Release
+dotnet run --project .\samples\CasCap.Api.GooglePhotos.GenericHost.SampleApp --configuration Release
 ```
 
 Initial authentication opens a browser. The worker creates remote media and an album and does not
@@ -54,5 +54,5 @@ nonzero exit code on failure.
 [GooglePhotosWorker](Services/GooglePhotosWorker.cs) reads the media path, authenticates, finds or
 creates the album, uploads and reads the paged album contents.
 
-See the [direct ConsoleApp sample](../ConsoleApp/README.md) for explicit HTTP construction and the
+See the [direct console SampleApp](../CasCap.Api.GooglePhotos.Console.SampleApp/README.md) for explicit HTTP construction and the
 [root README](../../README.md) for Google's API access limits.

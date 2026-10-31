@@ -63,7 +63,7 @@ Local integration calls use `LoginAsync` and may open a browser. When `TF_BUILD`
 is present, integration authentication instead requires a secret-backed
 `GOOGLE_PHOTOS_ACCESS_TOKEN`; that supplied token is not refreshed by the client.
 
-The GenericHost sample and test project currently share a User Secrets store. Setting credentials
+The Generic Host SampleApp and test project currently share a User Secrets store. Setting credentials
 through either project changes the values seen by both; do not assume the sample and tests use
 different accounts. Keep cached OAuth grants and credentials out of source control and test output.
 
