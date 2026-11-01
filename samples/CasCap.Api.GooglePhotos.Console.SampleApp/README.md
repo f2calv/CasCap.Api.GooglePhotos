@@ -1,10 +1,10 @@
-# ConsoleApp
+# CasCap.Api.GooglePhotos.Console.SampleApp
 
 A .NET 10 console sample that constructs `GooglePhotosService`, HTTP handlers, logging and options
 directly. It creates an album, uploads one media file and lists that album's contents.
 
 Because it bypasses `AddGooglePhotos`, it also bypasses the resilience pipeline and optional write
-rate limiter. See the [GenericHost sample](../GenericHost/README.md) for the dependency-injection path.
+rate limiter. See the [Generic Host SampleApp](../CasCap.Api.GooglePhotos.GenericHost.SampleApp/README.md) for the dependency-injection path.
 
 ## Prerequisites
 
@@ -34,7 +34,7 @@ OAuth values privately. Leave tracked launch-profile credential placeholders emp
 From the repository root, pass exactly one existing media-file path:
 
 ```powershell
-dotnet run --project .\samples\ConsoleApp --configuration Release --no-launch-profile -- "C:\media\photo.jpg"
+dotnet run --project .\samples\CasCap.Api.GooglePhotos.Console.SampleApp --configuration Release --no-launch-profile -- "C:\media\photo.jpg"
 ```
 
 `--no-launch-profile` is important: the checked-in launch profile contains blank environment-variable

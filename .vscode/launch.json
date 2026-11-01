@@ -6,7 +6,7 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
-      "program": "${workspaceFolder}/samples/ConsoleApp/bin/Release/net10.0/ConsoleApp.dll",
+      "program": "${workspaceFolder}/samples/CasCap.Api.GooglePhotos.Console.SampleApp/bin/Debug/net10.0/CasCap.Api.GooglePhotos.Console.SampleApp.dll",
       "args": ["${input:mediaPath}"],
       "cwd": "${workspaceFolder}",
       "console": "integratedTerminal",

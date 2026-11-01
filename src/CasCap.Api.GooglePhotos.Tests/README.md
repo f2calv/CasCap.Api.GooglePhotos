@@ -45,9 +45,13 @@ requires an adjacent [CasCap.Common checkout](https://github.com/f2calv/CasCap.C
 
 Integration configuration loads, in order:
 
-1. Required `appsettings.Test.json`.
-2. The test project's .NET User Secrets.
-3. Environment variables.
+1. Required `appsettings.json` and optional `appsettings.Test.json`.
+2. Optional `appsettings.Local.json`, `appsettings.Local.Test.json` and `appsettings.Tests.Local.json`.
+3. The test project's .NET User Secrets.
+4. Environment variables.
+
+The shared configuration loader selects the `Test` environment; the Test file may be absent when
+another provider supplies the required values.
 
 Configure `CasCap:GooglePhotosOptions:User`, `ClientId` and `ClientSecret` privately. The tracked
 configuration requests all four supported Photos scopes. Enable both Google Photos APIs and
@@ -59,7 +63,7 @@ Local integration calls use `LoginAsync` and may open a browser. When `TF_BUILD`
 is present, integration authentication instead requires a secret-backed
 `GOOGLE_PHOTOS_ACCESS_TOKEN`; that supplied token is not refreshed by the client.
 
-The GenericHost sample and test project currently share a User Secrets store. Setting credentials
+The Generic Host SampleApp and test project currently share a User Secrets store. Setting credentials
 through either project changes the values seen by both; do not assume the sample and tests use
 different accounts. Keep cached OAuth grants and credentials out of source control and test output.
 

@@ -12,8 +12,8 @@ CasCap.Api.GooglePhotos is an unofficial .NET 10 client for the Google Photos Li
 | Documentation | Purpose | Published package |
 | --- | --- | --- |
 | [CasCap.Api.GooglePhotos](src/CasCap.Api.GooglePhotos/README.md) | Library and Picker clients, OAuth and validated options | [![NuGet version][CasCap.Api.GooglePhotos-badge]][CasCap.Api.GooglePhotos-url] |
-| [ConsoleApp](samples/ConsoleApp/README.md) | Direct construction without DI or resilience handlers | Not packaged |
-| [GenericHost](samples/GenericHost/README.md) | Configuration, dependency injection and a one-shot upload worker | Not packaged |
+| [CasCap.Api.GooglePhotos.Console.SampleApp](samples/CasCap.Api.GooglePhotos.Console.SampleApp/README.md) | Direct construction without DI or resilience handlers | Not packaged |
+| [CasCap.Api.GooglePhotos.GenericHost.SampleApp](samples/CasCap.Api.GooglePhotos.GenericHost.SampleApp/README.md) | Configuration, dependency injection and a one-shot upload worker | Not packaged |
 | [CasCap.Api.GooglePhotos.Tests](src/CasCap.Api.GooglePhotos.Tests/README.md) | Offline unit tests and credentialed integration tests | Not packaged |
 
 Samples and integration tests can create albums and upload media. Review their prerequisites and

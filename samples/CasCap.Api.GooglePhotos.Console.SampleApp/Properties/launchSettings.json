@@ -1,6 +1,6 @@
 {
   "profiles": {
-    "ConsoleApp": {
+    "CasCap.Api.GooglePhotos.Console.SampleApp": {
       "commandName": "Project",
       "commandLineArgs": "\"C:\\\\media\\\\photo.jpg\"",
       "environmentVariables": {

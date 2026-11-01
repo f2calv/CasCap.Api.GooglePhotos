@@ -1,6 +1,6 @@
 {
   "profiles": {
-    "GenericHost": {
+    "CasCap.Api.GooglePhotos.GenericHost.SampleApp": {
       "commandName": "Project",
       "environmentVariables": {
         "DOTNET_ENVIRONMENT": "Development"

@@ -1,7 +1,7 @@
 ﻿//This sample shows the typical registration: configuration, logging and dependency injection are all
 //provided by the generic host, and AddGooglePhotos wires up both clients, their HttpClient configuration,
 //the resilience pipeline and the optional write rate limiter.
-//See the ConsoleApp sample for the same flow built by hand.
+//See the console SampleApp for the same flow built by hand.
 
 var builder = Host.CreateApplicationBuilder(args);
 

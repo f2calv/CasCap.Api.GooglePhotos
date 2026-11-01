@@ -9,8 +9,8 @@
     <Project Path="../CasCap.Common/src/CasCap.Common.Testing/CasCap.Common.Testing.csproj" />
   </Folder>
   <Folder Name="/CasCap.Api.GooglePhotos/Samples/">
-    <Project Path="samples/ConsoleApp/ConsoleApp.csproj" />
-    <Project Path="samples/GenericHost/GenericHost.csproj" />
+    <Project Path="samples/CasCap.Api.GooglePhotos.Console.SampleApp/CasCap.Api.GooglePhotos.Console.SampleApp.csproj" />
+    <Project Path="samples/CasCap.Api.GooglePhotos.GenericHost.SampleApp/CasCap.Api.GooglePhotos.GenericHost.SampleApp.csproj" />
   </Folder>
   <Folder Name="/CasCap.Api.GooglePhotos/">
     <Project Path="src/CasCap.Api.GooglePhotos.Tests/CasCap.Api.GooglePhotos.Tests.csproj" />

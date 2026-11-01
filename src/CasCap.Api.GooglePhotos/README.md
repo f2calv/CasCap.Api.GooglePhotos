@@ -205,6 +205,6 @@ and [Google's media access guide](https://developers.google.com/photos/picker/gu
 
 - [Google Cloud setup and API-specific scopes](https://github.com/f2calv/CasCap.Api.GooglePhotos#quick-start)
 - [Breaking changes when migrating to v4](https://github.com/f2calv/CasCap.Api.GooglePhotos#migrating-to-v4)
-- [Generic Host sample](https://github.com/f2calv/CasCap.Api.GooglePhotos/blob/main/samples/GenericHost/README.md)
-- [Direct construction sample](https://github.com/f2calv/CasCap.Api.GooglePhotos/blob/main/samples/ConsoleApp/README.md)
+- [Generic Host SampleApp](https://github.com/f2calv/CasCap.Api.GooglePhotos/blob/main/samples/CasCap.Api.GooglePhotos.GenericHost.SampleApp/README.md)
+- [Direct construction SampleApp](https://github.com/f2calv/CasCap.Api.GooglePhotos/blob/main/samples/CasCap.Api.GooglePhotos.Console.SampleApp/README.md)
 - [MIT License](https://github.com/f2calv/CasCap.Api.GooglePhotos/blob/main/LICENSE)
