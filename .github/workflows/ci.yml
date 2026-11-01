@@ -20,50 +20,19 @@ concurrency:
 permissions: {}
 
 jobs:
-  lint:
-    permissions:
-      contents: read #checkout
-    uses: f2calv/gha-workflows/.github/workflows/lint.yml@v1
-
-  versioning:
-    permissions:
-      contents: read #checkout and release lookup
-    uses: f2calv/gha-workflows/.github/workflows/gha-release-versioning.yml@v1
-    with:
-      tag-prefix: ''
-      tag-and-release: false
-
-  build:
-    runs-on: ubuntu-24.04
-    needs: [versioning]
-    #Note: a permissions block is subtractive - every scope not listed resets to none.
-    #The composite action cannot request these itself, so they must be declared here.
-    permissions:
-      id-token: write #OIDC token for NuGet Trusted Publishing
-      contents: read #checkout
-      packages: write #push to nuget.pkg.github.com
-    steps:
-      - uses: f2calv/gha-dotnet-nuget@v2
-        with:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          #The nuget.org username matches the GitHub owner. If they ever diverge this must
-          #become a literal, or the token exchange fails with an opaque 401.
-          nuget-user: ${{ github.repository_owner }}
-          configuration: Release
-          push-preview: ${{ inputs.push-preview }}
-          version: ${{ needs.versioning.outputs.version }}
-          solution-name: CasCap.Api.GooglePhotos.Release.slnx
-          #Integration tests require interactive OAuth or a short-lived user token, the rest are credential-free.
-          dotnet-test-args: --filter-not-trait Category=Integration
-
-  release:
-    needs: [lint, versioning, build]
-    if: needs.versioning.outputs.release-exists == 'false'
-      && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
-    uses: f2calv/gha-workflows/.github/workflows/gha-release-versioning.yml@v1
+  #Lint, versioning, build/test/pack/push and release in one shared workflow; grant the union of its permissions.
+  ci:
+    uses: f2calv/gha-workflows/.github/workflows/dotnet-nuget-library.yml@v1
     permissions:
       contents: write
+      id-token: write #OIDC token for NuGet Trusted Publishing
+      packages: write #push to nuget.pkg.github.com
     with:
-      semVer: ${{ format('{0}.{1}.{2}', needs.versioning.outputs.major, needs.versioning.outputs.minor, needs.versioning.outputs.patch) }}
-      tag-prefix: ''
-      move-major-tag: false
+      solution-name: CasCap.Api.GooglePhotos.Release.slnx
+      #The nuget.org username matches the GitHub owner. If they ever diverge this must
+      #become a literal, or the token exchange fails with an opaque 401.
+      nuget-user: ${{ github.repository_owner }}
+      #Dispatch-only input: other events must not forward its empty value.
+      push-preview: ${{ github.event_name == 'workflow_dispatch' && inputs.push-preview }}
+      #Integration tests require interactive OAuth or a short-lived user token, the rest are credential-free.
+      dotnet-test-args: '["--filter-not-trait", "Category=Integration"]'
