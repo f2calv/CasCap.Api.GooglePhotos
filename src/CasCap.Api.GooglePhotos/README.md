@@ -170,6 +170,12 @@ the handler pipeline, not Google's authoritative quota, and are not coordinated 
 containers or application instances. Reads,
 including the read-only Library search POST, and Picker requests bypass it.
 
+Logging never includes page tokens, media item or album identifiers, filenames, titles or media
+metadata. Page requests log only their base path and page size at Debug, and access-token refreshes
+and individual failed upload requests log at Debug because the outcome is retried or surfaces as a
+`GooglePhotosException`. `GetMediaItemsByIdsAsync` logs each unavailable item's status at Debug and
+one Warning per call with the unavailable and requested counts.
+
 ## Picker Usage
 
 Request `PickerMediaItemsReadOnly` and resolve `GooglePhotosPickerService` from the same container.
