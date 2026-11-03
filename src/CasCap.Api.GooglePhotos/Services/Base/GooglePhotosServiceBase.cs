@@ -187,7 +187,8 @@ public abstract partial class GooglePhotosServiceBase(
         if (!string.IsNullOrWhiteSpace(pageToken))
             queryParams[nameof(pageToken)] = pageToken;
         var url = QueryHelpers.AddQueryString(uri, queryParams);
-        LogRequestUrl(_logger, nameof(GooglePhotosServiceBase), nameof(GetUrl), url);
+        //The page token is an opaque continuation credential, so only the base path and page size are logged.
+        LogRequestPage(_logger, nameof(GooglePhotosServiceBase), nameof(GetUrl), uri, pageSize);
         return url;
     }
 
@@ -406,6 +407,7 @@ public abstract partial class GooglePhotosServiceBase(
     public async IAsyncEnumerable<MediaItem> GetMediaItemsByIdsAsync(List<string> mediaItemIds, [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         var hs = new HashSet<string>();
+        var unavailableCount = 0;
         var batches = mediaItemIds.GetBatches(defaultBatchSizeMediaItems);
         foreach (var batch in batches)
         {
@@ -434,17 +436,22 @@ public abstract partial class GooglePhotosServiceBase(
                         }
                     }
                     else
+                    {
+                        unavailableCount++;
                         LogMediaItemStatus(
                             _logger,
                             nameof(GooglePhotosServiceBase),
                             nameof(GetMediaItemsByIdsAsync),
                             result.Status.Code,
-                            result.Status.StatusName);//we highlight if any objects returned a non-null status object
+                            result.Status.StatusName);
+                    }
                 }
                 if (batch.Key + 1 != batches.Count)
                     RaisePagingEvent(new PagingEventArgs(tpl.result.MediaItemResults.Count, batch.Key + 1, hs.Count));
             }
         }
+        if (unavailableCount > 0)
+            LogMediaItemsUnavailable(_logger, nameof(GooglePhotosServiceBase), nameof(GetMediaItemsByIdsAsync), unavailableCount, mediaItemIds.Count);
     }
 
     /// <summary>Streams media items created within an inclusive date range.</summary>
@@ -988,21 +995,24 @@ public abstract partial class GooglePhotosServiceBase(
         return albumPosition;
     }
 
-    [LoggerMessage(EventId = 1, Level = LogLevel.Debug, Message = "{ClassName} {MethodName}, {Url}")]
-    private static partial void LogRequestUrl(ILogger logger, string className, string methodName, string url);
+    [LoggerMessage(EventId = 1, Level = LogLevel.Debug, Message = "{ClassName} {MethodName}, RequestUri={RequestUri}, PageSize={PageSize}")]
+    private static partial void LogRequestPage(ILogger logger, string className, string methodName, string requestUri, int pageSize);
 
-    [LoggerMessage(EventId = 2, Level = LogLevel.Warning, Message = "{ClassName} {MethodName}, StatusCode={StatusCode}, StatusName={StatusName}")]
+    [LoggerMessage(EventId = 2, Level = LogLevel.Debug, Message = "{ClassName} {MethodName}, StatusCode={StatusCode}, StatusName={StatusName}")]
     private static partial void LogMediaItemStatus(ILogger logger, string className, string methodName, int statusCode, string? statusName);
+
+    [LoggerMessage(EventId = 7, Level = LogLevel.Warning, Message = "{ClassName} {MethodName}, UnavailableCount={UnavailableCount} of RequestedCount={RequestedCount} media items returned a status instead of an item")]
+    private static partial void LogMediaItemsUnavailable(ILogger logger, string className, string methodName, int unavailableCount, int requestedCount);
 
     [LoggerMessage(EventId = 3, Level = LogLevel.Debug, Message = "{ClassName} {FilterName} element empty so removed from outgoing request")]
     private static partial void LogEmptyFilterRemoved(ILogger logger, string className, string filterName);
 
-    [LoggerMessage(EventId = 4, Level = LogLevel.Error, Message = "{ClassName} {MethodName}, upload failed")]
+    [LoggerMessage(EventId = 4, Level = LogLevel.Error, Message = "{ClassName} {MethodName}, media item creation returned no result")]
     private static partial void LogMediaItemCreationFailed(ILogger logger, string className, string methodName);
 
     [LoggerMessage(EventId = 5, Level = LogLevel.Trace, Message = "{ClassName} {MethodName}, Status={Status}")]
     private static partial void LogUploadStatus(ILogger logger, string className, string methodName, string? status);
 
-    [LoggerMessage(EventId = 6, Level = LogLevel.Error, Message = "{ClassName} upload failed with StatusCode={StatusCode}")]
+    [LoggerMessage(EventId = 6, Level = LogLevel.Debug, Message = "{ClassName} upload request failed with StatusCode={StatusCode}")]
     private static partial void LogUploadFailed(ILogger logger, string className, HttpStatusCode statusCode);
 }
