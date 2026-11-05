@@ -273,6 +273,23 @@ sequenceDiagram
 | `MimeTypeMapOfficial`                  | Upload MIME-type detection                        |
 | `CasCap.Common.Net`                    | Shared HTTP and serialization infrastructure      |
 
+See the [package dependency graph](src/CasCap.Api.GooglePhotos/README.md#dependency-graph) for all
+direct runtime references.
+
+## Development
+
+With the .NET 10 SDK, validate the published dependency path from the repository root:
+
+```powershell
+dotnet build .\CasCap.Api.GooglePhotos.Release.slnx --configuration Release
+dotnet test --project .\src\CasCap.Api.GooglePhotos.Tests\CasCap.Api.GooglePhotos.Tests.csproj --configuration Release --filter-not-trait Category=Integration
+```
+
+Debug builds use an adjacent [CasCap.Common checkout](https://github.com/f2calv/CasCap.Common).
+Restore with the intended configuration so Release consumes NuGet packages rather than Debug
+project-reference assets. See the [test prerequisites](src/CasCap.Api.GooglePhotos.Tests/README.md)
+before running credentialed cases; they can create or change remote content.
+
 ## Resources
 
 * [Google Photos API overview](https://developers.google.com/photos/overview/about)

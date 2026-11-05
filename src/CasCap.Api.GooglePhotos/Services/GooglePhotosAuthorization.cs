@@ -89,7 +89,7 @@ internal static partial class GooglePhotosAuthorization
     [LoggerMessage(EventId = 1, Level = LogLevel.Debug, Message = "{ClassName} requesting authorization")]
     private static partial void LogRequestingAuthorization(ILogger logger, string className);
 
-    [LoggerMessage(EventId = 2, Level = LogLevel.Warning, Message = "{ClassName} access token expired; refreshing it")]
+    [LoggerMessage(EventId = 2, Level = LogLevel.Debug, Message = "{ClassName} access token expired; refreshing it")]
     private static partial void LogRefreshingAccessToken(ILogger logger, string className);
 
     [LoggerMessage(EventId = 3, Level = LogLevel.Error, Message = "{ClassName} failed to refresh the access token")]

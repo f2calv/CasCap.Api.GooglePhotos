@@ -170,6 +170,12 @@ the handler pipeline, not Google's authoritative quota, and are not coordinated 
 containers or application instances. Reads,
 including the read-only Library search POST, and Picker requests bypass it.
 
+Logging never includes page tokens, media item or album identifiers, filenames, titles or media
+metadata. Page requests log only their base path and page size at Debug, and access-token refreshes
+and individual failed upload requests log at Debug because the outcome is retried or surfaces as a
+`GooglePhotosException`. `GetMediaItemsByIdsAsync` logs each unavailable item's status at Debug and
+one Warning with the unavailable and requested counts when enumeration completes.
+
 ## Picker Usage
 
 Request `PickerMediaItemsReadOnly` and resolve `GooglePhotosPickerService` from the same container.
@@ -188,7 +194,28 @@ width and height between 1 and 16383 and can request EXIF metadata.
 See the [Picker walkthrough and interaction diagram](https://github.com/f2calv/CasCap.Api.GooglePhotos#picker-api)
 and [Google's media access guide](https://developers.google.com/photos/picker/guides/media-items).
 
-## Dependencies
+## Dependency Graph
+
+Arrows show direct runtime package references. Samples and tests have additional dependencies;
+the shared HTTP package supplies transitive serialization infrastructure.
+
+```mermaid
+graph LR
+    photos["CasCap.Api.GooglePhotos"] --> auth["Google.Apis.Auth"]
+    photos --> web["Microsoft.AspNetCore.WebUtilities"]
+    photos --> resilience["Microsoft.Extensions.Http.Resilience"]
+    photos --> binding["Microsoft.Extensions.Options.ConfigurationExtensions"]
+    photos --> validation["Microsoft.Extensions.Options.DataAnnotations"]
+    photos --> mime["MimeTypeMapOfficial"]
+    photos --> limiting["System.Threading.RateLimiting"]
+    photos --> net["CasCap.Common.Net"]
+    classDef owned fill:#dbeafe,stroke:#1d4ed8,color:#1e3a8a
+    classDef published fill:#dcfce7,stroke:#15803d,color:#14532d
+    class photos owned
+    class auth,web,resilience,binding,validation,mime,limiting,net published
+```
+
+The blue node is this package; green nodes are external packages.
 
 | Package | Purpose |
 | --- | --- |
