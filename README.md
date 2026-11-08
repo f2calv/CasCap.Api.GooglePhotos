@@ -1,6 +1,6 @@
 # CasCap.Api.GooglePhotos
 
-CasCap.Api.GooglePhotos is an unofficial .NET 11 client for the Google Photos Library API and Picker API.
+CasCap.Api.GooglePhotos is an unofficial .NET 10/11 client for the Google Photos Library API and Picker API.
 
 [CasCap.Api.GooglePhotos-badge]: https://img.shields.io/nuget/v/CasCap.Api.GooglePhotos?color=blue
 [CasCap.Api.GooglePhotos-url]: https://nuget.org/packages/CasCap.Api.GooglePhotos
@@ -39,7 +39,7 @@ The [`googlephotos` CLI](https://github.com/f2calv/CasCap.GooglePhotosCli) built
 
 Version 4 is a breaking release:
 
-* The library targets .NET 11 only.
+* The library and its tests target .NET 10 and .NET 11.
 * Public DTO properties and enum members use PascalCase while preserving Google's JSON wire names.
 * Removed Google sharing APIs and scopes are no longer exposed. `ShareInfo`, `SharedAlbumOptions` and `ContributorInfo`, along with `Album.ShareInfo` and `MediaItem.ContributorInfo`, are gone because no remaining scope can populate them.
 * Library API operations now apply only to content created by the configured OAuth client.
@@ -278,7 +278,7 @@ direct runtime references.
 
 ## Development
 
-With the pinned .NET 11 RC3 SDK, validate the published dependency path from the repository root:
+With the pinned .NET 11 SDK, validate the published dependency path from the repository root:
 
 ```powershell
 dotnet build .\CasCap.Api.GooglePhotos.Release.slnx --configuration Release

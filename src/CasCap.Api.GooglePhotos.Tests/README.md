@@ -1,7 +1,7 @@
 # CasCap.Api.GooglePhotos.Tests
 
 xUnit v3 tests for the Google Photos Library and Picker clients, using Microsoft.Testing.Platform
-on .NET 11. Unit tests use fake HTTP responses; integration tests require a Google account and can
+on .NET 10 and .NET 11. Unit tests use fake HTTP responses; integration tests require a Google account and can
 create albums, upload media and change album contents.
 
 ## Tests
@@ -40,7 +40,7 @@ Other integration tests are not automatically skipped for missing credentials. E
 
 ## Prerequisites and Authentication
 
-Use the pinned .NET 11 RC3 SDK. Release configuration consumes published dependencies; Debug additionally
+Use the pinned .NET 11 SDK. Release configuration consumes published dependencies; Debug additionally
 requires an adjacent [CasCap.Common checkout](https://github.com/f2calv/CasCap.Common).
 
 Integration configuration loads, in order:
