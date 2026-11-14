@@ -1,6 +1,6 @@
 # CasCap.Api.GooglePhotos
 
-An unofficial .NET 10 client for the Google Photos Library API and Picker API. It provides typed
+An unofficial .NET 10/11 client for the Google Photos Library API and Picker API. It provides typed
 models, OAuth authentication, paging, streaming uploads and optional client-side write rate limiting.
 
 [![NuGet](https://img.shields.io/nuget/v/CasCap.Api.GooglePhotos?color=blue)](https://nuget.org/packages/CasCap.Api.GooglePhotos)
@@ -16,7 +16,7 @@ Verified against [Google's API update](https://developers.google.com/photos/supp
 
 ## Installation
 
-Targets `net10.0` only.
+Targets `net10.0` and `net11.0`.
 
 ```powershell
 dotnet package add CasCap.Api.GooglePhotos

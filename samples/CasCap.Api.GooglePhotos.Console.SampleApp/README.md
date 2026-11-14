@@ -1,6 +1,6 @@
 # CasCap.Api.GooglePhotos.Console.SampleApp
 
-A .NET 10 console sample that constructs `GooglePhotosService`, HTTP handlers, logging and options
+A .NET 11 console sample that constructs `GooglePhotosService`, HTTP handlers, logging and options
 directly. It creates an album, uploads one media file and lists that album's contents.
 
 Because it bypasses `AddGooglePhotos`, it also bypasses the resilience pipeline and optional write
@@ -8,7 +8,7 @@ rate limiter. See the [Generic Host SampleApp](../CasCap.Api.GooglePhotos.Generi
 
 ## Prerequisites
 
-Use a stable .NET 10 SDK and enable the Google Photos Library API with a Desktop OAuth client.
+Use a stable .NET 11 SDK and enable the Google Photos Library API with a Desktop OAuth client.
 Follow the [Google Cloud setup guide](../../README.md#quick-start), including consent and test-user
 requirements. The sample requests `AppendOnly`, `ReadOnlyAppCreatedData` and `EditAppCreatedData`.
 It can read only content created by its OAuth client, not the user's whole library.

@@ -2,8 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net10.0</TargetFramework>
-    <UserSecretsId>bf9d717e-ecd3-40e4-850d-14010c167289</UserSecretsId>
+    <TargetFramework>net11.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>

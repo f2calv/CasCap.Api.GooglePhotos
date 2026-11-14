@@ -1,12 +1,12 @@
 # CasCap.Api.GooglePhotos.GenericHost.SampleApp
 
-A .NET 10 Google Photos sample using `Host.CreateApplicationBuilder`, `AddGooglePhotos`, validated
+A .NET 11 Google Photos sample using `Host.CreateApplicationBuilder`, `AddGooglePhotos`, validated
 options, dependency injection and a one-shot `BackgroundService`. It creates an album, uploads one
 configured file, counts the album's items and stops the host.
 
 ## Prerequisites
 
-Use a stable .NET 10 SDK and enable the Google Photos Library API with a Desktop OAuth client.
+Use a stable .NET 11 SDK and enable the Google Photos Library API with a Desktop OAuth client.
 Complete the [Google Cloud setup](../../README.md#quick-start). The sample requests `AppendOnly` and
 `ReadOnlyAppCreatedData`, so it can read back content created by its own OAuth client, not the entire
 Google Photos library.
