@@ -278,7 +278,7 @@ direct runtime references.
 
 ## Development
 
-With the pinned .NET 11 SDK, validate the published dependency path from the repository root:
+With a stable .NET 11 SDK, validate the published dependency path from the repository root:
 
 ```powershell
 dotnet build .\CasCap.Api.GooglePhotos.Release.slnx --configuration Release

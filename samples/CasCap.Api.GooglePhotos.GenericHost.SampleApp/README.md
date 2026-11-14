@@ -6,7 +6,7 @@ configured file, counts the album's items and stops the host.
 
 ## Prerequisites
 
-Use the pinned .NET 11 SDK and enable the Google Photos Library API with a Desktop OAuth client.
+Use a stable .NET 11 SDK and enable the Google Photos Library API with a Desktop OAuth client.
 Complete the [Google Cloud setup](../../README.md#quick-start). The sample requests `AppendOnly` and
 `ReadOnlyAppCreatedData`, so it can read back content created by its own OAuth client, not the entire
 Google Photos library.

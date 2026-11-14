@@ -40,7 +40,7 @@ Other integration tests are not automatically skipped for missing credentials. E
 
 ## Prerequisites and Authentication
 
-Use the pinned .NET 11 SDK. Release configuration consumes published dependencies; Debug additionally
+Use a stable .NET 11 SDK. Release configuration consumes published dependencies; Debug additionally
 requires an adjacent [CasCap.Common checkout](https://github.com/f2calv/CasCap.Common).
 
 Integration configuration loads, in order:

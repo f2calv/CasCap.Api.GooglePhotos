@@ -8,7 +8,7 @@ rate limiter. See the [Generic Host SampleApp](../CasCap.Api.GooglePhotos.Generi
 
 ## Prerequisites
 
-Use the pinned .NET 11 SDK and enable the Google Photos Library API with a Desktop OAuth client.
+Use a stable .NET 11 SDK and enable the Google Photos Library API with a Desktop OAuth client.
 Follow the [Google Cloud setup guide](../../README.md#quick-start), including consent and test-user
 requirements. The sample requests `AppendOnly`, `ReadOnlyAppCreatedData` and `EditAppCreatedData`.
 It can read only content created by its OAuth client, not the user's whole library.
