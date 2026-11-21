@@ -282,7 +282,7 @@ With a stable .NET 11 SDK, validate the published dependency path from the repos
 
 ```powershell
 dotnet build .\CasCap.Api.GooglePhotos.Release.slnx --configuration Release
-dotnet test --project .\src\CasCap.Api.GooglePhotos.Tests\CasCap.Api.GooglePhotos.Tests.csproj --configuration Release --filter-not-trait Category=Integration
+dotnet test --project .\src\CasCap.Api.GooglePhotos.Tests\CasCap.Api.GooglePhotos.Tests.csproj --configuration Release --filter-not-trait Category=Live
 ```
 
 Debug builds use an adjacent [CasCap.Common checkout](https://github.com/f2calv/CasCap.Common).

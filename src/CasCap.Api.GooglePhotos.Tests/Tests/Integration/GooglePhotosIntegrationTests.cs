@@ -7,6 +7,7 @@ namespace CasCap.Tests;
 /// Exercises Google Photos operations against the configured test account.
 /// </summary>
 [Trait("Category", "Integration")]
+[Trait("Category", "Live")]
 public sealed class GooglePhotosIntegrationTests(ITestOutputHelper output) : TestBase(output)
 {
     [SkipIfCIBuildFact]

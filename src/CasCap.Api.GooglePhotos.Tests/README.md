@@ -35,8 +35,8 @@ test HTTP fakes. These inventories do not establish live API availability or gra
 | `DoLogin` / `SkipIfCIBuildFact` | 1 method / 1 case | Conditional CI-build skip for browser-based local authentication |
 | Unconditional skips | 0 | None declared |
 
-Other integration tests are not automatically skipped for missing credentials. Excluding
-`Category=Integration` is a selection filter, not a declared skip.
+Live tests skip before loading configuration unless `GOOGLE_PHOTOS_RUN_LIVE_TESTS=true`.
+Set it only for an approved test account with the required credentials.
 
 ## Prerequisites and Authentication
 
@@ -72,7 +72,7 @@ different accounts. Keep cached OAuth grants and credentials out of source contr
 Run only after explicit approval. From the repository root, the credential-free selection is:
 
 ```powershell
-dotnet test --project .\src\CasCap.Api.GooglePhotos.Tests\CasCap.Api.GooglePhotos.Tests.csproj --configuration Release --filter-not-trait Category=Integration
+dotnet test --project .\src\CasCap.Api.GooglePhotos.Tests\CasCap.Api.GooglePhotos.Tests.csproj --configuration Release --filter-not-trait Category=Live
 ```
 
 Remove the filter only for an explicitly approved integration run with the prerequisites above.

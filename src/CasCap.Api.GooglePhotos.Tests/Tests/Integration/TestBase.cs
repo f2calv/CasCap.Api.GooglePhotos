@@ -23,6 +23,9 @@ public abstract class TestBase(ITestOutputHelper output) : IDisposable
         GooglePhotosPickerService PickerService,
         GooglePhotosService GooglePhotosService) CreateTestServices(ITestOutputHelper output)
     {
+        Assert.SkipUnless(Environment.GetEnvironmentVariable("GOOGLE_PHOTOS_RUN_LIVE_TESTS") == "true",
+            "Set GOOGLE_PHOTOS_RUN_LIVE_TESTS=true to run against a live Google Photos account.");
+
         var configuration = new ConfigurationManager();
         configuration.AddStandardConfiguration("Test", typeof(TestBase).Assembly);
 

@@ -54,7 +54,7 @@ jobs:
           version: ${{ needs.versioning.outputs.version }}
           solution-name: CasCap.Api.GooglePhotos.Release.slnx
           #Integration tests require interactive OAuth or a short-lived user token, the rest are credential-free.
-          dotnet-test-args: --filter-not-trait Category=Integration
+          dotnet-test-args: --filter-not-trait Category=Live
 
   release:
     needs: [lint, versioning, build]
