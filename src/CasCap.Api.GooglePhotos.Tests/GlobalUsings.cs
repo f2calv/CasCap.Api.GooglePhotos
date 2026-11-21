@@ -1,4 +1,5 @@
 ﻿global using CasCap.Common.Extensions;
+global using CasCap.Common.Logging;
 global using CasCap.Common.Xunit;
 global using CasCap.Exceptions;
 global using CasCap.Messages;
